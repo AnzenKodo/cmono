@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Scuttle Build",
+            "request": "launch",
+            "program": "./build/Scuttle",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "type": "cppdbg",
+            "preLaunchTask": "Scuttle build"
+        },
+        {
+            "name": "Build file",
+            "request": "launch",
+            "program": "./a.out",
+            "cwd": "${workspaceFolder}",
+            "type": "cppdbg",
+            "preLaunchTask": "Build file" 
+        }
+    ]
+}
