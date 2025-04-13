@@ -10,7 +10,7 @@
 
 #define PROJECT_NAME    "Scuttle"
 #define PROJECT_VERSION "0.1"
-#define BUILD_MAIN_FILE "main.cpp"
+#define BUILD_MAIN_FILE "main.c"
 #define BUILD_DIR       "build"
 
 const char *help_message = "build.c: A C file that build's C projects.\n"
@@ -28,14 +28,15 @@ char cmd[100] = "";
 fn void build_cmd_append(char *cmd, char *src);
 fn void build_cmd_finish(char *cmd);
 fn void build_cmd_run(char *cmd);
-fn Bool build_is_cpp_file(Str8 filename);
+fn bool build_is_cpp_file(Str8 filename);
 
 fn void build_compile_cc(char *cmd) {
-    build_cmd_append(cmd, "cc "BUILD_MAIN_FILE);
+    build_cmd_append(cmd, "tcc "BUILD_MAIN_FILE);
     build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
     build_cmd_append(cmd, " -ggdb -g3");                     // Debug
     build_cmd_append(cmd, " -Wall -Wextra");                 // Warnings
-    build_cmd_append(cmd, " -lX11 -lGL -lXrandr -lm");                    // Libs
+    build_cmd_append(cmd, " -lX11 -lXrandr -lm");       // Libs
+    build_cmd_append(cmd, " -DBUILD_DEBUG");                 // Define
 }
 
 fn void build_compile_mingw(char *cmd) {
@@ -136,7 +137,7 @@ int main(int argc, char *argv[])
 }
 
 
-fn Bool build_is_cpp_file(Str8 filename)
+fn bool build_is_cpp_file(Str8 filename)
 {
     return str8_ends_with(filename, str8_lit(".cpp"), 0);
 }
