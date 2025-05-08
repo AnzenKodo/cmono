@@ -1,14 +1,20 @@
 // floor function for floats with SSE1 or SSE2
 
-#include <emmintrin.h>
-#include <smmintrin.h>
-
+#include "ccore/external/simde/x86/sse.h"
+#include "ccore/external/simde/x86/sse2.h"
+#include "ccore/external/simde/x86/sse4.1.h"
+#include <string.h>
 #ifdef _MSC_VER
 #include <intrin.h>
+#elif __TINYC__
+static inline unsigned long long __rdtsc(void) {
+    unsigned int lo, hi;
+    __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
+    return ((unsigned long long)hi << 32) | lo;
+}
 #else
-// #define __rdtsc() __builtin_ia32_rdtsc()
+#define __rdtsc() __builtin_ia32_rdtsc()
 #endif
-#include <x86intrin.h>
 
 #if _M_FP_FAST || __FAST_MATH__
 #error Please do not use /fp:fast or -ffast-math
@@ -28,163 +34,163 @@ static float std_floor(float x)
 // full float range, with INFs & NANs
 static float sse_floor(float x)
 {
-    __m128 kSignBit = _mm_set1_ps(-0.f);
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kNoFraction = _mm_set1_ps(8388608.f);
+    simde__m128 kSignBit = simde_mm_set1_ps(-0.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kNoFraction = simde_mm_set1_ps(8388608.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = f;
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = f;
 
     // r = (float)(int)f;
-    r = _mm_add_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
-    r = _mm_add_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
 
     // if (f < r) r -= 1;
-    r = _mm_sub_ss(r, _mm_and_ps(kOne, _mm_cmplt_ss(f, r)));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(kOne, simde_mm_cmplt_ss(f, r)));
 
     // if (!(2**23 > abs(f))) r = f;
-    __m128 m = _mm_cmpgt_ss(kNoFraction, _mm_andnot_ps(kSignBit, f));
-    r = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, f));
+    simde__m128 m = simde_mm_cmpgt_ss(kNoFraction, simde_mm_andnot_ps(kSignBit, f));
+    r = simde_mm_or_ps(simde_mm_and_ps(m, r), simde_mm_andnot_ps(m, f));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only non-negative floats (x >= 0.f)
 static float sse_floor_pos(float x)
 {
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kNoFraction = _mm_set1_ps(8388608.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kNoFraction = simde_mm_set1_ps(8388608.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = f;
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = f;
 
-    r = _mm_add_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
 
-    r = _mm_sub_ss(r, _mm_and_ps(kOne, _mm_cmplt_ss(f, r)));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(kOne, simde_mm_cmplt_ss(f, r)));
 
-    __m128 m = _mm_cmpgt_ss(kNoFraction, f);
-    r = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, f));
+    simde__m128 m = simde_mm_cmpgt_ss(kNoFraction, f);
+    r = simde_mm_or_ps(simde_mm_and_ps(m, r), simde_mm_andnot_ps(m, f));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only non-positive floats (x <= 0.f)
 static float sse_floor_neg(float x)
 {
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kNoFraction = _mm_set1_ps(-8388608.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kNoFraction = simde_mm_set1_ps(-8388608.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = f;
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = f;
 
-    r = _mm_add_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
 
-    r = _mm_sub_ss(r, _mm_and_ps(kOne, _mm_cmplt_ss(f, r)));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(kOne, simde_mm_cmplt_ss(f, r)));
 
-    __m128 m = _mm_cmpgt_ss(f, kNoFraction);
-    r = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, f));
+    simde__m128 m = simde_mm_cmpgt_ss(f, kNoFraction);
+    r = simde_mm_or_ps(simde_mm_and_ps(m, r), simde_mm_andnot_ps(m, f));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only [-8388608 .. +8388608] range
 static float sse_floor_small(float x)
 {
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kNoFraction = _mm_set1_ps(8388608.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kNoFraction = simde_mm_set1_ps(8388608.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = f;
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = f;
 
-    r = _mm_add_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
-    r = _mm_add_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
 
-    r = _mm_sub_ss(r, _mm_and_ps(kOne, _mm_cmplt_ss(f, r)));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(kOne, simde_mm_cmplt_ss(f, r)));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only [0 .. +8388608] range
 static float sse_floor_small_pos(float x)
 {
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kNoFraction = _mm_set1_ps(8388608.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kNoFraction = simde_mm_set1_ps(8388608.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = f;
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = f;
 
-    r = _mm_add_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
 
-    r = _mm_sub_ss(r, _mm_and_ps(kOne, _mm_cmplt_ss(f, r)));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(kOne, simde_mm_cmplt_ss(f, r)));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only [-8388608 .. 0] range
 static float sse_floor_small_neg(float x)
 {
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kNoFraction = _mm_set1_ps(-8388608.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kNoFraction = simde_mm_set1_ps(-8388608.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = f;
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = f;
 
-    r = _mm_add_ss(r, kNoFraction);
-    r = _mm_sub_ss(r, kNoFraction);
+    r = simde_mm_add_ss(r, kNoFraction);
+    r = simde_mm_sub_ss(r, kNoFraction);
 
-    r = _mm_sub_ss(r, _mm_and_ps(kOne, _mm_cmplt_ss(f, r)));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(kOne, simde_mm_cmplt_ss(f, r)));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // full float range, including INFs & NANs
 static float sse2_floor(float x)
 {
-    __m128 kSignBit = _mm_set1_ps(-0.f);
-    __m128 kOne = _mm_set1_ps(1.f);
-    __m128 kMaxValue = _mm_set1_ps(2147483648.f); // this could be 8388608.f
+    simde__m128 kSignBit = simde_mm_set1_ps(-0.f);
+    simde__m128 kOne = simde_mm_set1_ps(1.f);
+    simde__m128 kMaxValue = simde_mm_set1_ps(2147483648.f); // this could be 8388608.f
 
     // r = (float)(int)f;
-    __m128 f = _mm_set_ss(x);
-    __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = simde_mm_cvtepi32_ps(simde_mm_cvttps_epi32(f));
 
     // if (f < r) r -= 1;
-    r = _mm_sub_ss(r, _mm_and_ps(_mm_cmplt_ss(f, r), kOne));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(simde_mm_cmplt_ss(f, r), kOne));
 
     // if (!(2**31 > abs(f))) r = f;
-    __m128 m = _mm_cmpgt_ss(kMaxValue, _mm_andnot_ps(kSignBit, f));
-    r = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, f));
+    simde__m128 m = simde_mm_cmpgt_ss(kMaxValue, simde_mm_andnot_ps(kSignBit, f));
+    r = simde_mm_or_ps(simde_mm_and_ps(m, r), simde_mm_andnot_ps(m, f));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only [-2147483648 .. +2147483648) range, if floor(x) fits into int32_t, then result will be correct
 static float sse2_floor_small(float x)
 {
-    __m128 kOne = _mm_set_ss(1.f);
+    simde__m128 kOne = simde_mm_set_ss(1.f);
 
-    __m128 f = _mm_set_ss(x);
-    __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = simde_mm_cvtepi32_ps(simde_mm_cvttps_epi32(f));
 
-    r = _mm_sub_ss(r, _mm_and_ps(_mm_cmplt_ss(f, r), kOne));
+    r = simde_mm_sub_ss(r, simde_mm_and_ps(simde_mm_cmplt_ss(f, r), kOne));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 // only [0 .. +2147483648) range, same as above, but only for non-negative values
 static float sse2_floor_small_pos(float x)
 {
-    __m128 f = _mm_set_ss(x);
-    __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = simde_mm_cvtepi32_ps(simde_mm_cvttps_epi32(f));
 
-    return _mm_cvtss_f32(r);
+    return simde_mm_cvtss_f32(r);
 }
 
 #if defined(__clang__) || defined(__GNUC__)
@@ -193,9 +199,9 @@ __attribute__((target("sse4.1")))
 // full float range, with INFs & NANs
 static float sse4_floor(float x)
 {
-    __m128 f = _mm_set_ss(x);
-    __m128 r = _mm_floor_ss(f, f);
-    return _mm_cvtss_f32(r);
+    simde__m128 f = simde_mm_set_ss(x);
+    simde__m128 r = simde_mm_floor_ss(f, f);
+    return simde_mm_cvtss_f32(r);
 }
 
 #define CHECK(f, x, expected, func) do \

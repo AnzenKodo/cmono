@@ -1,14 +1,14 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "ccore/base/base_include.h"
-#include "ccore/core_draw.h"
-#include "ccore/platform/platform_include.h"
+#include "base/base_context.h"
+#include "base/base_main.h"
+// #include "ccore/core_draw.h"
+// #include "ccore/platform/platform_include.h"
 
-#include "ccore/base/base_include.c"
-#include "ccore/platform/platform_include.c"
+// #include "ccore/base/base_include.c"
+// #include "ccore/platform/platform_include.c"
 
-#include "ccore/core_img.h"
 // #include "icon.h"
 
 typedef struct Raw_Postion Raw_Postion;
@@ -56,6 +56,9 @@ struct World
     F32 upper_left_y;
     F32 tile_width;
     F32 tile_height;
+
+    F32 tile_side_in_meters;
+    I32 tile_side_in_pixels;
 };
 
 #endif // MAIN_H

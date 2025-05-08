@@ -1,19 +1,18 @@
-#include "ccore/base/base_include.h"
-#include "ccore/platform/platform_include.h"
+#include "base/base_include.h"
+#include "platform/os/os_include.h"
 
-#include "ccore/base/base_include.c"
-#include "ccore/platform/platform_include.c"
+#include "base/base_include.c"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PROJECT_NAME    "Scuttle"
 #define PROJECT_VERSION "0.1"
 #define BUILD_MAIN_FILE "main.c"
 #define BUILD_DIR       "build"
 
-const char *help_message = "build.c: A C file that build's C projects.\n"
+const char *help_message = "build.c: C file that build's C projects.\n"
 "Version: "PROJECT_VERSION"\n"
 "Options:\n"
 "   build                   Build project\n"
@@ -31,12 +30,12 @@ fn void build_cmd_run(char *cmd);
 fn bool build_is_cpp_file(Str8 filename);
 
 fn void build_compile_cc(char *cmd) {
-    build_cmd_append(cmd, "tcc "BUILD_MAIN_FILE);
+    build_cmd_append(cmd, "cc "BUILD_MAIN_FILE);
     build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
     build_cmd_append(cmd, " -ggdb -g3");                     // Debug
     build_cmd_append(cmd, " -Wall -Wextra");                 // Warnings
-    build_cmd_append(cmd, " -lX11 -lXrandr -lm");       // Libs
-    build_cmd_append(cmd, " -DBUILD_DEBUG");                 // Define
+    build_cmd_append(cmd, " -lX11 -lXrandr -lm");            // Libs
+    build_cmd_append(cmd, " -DBUILD_DEBUG -O3 -fsanitize=address");             // Define
 }
 
 fn void build_compile_mingw(char *cmd) {
@@ -48,14 +47,14 @@ fn void build_compile_mingw(char *cmd) {
 
 fn void build_compile(char *cmd)
 {
-    if (os_dir_make(BUILD_DIR)) {
+    if (os_dir_make(str8(BUILD_DIR))) {
         printf("Created `"BUILD_DIR"` directory.\n");
     }
 
     printf("Compiling:\n");
     build_compile_cc(cmd);
     build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable -Wno-missing-braces"); // Disable useless warnings
-    if (!build_is_cpp_file(str8_lit(BUILD_MAIN_FILE))) {
+    if (!build_is_cpp_file(str8(BUILD_MAIN_FILE))) {
         build_cmd_append(cmd, "  -Wno-incompatible-pointer-types -Wno-override-init"); // Disable useless warnings in C
     }
     build_cmd_finish(cmd);
@@ -103,31 +102,30 @@ fn void build_test(char *cmd)
 int main(int argc, char *argv[])
 {
     // char *cmd = getenv("CMDLINE");
-
     char *option = argv[1];
-
+    
     if (!option) {
         fprintf(stderr, "Error: no options provided.\n\n");
         printf(help_message);
-    } else if (str8_match(str8_cstr(option), str8_lit("build"), 0)) {
+    } else if (str8_match(str8_from_cstr(option), str8("build"))) {
         build_compile(cmd);
-    } else if (str8_match(str8_cstr(option), str8_lit("build-run"), 0)) {
+    } else if (str8_match(str8_from_cstr(option), str8("build-run"))) {
         build_compile(cmd);
         build_run(cmd);
-    } else if (str8_match(str8_cstr(option), str8_lit("run"), 0)) {
+    } else if (str8_match(str8_from_cstr(option), str8("run"))) {
         build_run(cmd);
-    } else if (str8_match(str8_cstr(option), str8_lit("test"), 0)) {
+    } else if (str8_match(str8_from_cstr(option), str8("test"))) {
         build_test(cmd);
     } else if (
-        str8_match(str8_cstr(option), str8_lit("version"), 0) ||
-        str8_match(str8_cstr(option), str8_lit("--version"), 0) ||
-        str8_match(str8_cstr(option), str8_lit("-v"), 0)
+        str8_match(str8_from_cstr(option), str8("version")) ||
+        str8_match(str8_from_cstr(option), str8("--version")) ||
+        str8_match(str8_from_cstr(option), str8("-v"))
     ) {
         printf(PROJECT_VERSION);
     } else if (
-        str8_match(str8_cstr(option), str8_lit("help"), 0) ||
-        str8_match(str8_cstr(option), str8_lit("--help"), 0) ||
-        str8_match(str8_cstr(option), str8_lit("-h"), 0)
+        str8_match(str8_from_cstr(option), str8("help")) ||
+        str8_match(str8_from_cstr(option), str8("--help")) ||
+        str8_match(str8_from_cstr(option), str8("-h"))
     ) {
         printf(help_message);
     } else {
@@ -139,7 +137,7 @@ int main(int argc, char *argv[])
 
 fn bool build_is_cpp_file(Str8 filename)
 {
-    return str8_ends_with(filename, str8_lit(".cpp"), 0);
+    return str8_ends_with(filename, str8(".cpp"));
 }
 
 fn void build_cmd_append(char *cmd, char *src)
@@ -161,5 +159,5 @@ fn void build_cmd_run(char *cmd)
 fn void build_cmd_finish(char *cmd)
 {
 	build_cmd_run(cmd);
-	memset(cmd, 0, strlen(cmd));
+	mem_set(cmd, 0, cstr8_length(cmd));
 }
