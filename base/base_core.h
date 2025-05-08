@@ -86,9 +86,9 @@ global I8  min_i8  =  (I8)0xff;
 #define PtrFromInt(i) (void*)((U8*)0 + (i))
 
 #if LANG_CPP
-# define zero_struct {}
+# define ZERO_STRUCT {}
 #else
-# define zero_struct {0}
+# define ZERO_STRUCT {0}
 #endif
 
 // Alignment
