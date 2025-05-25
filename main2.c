@@ -1,15 +1,63 @@
 // TODO: Refine Window Layer
 // TODO: Make buffer pointer
 
-#define ENABLE_WINDOW_LAYER
-// #define RENDER_BACKEND RENDER_BACKEND_OPENGL
 #define GL_GLEXT_PROTOTYPES
 
 #include "main.h"
 
-fn I32 floor_f32_to_i32(F32 a) { return cast(I32)floor_f32(a); }
+typedef struct Raw_Position Raw_Position;
+struct Raw_Position {
+    I32 tilemap_x;
+    I32 tilemap_y;
+    F32 x;
+    F32 y;
+};
 
-fn U32 tilemap_get_tile_value_unchecked(
+typedef struct Canonical_Position Canonical_Position;
+struct Canonical_Position {
+    I32 tilemap_x;
+    I32 tilemap_y;
+    I32 tile_x;
+    I32 tile_y;
+    F32 tile_rel_x;
+    F32 tile_rel_y;
+};
+
+typedef struct Game_State Game_State;
+struct Game_State
+{
+    I32 player_tilemap_x;
+    I32 player_tilemap_y;
+    F32 player_x;
+    F32 player_y;
+};
+
+typedef struct Tilemap Tilemap;
+struct Tilemap
+{
+    U32 *tiles;
+};
+
+typedef struct World World;
+struct World
+{
+    Tilemap *tilemaps;
+    I32 tilemap_count_x;
+    I32 tilemap_count_y;
+    I32 count_x;
+    I32 count_y;
+    F32 upper_left_x;
+    F32 upper_left_y;
+    F32 tile_width;
+    F32 tile_height;
+
+    F32 tile_side_in_meters;
+    I32 tile_side_in_pixels;
+};
+
+internal I32 floor_f32_to_i32(F32 a) { return cast(I32)floor_f32(a); }
+
+internal U32 tilemap_get_tile_value_unchecked(
     World *world,Tilemap *tilemap, I32 tile_x, I32 tile_y
 ) {
     Assert(tilemap);
@@ -19,7 +67,7 @@ fn U32 tilemap_get_tile_value_unchecked(
     return tilemap_value;
 }
 
-fn bool tilemap_point_is_empty(
+internal bool tilemap_point_is_empty(
     World *world, Tilemap *tilemap, I32 test_tile_x, I32 test_tile_y
 ) {
     bool empty = false;
@@ -39,7 +87,7 @@ fn bool tilemap_point_is_empty(
     return empty;
 }
 
-fn Tilemap *tilemap_get(World *world, I32 tilemap_x, I32 tilemap_y)
+internal Tilemap *tilemap_get(World *world, I32 tilemap_x, I32 tilemap_y)
 {
     Tilemap *tilemap = 0;
     if (
@@ -52,9 +100,9 @@ fn Tilemap *tilemap_get(World *world, I32 tilemap_x, I32 tilemap_y)
     return tilemap;
 }
 
-fn Canonical_Postion get_canonical_position(World *world, Raw_Postion pos)
+internal Canonical_Position get_canonical_position(World *world, Raw_Position pos)
 {
-    Canonical_Postion result;
+    Canonical_Position result;
 
     result.tilemap_x = pos.tilemap_x;
     result.tilemap_y = pos.tilemap_y;
@@ -96,11 +144,11 @@ fn Canonical_Postion get_canonical_position(World *world, Raw_Postion pos)
     return result;
 }
 
-fn bool world_point_is_empty(
-    World *world, Raw_Postion test_pos
+internal bool world_point_is_empty(
+    World *world, Raw_Position test_pos
 ) {
     bool empty = false;
-    Canonical_Postion can_pos = get_canonical_position(world, test_pos);
+    Canonical_Position can_pos = get_canonical_position(world, test_pos);
     Tilemap *tilemap = tilemap_get(world, can_pos.tilemap_x, can_pos.tilemap_y);
     empty = tilemap_point_is_empty(
         world, tilemap, can_pos.tile_x, can_pos.tile_y
@@ -241,13 +289,13 @@ int main(void)
             F32 new_player_x = game_state->player_x + target_sec_per_frame * d_player_x;
             F32 new_player_y = game_state->player_y + target_sec_per_frame * d_player_y;
 
-            Raw_Postion player_pos = {
+            Raw_Position player_pos = {
                 game_state->player_tilemap_x, game_state->player_tilemap_y,
                 new_player_x, new_player_y
             };
-            Raw_Postion player_pos_left = player_pos;
+            Raw_Position player_pos_left = player_pos;
             player_pos_left.x -= 0.5f*player_width;
-            Raw_Postion player_pos_right = player_pos;
+            Raw_Position player_pos_right = player_pos;
             player_pos_right.x += 0.5f*player_width;
 
             if (
@@ -255,7 +303,7 @@ int main(void)
                 && world_point_is_empty(&world, player_pos_left)
                 && world_point_is_empty( &world, player_pos_right)
             ) {
-                Canonical_Postion con_pos = get_canonical_position(&world, player_pos);
+                Canonical_Position con_pos = get_canonical_position(&world, player_pos);
                 game_state->player_tilemap_x = con_pos.tilemap_x;
                 game_state->player_tilemap_y = con_pos.tilemap_y;
                 game_state->player_x = world.upper_left_x + world.tile_width *con_pos.tile_x + con_pos.tile_rel_x;
