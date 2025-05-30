@@ -57,12 +57,14 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     wl_state.display_size.y = screen->height_in_pixels;
     wl_state.win_size.x = win_size.x;
     wl_state.win_size.y = win_size.y;
+    wl_state.frame_prev_time = os_now_microseconds();
 
     // Window Layer State =====================================================
     wl_linux_state.conn = connection;
     wl_linux_state.screen = screen;
     wl_linux_state.window = window;
     wl_linux_state.wm_delete_window = *wm_delete_window;
+
 
     // Free ===================================================================
     free(wm_delete_window);
@@ -338,3 +340,15 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
+internal void
+wl_fps_get(void)
+{
+
+}
+
+internal void
+wl_fps_set(void)
+{
+    // if (fps < 1) CORE.Time.target = 0.0;
+    // else CORE.Time.target = 1.0/(double)fps;
+}

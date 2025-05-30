@@ -12,18 +12,46 @@
 #include "../render/render_include.c"
 #include "../scuttle/scuttle_include.c"
 
-internal void entry_point(char *argv[])
+internal void
+entry_point(char *argv[])
 {
     // Program Init ===========================================================
-    wl_window_open(str8("Scuttle"), vec2i32(300, 300));
+    wl_window_open(str8("Scuttle"), vec2i32(600, 400));
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     Draw_Buffer draw_buffer = render_init(alloc);
 
-    draw_fill(draw_buffer, DRAW_RED);
+    // Tilemap Init ===========================================================
+    U32 tile_height = 30;
+    U32 tile_width = 30;
+    #define TILEMAP_COUNT_X 15
+    #define TILEMAP_COUNT_Y 10
+    I32 tilemap[TILEMAP_COUNT_Y][TILEMAP_COUNT_X];
+    mem_set(tilemap, 0, sizeof(tilemap));
+
+    for (int k = 0; k < 50; k++) {
+        int x = math_random_u32(os_now_microseconds()) % TILEMAP_COUNT_X;
+        int y = math_random_u32(os_now_microseconds()) % TILEMAP_COUNT_Y;
+        int value = 1;
+        tilemap[y][x] = value;
+    }
+
     // Game Loop ==============================================================
-    while (!wl_should_window_close()) {
+    draw_fill(draw_buffer, DRAW_GREEN);
+
+    while (!wl_should_window_close())
+    {
+        // frameCount++;
+        // U64 current_time = os_now_microseconds();
+        // U64 delta = current_time - prev_time;
+        // if (delta >= Million(1)) {
+        //     fps = frameCount;
+        //     frameCount = 0;
+        //     prev_time = current_time;
+        // }
+        printf("%d\n", wl_get_fps());
+
         wl_update_events();
         if (
             wl_is_key_pressed(Wl_Key_Esc) ||
@@ -34,9 +62,26 @@ internal void entry_point(char *argv[])
 
         render_begin();
         {
-            printf("hi");
+            // Draw Tile Loop =================================================
+            for (I32 row = 0; row < TILEMAP_COUNT_Y; ++row) {
+                for (I32 col = 0; col < TILEMAP_COUNT_X; ++col) {
+                    Draw_Rgba color = DRAW_BLUE;
+                    if (tilemap[row][col] == 1) {
+                        color = DRAW_YELLOW;
+                    }
+
+                    F32 rect_x = cast(F32)col * tile_width;
+                    F32 rect_y = cast(F32)row * tile_height;
+                    F32 rect_width  = rect_x + tile_width;
+                    F32 rect_height = rect_y + tile_height;
+                    draw_rect(draw_buffer, (Draw_Rect){
+                        rect_x, rect_y, rect_width, rect_height
+                    }, color);
+                } // for x
+            } // for y
         }
         render_end();
+        // usleep(Million(1)/60);
     }
 
     // Free Everything ========================================================

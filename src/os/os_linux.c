@@ -63,6 +63,15 @@ internal U32 os_now_unix(void)
     return (U32)t;
 }
 
+internal U64
+os_now_microseconds(void)
+{
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
+  U64 result = t.tv_sec*Million(1) + (t.tv_nsec/Thousand(1));
+  return result;
+}
+
 internal void os_sleep_ms(U32 msec)
 {
     usleep(msec*Thousand(1));

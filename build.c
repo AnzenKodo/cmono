@@ -33,15 +33,17 @@ internal void build_cmd_run(char *cmd);
 internal void build_compile_cc(char *cmd) {
     build_cmd_append(cmd, "cc "BUILD_MAIN_FILE);
     build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
-    build_cmd_append(cmd, " -ggdb -g3");                     // Debug
+    build_cmd_append(cmd, " -ggdb -g3 -DBUILD_DEBUG");       // Debug
     build_cmd_append(cmd, " -Wall -Wextra");                 // Warnings
-    build_cmd_append(cmd, " -DBUILD_DEBUG ");                // Define
-    // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
-    build_cmd_append(cmd, " -lxcb -lXau -lXdmcp -lxcb-image");           // Libs
     // Security
     build_cmd_append(cmd, " -mshstk -fstack-protector -fcf-protection=full");
     // Disable useless warnings in C
-    build_cmd_append(cmd, "  -Wno-incompatible-pointer-types"" -Wno-override-init");
+    build_cmd_append(cmd, "  -Wno-incompatible-pointer-types -Wno-override-init");
+    // Performance
+    // build_cmd_append(cmd, " -mavx2 -O3");
+    // Libs
+    // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
+    build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lX11");
 }
 
 internal void build_compile(char *cmd)

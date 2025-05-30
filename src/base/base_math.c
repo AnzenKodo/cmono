@@ -61,5 +61,4 @@ internal Vec4I32 vec4i32(I32 x, I32 y, I32 z, I32 w)
 internal U32 math_random_u32(U32 seed) {
     seed = (seed << 13) ^ seed;
     return ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 0x7fffffff);
-
 }

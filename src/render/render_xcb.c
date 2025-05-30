@@ -66,13 +66,15 @@ render_init(Alloc alloc)
     return draw_buffer;
 }
 
-void render_deinit(void)
+internal void
+render_deinit(void)
 {
     xcb_free_pixmap(wl_linux_state.conn, render_xcb_state.pixmap);
     xcb_free_gc(wl_linux_state.conn, render_xcb_state.gc);
 }
 
-void render_begin()
+internal void
+render_begin()
 {
     if (wl_is_event_happen(Wl_EventType_Draw))
     {
@@ -87,6 +89,7 @@ void render_begin()
             wl_linux_state.conn, render_xcb_state.pixmap, wl_linux_state.window,
             render_xcb_state.gc, 0, 0, 0, 0, width, height
         );
+        
         xcb_flush(wl_linux_state.conn);
     }
 }

@@ -202,6 +202,9 @@ struct Wl_State {
     Vec2I32 win_size;
     Vec2I32 display_size;
     bool win_should_close;
+    U64 frame_prev_time;
+    U64 frame_count;
+    U32 fps;
 };
 
 // Basic Window functions
