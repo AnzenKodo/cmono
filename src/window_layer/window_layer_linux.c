@@ -30,23 +30,31 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME,
         XCB_ATOM_STRING, 8, title.size, title.str
     );
+    xcb_change_property(
+        connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_ICON_NAME,
+        XCB_ATOM_STRING, 8, title.size, title.str
+    );
+    // xcb_change_property(
+    //     connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS,
+    //     XCB_ATOM_STRING, 8, sizeof("title""\0""Title"), "title\0Title"
+    // );
+
 
     // Handle Close Event =====================================================
-    xcb_intern_atom_cookie_t wm_protocols_cookie = xcb_intern_atom(
-        connection, 1, 12, "WM_PROTOCOLS"
+    xcb_intern_atom_reply_t* wm_protocols_reply = xcb_intern_atom_reply(
+        connection, xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS"), NULL
     );
-    xcb_intern_atom_cookie_t wm_delete_window_cookie = xcb_intern_atom(
-        connection, 0, 16, "WM_DELETE_WINDOW"
-    );
-    xcb_intern_atom_reply_t* wm_protocols = xcb_intern_atom_reply(
-        connection, wm_protocols_cookie, NULL
-    );
-    xcb_intern_atom_reply_t* wm_delete_window = xcb_intern_atom_reply(
-        connection, wm_delete_window_cookie, NULL
+    xcb_intern_atom_reply_t* wm_delete_window_reply = xcb_intern_atom_reply(
+        connection, xcb_intern_atom(connection, 1, 16, "WM_DELETE_WINDOW"), NULL
     );
     xcb_change_property(
-        connection, XCB_PROP_MODE_REPLACE, window, wm_protocols->atom,
-        XCB_ATOM_ATOM, 32, 1, &wm_delete_window->atom
+        connection, XCB_PROP_MODE_REPLACE, window, wm_protocols_reply->atom,
+        XCB_ATOM_ATOM, 32, 1, &wm_delete_window_reply->atom
+    );
+
+    // Handle Window Icon =====================================================
+    xcb_intern_atom_reply_t* wm_icon_reply = xcb_intern_atom_reply(
+        connection, xcb_intern_atom(connection, 1, 12, "_NET_WM_ICON"), NULL
     );
 
     // Map Window =============================================================
@@ -57,21 +65,35 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     wl_state.display_size.y = screen->height_in_pixels;
     wl_state.win_size.x = win_size.x;
     wl_state.win_size.y = win_size.y;
-    wl_state.frame_prev_time = os_now_microseconds();
+    wl_state.frame_prev_time = os_now_microsec();
 
     // Window Layer State =====================================================
     wl_linux_state.conn = connection;
     wl_linux_state.screen = screen;
     wl_linux_state.window = window;
-    wl_linux_state.wm_delete_window = *wm_delete_window;
-
+    wl_linux_state.wm_delete_window = wm_delete_window_reply->atom;
+    wl_linux_state.wm_icon = wm_icon_reply->atom;
 
     // Free ===================================================================
-    free(wm_delete_window);
-    free(wm_protocols);
+    free(wm_delete_window_reply);
+    free(wm_protocols_reply);
+    free(wm_icon_reply);
 }
 
-internal void wl_window_close(void)
+internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height) {
+    U32 data[2 + width * height];
+    data[0] = width;
+    data[1] = height;
+    mem_copy(data + 2, icon_data, width * height * sizeof(U32));
+    xcb_change_property(
+        wl_linux_state.conn, XCB_PROP_MODE_REPLACE, wl_linux_state.window,
+        wl_linux_state.wm_icon, XCB_ATOM_CARDINAL, 32,
+        2 + width * height, data
+    );
+}
+
+internal void
+wl_window_close(void)
 {
     xcb_disconnect(wl_linux_state.conn);
 }
@@ -313,7 +335,7 @@ internal Wl_Event wl_get_event(void)
             case XCB_CLIENT_MESSAGE:
             {
                 xcb_client_message_event_t *message = cast(xcb_client_message_event_t *)xcb_event;
-                if (message->data.data32[0] == wl_linux_state.wm_delete_window.atom)
+                if (message->data.data32[0] == wl_linux_state.wm_delete_window)
                 {
                     event.type = Wl_EventType_WindowClose;
                 }

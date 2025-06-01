@@ -159,7 +159,6 @@ union Vec4I32
 
 // Numerical Units
 #define Thousand(n)   ((n)*1000)
-                           1000000
 #define Million(n)    ((n)*1000000)
 #define Billion(n)    ((n)*1000000000)
 

@@ -17,6 +17,9 @@ entry_point(char *argv[])
 {
     // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec2i32(600, 400));
+    wl_window_icon_set(
+        cast(U32 *)SCUTTLEICON, SCUTTLEICON_WIDTH, SCUTTLEICON_HEIGHT
+    );
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
@@ -31,8 +34,8 @@ entry_point(char *argv[])
     mem_set(tilemap, 0, sizeof(tilemap));
 
     for (int k = 0; k < 50; k++) {
-        int x = math_random_u32(os_now_microseconds()) % TILEMAP_COUNT_X;
-        int y = math_random_u32(os_now_microseconds()) % TILEMAP_COUNT_Y;
+        int x = math_random_u32(os_now_microsec()) % TILEMAP_COUNT_X;
+        int y = math_random_u32(os_now_microsec()) % TILEMAP_COUNT_Y;
         int value = 1;
         tilemap[y][x] = value;
     }
@@ -42,16 +45,7 @@ entry_point(char *argv[])
 
     while (!wl_should_window_close())
     {
-        // frameCount++;
-        // U64 current_time = os_now_microseconds();
-        // U64 delta = current_time - prev_time;
-        // if (delta >= Million(1)) {
-        //     fps = frameCount;
-        //     frameCount = 0;
-        //     prev_time = current_time;
-        // }
-        printf("%d\n", wl_get_fps());
-
+        wl_set_fps(60);
         wl_update_events();
         if (
             wl_is_key_pressed(Wl_Key_Esc) ||
@@ -77,11 +71,10 @@ entry_point(char *argv[])
                     draw_rect(draw_buffer, (Draw_Rect){
                         rect_x, rect_y, rect_width, rect_height
                     }, color);
-                } // for x
-            } // for y
+                } // for col
+            } // for row
         }
         render_end();
-        // usleep(Million(1)/60);
     }
 
     // Free Everything ========================================================

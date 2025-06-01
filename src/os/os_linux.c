@@ -64,7 +64,7 @@ internal U32 os_now_unix(void)
 }
 
 internal U64
-os_now_microseconds(void)
+os_now_microsec(void)
 {
   struct timespec t;
   clock_gettime(CLOCK_MONOTONIC, &t);
@@ -72,9 +72,14 @@ os_now_microseconds(void)
   return result;
 }
 
-internal void os_sleep_ms(U32 msec)
+internal void
+os_sleep_microsec(U64 micosec)
 {
-    usleep(msec*Thousand(1));
+    struct timespec ts = {
+        .tv_sec = micosec / Million(1),
+        .tv_nsec = (micosec % Million(1)) * Thousand(1),
+    };
+    nanosleep(&ts, NULL);
 }
 
 // OS Entry Points

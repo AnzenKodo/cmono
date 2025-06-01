@@ -24,7 +24,7 @@ wl_update_events(void)
 
     // Update FPS =============================================================
     wl_state.frame_count++;
-    U64 frame_current_time = os_now_microseconds();
+    U64 frame_current_time = os_now_microsec();
     U64 delta = frame_current_time - wl_state.frame_prev_time;
     if (delta >= Million(1)) {
         wl_state.fps = wl_state.frame_count;
@@ -72,8 +72,17 @@ wl_get_window_height(void)
     return (U32)wl_state.win_size.y;
 }
 
+// FPS
+//=============================================================================
+
 internal U32
 wl_get_fps(void)
 {
     return wl_state.fps;
+}
+
+internal void
+wl_set_fps(U32 fps)
+{
+    os_sleep_microsec(Million(1)/fps);
 }

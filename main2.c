@@ -160,7 +160,6 @@ internal bool world_point_is_empty(
 int main(void)
 {
     TCTX tctx;
-    // tctx_init_and_equip(&tctx);
     Arena *arena = arena_alloc();
 
     wl_window_open(str8_lit("Scuttle"), 960, 540);
