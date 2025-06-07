@@ -34,25 +34,6 @@
                     "message": 5
                 }
             }
-        },
-        {
-            "label": "Start winedbg server",
-            "command": "winedbg",
-            "args": ["--gdb", "--no-start", "--port", "1234", "./a.exe"],
-            "problemMatcher": [],
-            "isBackground": true,
-            "presentation": {
-                "reveal": "silent"
-            }
-        },
-        {
-            "label": "Close winedbg server",
-            "command": "pkill winedbg.exe",
-            "problemMatcher": [],
-            "isBackground": true,
-            "presentation": {
-                "reveal": "silent"
-            }
         }
     ]
 }
