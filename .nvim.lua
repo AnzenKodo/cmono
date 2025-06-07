@@ -21,7 +21,7 @@ local severity_map = {
 }
 
 require('lint').linters.build_c = {
-    cmd = 'gcc',
+    cmd = 'cc',
     stdin = false,
     append_fname = false,
     args = {'-Wall', '-Wextra', "-fsyntax-only",

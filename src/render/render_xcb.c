@@ -1,7 +1,6 @@
 internal Draw_Buffer
 render_init(Alloc alloc)
 {
-    // Tha
     I16 width = wl_get_display_width();
     I16 height = wl_get_display_height();
     I32 bytes_per_pixel = 4;
