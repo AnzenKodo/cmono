@@ -1,5 +1,3 @@
-lua << EOF
-
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "*",
   callback = function()
@@ -46,6 +44,3 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
         end
     end,
 })
-
-EOF
-
