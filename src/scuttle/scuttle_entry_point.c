@@ -12,12 +12,12 @@
 #include "../render/render_include.c"
 #include "../scuttle/scuttle_include.c"
 
-internal void 
-gen_next(I32 *tilemap, I32 width, I32 height) 
+internal void
+gen_next(I32 *tilemap, I32 width, I32 height)
 {
     for (I32 w = 0; w < width; w++)
     {
-        for (I32 h = 0; h < height; h++) 
+        for (I32 h = 0; h < height; h++)
         {
             I32 alive_count = 0;
             for (I32 k = -1; k <= 1; k++) {
@@ -110,7 +110,7 @@ entry_point(char *argv[])
         }
         render_end();
     }
- 
+
     // Free Everything ========================================================
     render_deinit();
     os_memory_free(buffer, size);

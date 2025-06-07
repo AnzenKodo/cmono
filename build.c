@@ -20,7 +20,8 @@ const char *help_message = "build.c: C file that build's C projects.\n"
 "   run                     Run project\n"
 "   build-run               Build and Run project\n"
 "   build-debugger          Build for Debugger\n"
-"   test                    Test project (Require: valgrid, typos)\n"
+"   test                    Test project (Requires: valgrid, typos)\n"
+"   profiler                Runs Profiler (Requires: perf)\n"
 "   version --version -v    Print project version\n"
 "   help --help -h          Print help\n";
 
@@ -84,6 +85,7 @@ internal void build_debugger(char *cmd)
 
 internal void build_test(char *cmd)
 {
+    printf("Compiling:\n");
     build_compile_cc(cmd);
     build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(cmd);
@@ -97,6 +99,22 @@ internal void build_test(char *cmd)
     build_cmd_append(cmd, " --leak-check=full --track-origins=yes ");
     build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
     build_cmd_append(cmd, " --leak-check=full --show-leak-kinds=all");
+    build_cmd_finish(cmd);
+}
+
+internal void build_profiler(char *cmd)
+{
+    printf("Compiling:\n");
+    build_compile_cc(cmd);
+    build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
+    build_cmd_finish(cmd);
+
+    printf("Profiler Recording:\n");
+    build_cmd_append(cmd, "perf record -o ./"BUILD_DIR"/perf.data -g ./"BUILD_DIR"/"PROJECT_NAME);
+    build_cmd_finish(cmd);
+
+    printf("Profiler Report:\n");
+    build_cmd_append(cmd, "perf report -i ./"BUILD_DIR"/perf.data");
     build_cmd_finish(cmd);
 }
 
@@ -119,6 +137,8 @@ internal void entry_point(char *argv[])
         build_run(cmd);
     } else if (str8_match(str8_from_cstr(option), str8("test"))) {
         build_test(cmd);
+    } else if (str8_match(str8_from_cstr(option), str8("profiler"))) {
+        build_profiler(cmd);
     } else if (
         str8_match(str8_from_cstr(option), str8("version")) ||
         str8_match(str8_from_cstr(option), str8("--version")) ||
