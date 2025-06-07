@@ -15,8 +15,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
             "cwd": "${workspaceFolder}",
-            "type": "cppdbg",
-            // "preLaunchTask": "Build file" 
+            "type": "cppdbg"
         },
         {
             "name": "Debug with winedbg",

@@ -76,24 +76,19 @@ render_deinit(void)
 internal void
 render_begin()
 {
-    if (wl_is_event_happen(Wl_EventType_Draw))
-    {
-        U32 width = wl_get_window_width();
-        U32 height = wl_get_window_height();
-
-        xcb_image_put(
-            wl_linux_state.conn, render_xcb_state.pixmap,
-            render_xcb_state.gc, render_xcb_state.image, 0, 0, 0
-        );
-        xcb_copy_area(
-            wl_linux_state.conn, render_xcb_state.pixmap, wl_linux_state.window,
-            render_xcb_state.gc, 0, 0, 0, 0, width, height
-        );
-        
-        xcb_flush(wl_linux_state.conn);
-    }
 }
 
 void render_end()
 {
+    U32 width = wl_get_window_width();
+    U32 height = wl_get_window_height();
+
+    xcb_image_put(
+        wl_linux_state.conn, render_xcb_state.pixmap,
+        render_xcb_state.gc, render_xcb_state.image, 0, 0, 0
+    );
+    xcb_copy_area(
+        wl_linux_state.conn, render_xcb_state.pixmap, wl_linux_state.window,
+        render_xcb_state.gc, 0, 0, 0, 0, width, height
+    );
 }

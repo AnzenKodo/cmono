@@ -20,7 +20,7 @@ const char *help_message = "build.c: C file that build's C projects.\n"
 "   run                     Run project\n"
 "   build-run               Build and Run project\n"
 "   build-debugger          Build for Debugger\n"
-"   test                    Test project\n"
+"   test                    Test project (Require: valgrid, typos)\n"
 "   version --version -v    Print project version\n"
 "   help --help -h          Print help\n";
 

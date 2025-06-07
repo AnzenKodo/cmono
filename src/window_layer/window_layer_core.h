@@ -18,7 +18,6 @@ enum Wl_EventType
     Wl_EventType_WindowResize,
     Wl_EventType_FileDrop,
     Wl_EventType_Wakeup,
-    Wl_EventType_Draw,
     Wl_EventType_COUNT
 };
 
@@ -233,6 +232,11 @@ internal U32 wl_get_display_width(void);
 internal U32 wl_get_display_height(void);
 internal U32 wl_get_window_width(void);
 internal U32 wl_get_window_height(void);
+
+// Window Icon
+//=============================================================================
+
+internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height);
 
 // Global Variables
 //=============================================================================

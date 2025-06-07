@@ -12,11 +12,52 @@
 #include "../render/render_include.c"
 #include "../scuttle/scuttle_include.c"
 
+internal void 
+gen_next(I32 *tilemap, I32 width, I32 height) 
+{
+    for (I32 w = 0; w < width; w++)
+    {
+        for (I32 h = 0; h < height; h++) 
+        {
+            I32 alive_count = 0;
+            for (I32 k = -1; k <= 1; k++) {
+                for (I32 l = -1; l <= 1; l++) {
+                    if (k == 0 && l == 0) continue;
+                    if (w + k < height && w + k >= 0 && h + l < width && h + l >= 0) {
+                        if (tilemap[(w+k)*width+(h+l)] == 1) {
+                            alive_count++;
+                        }
+                    }
+                }
+            }
+
+            switch (alive_count) {
+                case 0:
+                case 1: {
+                    tilemap[w*width+h] = 0;
+                    break;
+                }
+                case 2:
+                case 3: {
+                    if (tilemap[w*width+h] == 0 && alive_count == 3) {
+                        tilemap[w*width+h] = 1;
+                    }
+                    break;
+                }
+                default: {
+                    tilemap[w*width+h] = 0;
+                    break;
+                }
+            }
+        } // for h
+    } // for w
+}
+
 internal void
 entry_point(char *argv[])
 {
     // Program Init ===========================================================
-    wl_window_open(str8("Scuttle"), vec2i32(600, 400));
+    wl_window_open(str8("Scuttle"), vec2i32(750, 750));
     wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
@@ -26,21 +67,15 @@ entry_point(char *argv[])
     // Tilemap Init ===========================================================
     U32 tile_height = 30;
     U32 tile_width = 30;
-    #define TILEMAP_COUNT_X 15
-    #define TILEMAP_COUNT_Y 10
     I32 tilemap[TILEMAP_COUNT_Y][TILEMAP_COUNT_X];
     mem_set(tilemap, 0, sizeof(tilemap));
-
-    for (int k = 0; k < 50; k++) {
-        int x = math_random_u32(os_now_microsec()) % TILEMAP_COUNT_X;
-        int y = math_random_u32(os_now_microsec()) % TILEMAP_COUNT_Y;
-        int value = 1;
-        tilemap[y][x] = value;
+    for (I32 i = 0; i < TILEMAP_COUNT_X/5; i++)
+    {
+        for (I32 j = 0; j < TILEMAP_COUNT_X/5; j++)
+        {
+            tilemap[i][j] = 1;
+        }
     }
-
-    // Game Loop ==============================================================
-    draw_fill(draw_buffer, DRAW_GREEN);
-
     while (!wl_should_window_close())
     {
         wl_set_fps(60);
@@ -55,6 +90,7 @@ entry_point(char *argv[])
         render_begin();
         {
             // Draw Tile Loop =================================================
+            gen_next(&tilemap, TILEMAP_COUNT_Y, TILEMAP_COUNT_X);
             for (I32 row = 0; row < TILEMAP_COUNT_Y; ++row) {
                 for (I32 col = 0; col < TILEMAP_COUNT_X; ++col) {
                     Draw_Rgba color = DRAW_BLUE;
@@ -74,7 +110,7 @@ entry_point(char *argv[])
         }
         render_end();
     }
-
+ 
     // Free Everything ========================================================
     render_deinit();
     os_memory_free(buffer, size);

@@ -1,7 +1,8 @@
 // Basic Window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2I32 win_size)
+internal void
+wl_window_open(Str8 title, Vec2I32 win_size)
 {
     xcb_connection_t *connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(connection);
@@ -17,7 +18,8 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
 		XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION |
 		XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW |
 		XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
-		XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_FOCUS_CHANGE
+		XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_FOCUS_CHANGE |
+        XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
     };
     xcb_create_window(
         connection, XCB_COPY_FROM_PARENT, window, screen->root,
@@ -39,13 +41,12 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     //     XCB_ATOM_STRING, 8, sizeof("title""\0""Title"), "title\0Title"
     // );
 
-
     // Handle Close Event =====================================================
     xcb_intern_atom_reply_t* wm_protocols_reply = xcb_intern_atom_reply(
         connection, xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS"), NULL
     );
     xcb_intern_atom_reply_t* wm_delete_window_reply = xcb_intern_atom_reply(
-        connection, xcb_intern_atom(connection, 1, 16, "WM_DELETE_WINDOW"), NULL
+        connection, xcb_intern_atom(connection, 1, 16,"WM_DELETE_WINDOW"), NULL
     );
     xcb_change_property(
         connection, XCB_PROP_MODE_REPLACE, window, wm_protocols_reply->atom,
@@ -106,7 +107,7 @@ internal Wl_Event wl_get_event(void)
     Wl_Event event = ZERO_STRUCT;
     xcb_generic_event_t *xcb_event;
 
-    if ((xcb_event = xcb_poll_for_event(wl_linux_state.conn)))
+    while ((xcb_event = xcb_poll_for_event(wl_linux_state.conn)))
     {
         switch (xcb_event->response_type & ~0x80)
         {
@@ -353,24 +354,11 @@ internal Wl_Event wl_get_event(void)
             }break;
 
             case XCB_EXPOSE:{
-                event.type = Wl_EventType_Draw;
             }break;
         } // switch
-    } // if
+        free(xcb_event);
+    } // while
 
-    free(xcb_event);
+    // free(xcb_event);
     return event;
-}
-
-internal void
-wl_fps_get(void)
-{
-
-}
-
-internal void
-wl_fps_set(void)
-{
-    // if (fps < 1) CORE.Time.target = 0.0;
-    // else CORE.Time.target = 1.0/(double)fps;
 }
