@@ -16,16 +16,6 @@
             "program": "${workspaceFolder}/a.out",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg"
-        },
-        {
-            "name": "Debug with winedbg",
-            "type": "cppdbg",
-            "request": "launch",
-            "miDebuggerServerAddress": "localhost:1234",
-            "program": "${workspaceFolder}/a.exe",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Start winedbg server",
-            "postDebugTask": "Close winedbg server"
         }
     ]
 }
