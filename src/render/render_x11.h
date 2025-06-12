@@ -1,5 +1,5 @@
-#ifndef RENDER_XCB_H
-#define RENDER_XCB_H
+#ifndef RENDER_X11_H
+#define RENDER_X11_H
 
 // External Includes
 //=============================================================================
@@ -9,8 +9,8 @@
 // Types
 //=============================================================================
 
-typedef struct Render_Xcb_State Render_Xcb_State;
-struct Render_Xcb_State
+typedef struct Render_X11_State Render_X11_State;
+struct Render_X11_State
 {
     xcb_pixmap_t pixmap;
     xcb_gcontext_t gc;
@@ -20,9 +20,9 @@ struct Render_Xcb_State
 // Global Variables
 //=============================================================================
 
-global Render_Xcb_State render_xcb_state = ZERO_STRUCT;
+global Render_X11_State render_x11_state = ZERO_STRUCT;
 
 // Functions
 //=============================================================================
 
-#endif // RENDER_XCB_H
+#endif // RENDER_X11_H

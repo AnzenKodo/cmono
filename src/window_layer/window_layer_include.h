@@ -4,7 +4,7 @@
 #include "window_layer_core.h"
 
 #if OS_LINUX
-#   include "window_layer_linux.h"
+#   include "window_layer_x11.h"
 #else
 #   error OS window layer not implemented for this operating system.
 #endif

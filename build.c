@@ -44,7 +44,7 @@ internal void build_compile_cc(char *cmd) {
     // build_cmd_append(cmd, " -mavx2 -O3");
     // Libs
     // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
-    build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lX11");
+    build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
 }
 
 internal void build_compile(char *cmd)

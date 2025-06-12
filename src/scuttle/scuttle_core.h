@@ -7,8 +7,8 @@ struct Game_State {
     F32 player_y;
 };
 
-#define TILEMAP_COUNT_X 25
-#define TILEMAP_COUNT_Y 25
+#define TILEMAP_COUNT_X 70
+#define TILEMAP_COUNT_Y 70
 
 // global I32 default_tilemap[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
 //     {1, 0, 1, 0, 1, 0, 1, 0, 1, 0},

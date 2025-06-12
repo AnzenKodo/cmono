@@ -68,12 +68,12 @@ wl_window_open(Str8 title, Vec2I32 win_size)
     wl_state.win_size.y = win_size.y;
     wl_state.frame_prev_time = os_now_microsec();
 
-    // Window Layer State =====================================================
-    wl_linux_state.conn = connection;
-    wl_linux_state.screen = screen;
-    wl_linux_state.window = window;
-    wl_linux_state.wm_delete_window = wm_delete_window_reply->atom;
-    wl_linux_state.wm_icon = wm_icon_reply->atom;
+    // Window Layer State ====================================================
+    wl_x11_state.conn = connection;
+    wl_x11_state.screen = screen;
+    wl_x11_state.window = window;
+    wl_x11_state.wm_delete_window = wm_delete_window_reply->atom;
+    wl_x11_state.wm_icon = wm_icon_reply->atom;
 
     // Free ===================================================================
     free(wm_delete_window_reply);
@@ -87,8 +87,8 @@ internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height) {
     data[1] = height;
     mem_copy(data + 2, icon_data, width * height * sizeof(U32));
     xcb_change_property(
-        wl_linux_state.conn, XCB_PROP_MODE_REPLACE, wl_linux_state.window,
-        wl_linux_state.wm_icon, XCB_ATOM_CARDINAL, 32,
+        wl_x11_state.conn, XCB_PROP_MODE_REPLACE, wl_x11_state.window,
+        wl_x11_state.wm_icon, XCB_ATOM_CARDINAL, 32,
         2 + width * height, data
     );
 }
@@ -96,7 +96,7 @@ internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height) {
 internal void
 wl_window_close(void)
 {
-    xcb_disconnect(wl_linux_state.conn);
+    xcb_disconnect(wl_x11_state.conn);
 }
 
 // Event Functions
@@ -107,7 +107,7 @@ internal Wl_Event wl_get_event(void)
     Wl_Event event = ZERO_STRUCT;
     xcb_generic_event_t *xcb_event;
 
-    while ((xcb_event = xcb_poll_for_event(wl_linux_state.conn)))
+    while ((xcb_event = xcb_poll_for_event(wl_x11_state.conn)))
     {
         switch (xcb_event->response_type & ~0x80)
         {
@@ -336,7 +336,7 @@ internal Wl_Event wl_get_event(void)
             case XCB_CLIENT_MESSAGE:
             {
                 xcb_client_message_event_t *message = cast(xcb_client_message_event_t *)xcb_event;
-                if (message->data.data32[0] == wl_linux_state.wm_delete_window)
+                if (message->data.data32[0] == wl_x11_state.wm_delete_window)
                 {
                     event.type = Wl_EventType_WindowClose;
                 }

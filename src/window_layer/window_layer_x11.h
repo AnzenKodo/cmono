@@ -1,5 +1,5 @@
-#ifndef WINDOW_LAYER_LINUX_H
-#define WINDOW_LAYER_LINUX_H
+#ifndef WfNDOW_LAYER_XCB_H
+#define WINDOW_LAYER_XCB_H
 
 // XCB Includes
 //=============================================================================
@@ -9,8 +9,8 @@
 // Types
 //=============================================================================
 
-typedef struct Wl_Linux_State Wl_Linux_State;
-struct Wl_Linux_State {
+typedef struct Wl_X11_State Wl_X11_State;
+struct Wl_X11_State {
     xcb_connection_t *conn;
     xcb_screen_t *screen;
     xcb_window_t window;
@@ -21,6 +21,6 @@ struct Wl_Linux_State {
 // Global Variables
 //=============================================================================
 
-global Wl_Linux_State wl_linux_state = ZERO_STRUCT;
+global Wl_X11_State wl_x11_state = ZERO_STRUCT;
 
-#endif // WINDOW_LAYER_LINUX_H
+#endif // WINDOW_LAYER_XCB_H
