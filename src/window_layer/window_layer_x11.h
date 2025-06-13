@@ -1,4 +1,4 @@
-#ifndef WfNDOW_LAYER_XCB_H
+#ifndef WINDOW_LAYER_XCB_H
 #define WINDOW_LAYER_XCB_H
 
 // XCB Includes

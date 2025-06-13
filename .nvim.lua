@@ -28,7 +28,7 @@ require('lint').linters.build_c = {
         "-Wno-incompatible-pointer-types", "-Wno-override-init",
         "-Wno-unused-variable", "-Wno-unused-parameter",
         "-Wno-unused-function", "-Wno-unused-but-set-variable",
-        "-Wno-missing-braces", "src/scuttle/scuttle_entry_point.c"
+        "-Wno-missing-braces", "src/shaderplay/shaderplay_entry_point.c"
     },
     stream = 'stderr',
     ignore_exitcode = true,

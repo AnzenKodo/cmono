@@ -10,7 +10,8 @@
 
 #define PROJECT_NAME    "Scuttle"
 #define PROJECT_VERSION "0.1"
-#define BUILD_MAIN_FILE "src/scuttle/scuttle_entry_point.c"
+// #define BUILD_MAIN_FILE "src/scuttle/scuttle_entry_point.c"
+#define BUILD_MAIN_FILE "src/shaderplay/shaderplay_entry_point.c"
 #define BUILD_DIR       "build"
 
 const char *help_message = "build.c: C file that build's C projects.\n"
@@ -164,17 +165,17 @@ internal void build_cmd_append(char *cmd, char *src)
 
 internal void build_cmd_run(char *cmd)
 {
-	printf("%s\n\n", cmd);
-	int err = system(cmd);
-	if (err)
-	{
-		fprintf(stderr, "\nError: %s\n", strerror(err));
-		os_exit(err);
-	}
+    printf("%s\n\n", cmd);
+    int err = system(cmd);
+    if (err)
+    {
+        fprintf(stderr, "\nError: %s\n", strerror(err));
+        os_exit(err);
+    }
 }
 
 internal void build_cmd_finish(char *cmd)
 {
-	build_cmd_run(cmd);
-	mem_set(cmd, 0, cstr8_length(cmd));
+    build_cmd_run(cmd);
+    mem_set(cmd, 0, cstr8_length(cast(U8 *)cmd));
 }

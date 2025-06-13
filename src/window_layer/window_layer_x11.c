@@ -6,9 +6,7 @@ wl_window_open(Str8 title, Vec2I32 win_size)
 {
     xcb_connection_t *connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(connection);
-    xcb_screen_t *screen = xcb_setup_roots_iterator(
-        xcb_get_setup(connection)
-    ).data;
+    xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(connection)).data;
 
     // Create Window ==========================================================
     U32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
@@ -60,6 +58,7 @@ wl_window_open(Str8 title, Vec2I32 win_size)
 
     // Map Window =============================================================
     xcb_map_window(connection, window);
+    xcb_flush(connection);
 
     // Get Size ===============================================================
     wl_state.display_size.x = screen->width_in_pixels;
