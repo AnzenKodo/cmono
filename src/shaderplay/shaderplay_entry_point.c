@@ -243,7 +243,8 @@ entry_point(char *argv[])
             wl_set_window_close();
         }
 
-        U64 now = os_now_microsec();
+        U64 now = os_now_unix();
+        // os_now_microsec();
         float iTime = cast(float)(now - start);
         glUniform1f(iTimeLocation, iTime);
 
