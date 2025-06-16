@@ -9,5 +9,6 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <stdlib.h>
+#include <time.h>
 
 #endif // STD_OS_LINUX_H

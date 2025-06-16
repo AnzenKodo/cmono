@@ -154,6 +154,160 @@ union Vec4I32
     I32 v[4];
 };
 
+// Range Types
+//=============================================================================
+
+// 1 Range ====================================================================
+
+typedef union Rng1U32 Rng1U32;
+union Rng1U32
+{
+    struct
+    {
+        U32 min;
+        U32 max;
+    };
+    U32 v[2];
+};
+
+typedef union Rng1I32 Rng1I32;
+union Rng1I32
+{
+    struct
+    {
+        I32 min;
+        I32 max;
+    };
+    I32 v[2];
+};
+
+typedef union Rng1U64 Rng1U64;
+union Rng1U64
+{
+    struct
+    {
+        U64 min;
+        U64 max;
+    };
+    U64 v[2];
+};
+
+typedef union Rng1I64 Rng1I64;
+union Rng1I64
+{
+    struct
+    {
+        I64 min;
+        I64 max;
+    };
+    I64 v[2];
+};
+
+typedef union Rng1F32 Rng1F32;
+union Rng1F32
+{
+    struct
+    {
+        F32 min;
+        F32 max;
+    };
+    F32 v[2];
+};
+
+// 2 Range (Rectangles) =======================================================
+
+typedef union Rng2I16 Rng2I16;
+union Rng2I16
+{
+    struct
+    {
+        Vec2I16 min;
+        Vec2I16 max;
+      };
+    struct
+    {
+        Vec2I16 p0;
+        Vec2I16 p1;
+    };
+    struct
+    {
+        I16 x0;
+        I16 y0;
+        I16 x1;
+        I16 y1;
+    };
+    Vec2I16 v[2];
+};
+
+typedef union Rng2I32 Rng2I32;
+union Rng2I32
+{
+    struct
+    {
+        Vec2I32 min;
+        Vec2I32 max;
+    };
+    struct
+    {
+        Vec2I32 p0;
+        Vec2I32 p1;
+    };
+    struct
+    {
+        I32 x0;
+        I32 y0;
+        I32 x1;
+        I32 y1;
+    };
+    Vec2I32 v[2];
+};
+
+typedef union Rng2F32 Rng2F32;
+union Rng2F32
+{
+    struct
+    {
+        Vec2F32 min;
+        Vec2F32 max;
+    };
+    struct
+    {
+        Vec2F32 p0;
+        Vec2F32 p1;
+    };
+    struct
+    {
+        F32 x0;
+        F32 y0;
+        F32 x1;
+        F32 y1;
+    };
+    Vec2F32 v[2];
+};
+
+typedef union Rng2I64 Rng2I64;
+union Rng2I64
+{
+    struct
+    {
+        Vec2I64 min;
+        Vec2I64 max;
+    };
+    struct
+    {
+        Vec2I64 p0;
+        Vec2I64 p1;
+    };
+    struct
+    {
+        I64 x0;
+        I64 y0;
+        I64 x1;
+        I64 y1;
+    };
+    Vec2I64 v[2];
+};
+
 // Units
 //=============================================================================
 
@@ -171,7 +325,6 @@ union Vec4I32
 // Constants
 //=============================================================================
 
-#define MATH_RANDOM_MAX   max_i32
 #define MATH_PI           3.14159265358979323846264338327950288f
 
 // Vector Ops
@@ -193,6 +346,24 @@ internal Vec3I32 vec3i32(I32 x, I32 y, I32 z);
 
 internal Vec4F32 vec4f32(F32 x, F32 y, F32 z, F32 w);
 internal Vec4I32 vec4i32(I32 x, I32 y, I32 z, I32 w);
+
+// Range Ops
+//=============================================================================
+
+// 1 Range ====================================================================
+
+internal U32 dim_1u32(Rng1U32 r);
+internal I32 dim_1i32(Rng1I32 r);
+internal U64 dim_1u64(Rng1U64 r);
+internal I64 dim_1i64(Rng1I64 r);
+internal F32 dim_1f32(Rng1F32 r);
+
+// 2 Range (Rectangles) =======================================================
+
+internal Vec2I16 dim_2i16(Rng2I16 r);
+internal Vec2I32 dim_2s32(Rng2I32 r);
+internal Vec2I64 dim_2s64(Rng2I64 r);
+internal Vec2F32 dim_2f32(Rng2F32 r);
 
 // Random Number
 //=============================================================================

@@ -1,3 +1,5 @@
+#include "base_core.c"
+#include "base_time.c"
 #include "base_math.c"
 #include "base_string.c"
 #include "base_mem.c"

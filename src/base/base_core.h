@@ -5,13 +5,12 @@
 //=============================================================================
 
 #include <stdint.h>
-// #include <stddef.h>
 
 // Base Types
 //=============================================================================
 
 #if LANG_C
-    #define bool _Bool
+    typedef _Bool bool;
     #define true  1
     #define false 0
 #endif
@@ -27,6 +26,40 @@ typedef int64_t   I64;
 
 typedef float    F32;
 typedef double   F64;
+
+// Toolchain/Environment Enums
+//=============================================================================
+
+typedef enum Context_Os
+{
+    Context_Os_Null,
+    Context_Os_Windows,
+    Context_Os_Linux,
+    Context_Os_Mac,
+    Context_Os_COUNT,
+}
+Context_Os;
+
+typedef enum Context_Arch
+{
+    Context_Arch_Null,
+    Context_Arch_X64,
+    Context_Arch_X86,
+    Context_Arch_Arm64,
+    Context_Arch_Arm32,
+    Context_Arch_COUNT,
+}
+Context_Arch;
+
+typedef enum Context_Compiler
+{
+    Context_Compiler_Null,
+    Context_Compiler_msvc,
+    Context_Compiler_gcc,
+    Context_Compiler_clang,
+    Context_Compiler_COUNT,
+}
+Context_Compiler;
 
 // Code Keywords
 //=============================================================================
@@ -58,6 +91,7 @@ global I8  min_i8  =  (I8)0xff;
 
 #define cast(Type)    (Type)
 #define ArrayCount(a) (sizeof(a) / sizeof((a)[0]))
+#define Swap(T,a,b) do{T t__ = a; a = b; b = t__;}while(0)
 
 #define Min(A,B)     (((A)<(B))?(A):(B))
 #define Max(A,B)     (((A)>(B))?(A):(B))
@@ -113,12 +147,21 @@ global I8  min_i8  =  (I8)0xff;
 #else
 #   define Assert(x) (void)(x)
 #endif
+#define InvalidPath        Assert(!"Invalid Path!")
 #define NotImplemented     Assert(!"Not Implemented!")
 
-// Functions
+// Safe Casts
 //=============================================================================
 
-internal I32 round_f32_to_i32(F32 a) { I32 result = (I32)(a + 0.5f); return result; }
-internal U32 round_f32_to_u32(F32 a) { U32 result = (U32)(a + 0.5f); return result; }
+internal U16 safe_cast_u16(U32 x);
+internal U32 safe_cast_u32(U64 x);
+internal I32 safe_cast_s32(I64 x);
+
+// Toolchain/Environment Enum Functions
+//=============================================================================
+
+internal Context_Os context_of_operating_system(void);
+internal Context_Arch context_of_arch(void);
+internal Context_Compiler context_of_compiler(void);
 
 #endif // BASE_CORE_H

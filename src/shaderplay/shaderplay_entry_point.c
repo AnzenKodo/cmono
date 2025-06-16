@@ -15,6 +15,36 @@
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
 
+// internal Str8
+// os_file_read_str(Arena *arena, Os_File file, Rng1U64 range)
+// {
+//     Str8 result;
+//     // result.size = dim_1u64(range);
+//     // result.str = push_array_no_zero(arena, U8, result.size);
+//     // U64 actual_read_size = os_file_read(file, range, result.str);
+//     // if(actual_read_size < result.size)
+//     // {
+//     //     arena_pop_to(arena, pre_pos + actual_read_size);
+//     //     result.size = actual_read_size;
+//     // }
+//     return result;
+// }
+
+internal void
+entry_point(char *argv[])
+{
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+    U8 *memory = alloc_make(alloc, U8, 1);
+
+    Os_File file = os_file_open(str8("build.c"), OS_AccessFlag_Write);
+    Os_FileProperties prop = os_file_properties(file);
+    os_file_read(file, rng_1u64(1, prop.size), &memory);
+    printf("%ld: %s\n", prop.size, memory);
+    os_file_close(file);
+}
+
 char* vertexShaderSource =
     "#version 300 es\n"
     "precision highp float;\n"
@@ -161,9 +191,9 @@ char* fragmentShaderSource =
     "}\n";
 
 internal void
-entry_point(char *argv[])
+entry_point2(char *argv[])
 {
-    // Program Init ===========================================================
+    // Program Init ==========================================================
     wl_window_open(str8("Scuttle"), vec2i32(750, 750));
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
     U64 size = MB(10);
@@ -243,14 +273,12 @@ entry_point(char *argv[])
             wl_set_window_close();
         }
 
-        U64 now = os_now_unix();
-        // os_now_microsec();
-        float iTime = cast(float)(now - start);
+        U64 now = os_now_microsec();
+        float iTime = cast(float)(now - start) / Million(1);
         glUniform1f(iTimeLocation, iTime);
 
         render_begin();
         {
-            // Render
             glClear(GL_COLOR_BUFFER_BIT);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }
@@ -258,6 +286,7 @@ entry_point(char *argv[])
     }
 
     // Free Everything ========================================================
+
     glDeleteProgram(program);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);

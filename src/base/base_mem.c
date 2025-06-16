@@ -1,13 +1,12 @@
-internal inline bool mem_match(void const *s1, void const *s2, I64 size)
+internal inline bool
+mem_match(void const *s1, void const *s2, I64 size)
 {
     bool result = false;
     U8 const *s1p8 = cast(U8 const *)s1;
     U8 const *s2p8 = cast(U8 const *)s2;
-
     if (s1 == NULL || s2 == NULL) {
         result = false;
     }
-
     while (size--) {
         if (*s1p8 == *s2p8) {
             result = true;
@@ -17,11 +16,11 @@ internal inline bool mem_match(void const *s1, void const *s2, I64 size)
             break;
         }
     }
-
     return result;
 }
 
-internal inline void *mem_copy(void *dest, void const *source, I64 n)
+internal inline void
+*mem_copy(void *dest, void const *source, I64 n)
 {
 #if COMPILER_MSVC
     if (dest == NULL) {
@@ -40,22 +39,18 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
     if (dest == NULL) {
         return NULL;
     }
-
     void *dest_copy = dest;
     __asm__ __volatile__("rep movsb" : "+D"(dest_copy), "+S"(source), "+c"(n) : : "memory");
 #else
     U8 *d = cast(U8 *)dest;
     U8 const *s = cast(U8 const *)source;
     U32 w, x;
-
     if (dest == NULL) {
         return NULL;
     }
-
     for (; IntFromPtr(s) % 4 && n; n--) {
         *d++ = *s++;
     }
-
     if (IntFromPtr(d) % 4 == 0) {
         for (; n >= 16;
              s += 16, d += 16, n -= 16) {
@@ -83,7 +78,6 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
         }
         return dest;
     }
-
     if (n >= 32) {
     #if __BYTE_ORDER == __BIG_ENDIAN
     #define LS <<
@@ -108,7 +102,6 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
                 *cast(U32 *)(d+8)  = (w LS 24) | (x RS 8);
                 w = *cast(U32 *)(s+13);
                 *cast(U32 *)(d+12) = (x LS 24) | (w RS 8);
-
                 s += 16;
                 d += 16;
                 n -= 16;
@@ -128,7 +121,6 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
                 *cast(U32 *)(d+8)  = (w LS 16) | (x RS 16);
                 w = *cast(U32 *)(s+14);
                 *cast(U32 *)(d+12) = (x LS 16) | (w RS 16);
-
                 s += 16;
                 d += 16;
                 n -= 16;
@@ -147,7 +139,6 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
                 *cast(U32 *)(d+8)  = (w LS 8) | (x RS 24);
                 w = *cast(U32 *)(s+15);
                 *cast(U32 *)(d+12) = (x LS 8) | (w RS 24);
-
                 s += 16;
                 d += 16;
                 n -= 16;
@@ -177,27 +168,24 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
             *d = *s;
         }
     }
-
 #endif
     return dest;
 }
 
-internal inline void *mem_move(void *dest, void const *source, I64 n)
+internal inline void
+*mem_move(void *dest, void const *source, I64 n)
 {
     U8 *d = cast(U8 *)dest;
     U8 const *s = cast(U8 const *)source;
-
     if (dest == NULL) {
         return NULL;
     }
-
     if (d == s) {
         return d;
     }
     if (s+n <= d || d+n <= s) { // NOTE: Non-overlapping
         return mem_copy(d, s, n);
     }
-
     if (d < s) {
         if (IntFromPtr(s) % sizeof(I64) == IntFromPtr(d) % sizeof(I64)) {
             while (IntFromPtr(d) % sizeof(I64)) {
@@ -226,20 +214,18 @@ internal inline void *mem_move(void *dest, void const *source, I64 n)
         }
         while (n) n--, d[n] = s[n];
     }
-
     return dest;
 }
 
-internal inline void *mem_set(void *dest, U8 c, I64 n)
+internal inline void
+*mem_set(void *dest, U8 c, I64 n)
 {
     U8 *s = cast(U8 *)dest;
     I64 k;
     U32 c32 = ((U32)-1)/255 * c;
-
     if (dest == NULL) {
         return NULL;
     }
-
     if (n == 0) { return dest; }
     s[0] = s[n-1] = c;
     if (n < 3) { return dest; }
@@ -248,12 +234,10 @@ internal inline void *mem_set(void *dest, U8 c, I64 n)
     if (n < 7) { return dest; }
     s[3] = s[n-4] = c;
     if (n < 9) { return dest; }
-
     k = -cast(I64)s & 3;
     s += k;
     n -= k;
     n &= -4;
-
     *cast(U32 *)(s+0) = c32;
     *cast(U32 *)(s+n-4) = c32;
     if (n < 9) { return dest; }
@@ -270,11 +254,9 @@ internal inline void *mem_set(void *dest, U8 c, I64 n)
     *cast(U32 *)(s+n-24) = c32;
     *cast(U32 *)(s+n-20) = c32;
     *cast(U32 *)(s+n-16) = c32;
-
     k = 24 + (IntFromPtr(s) & 4);
     s += k;
     n -= k;
-
     {
         U64 c64 = (cast(U64)c32 << 32) | c32;
         while (n > 31) {
@@ -282,11 +264,46 @@ internal inline void *mem_set(void *dest, U8 c, I64 n)
             *cast(U64 *)(s+8) = c64;
             *cast(U64 *)(s+16) = c64;
             *cast(U64 *)(s+24) = c64;
-
             n -= 32;
             s += 32;
         }
     }
-
     return dest;
 }
+
+internal I32
+mem_is_zero(void *ptr, U64 size){
+  I32 result = 1;
+
+  // break down size
+  U64 extra = (size&0x7);
+  U64 count8 = (size >> 3);
+
+  // check with 8-byte stride
+  U64 *p64 = (U64*)ptr;
+  if(result)
+  {
+    for (U64 i = 0; i < count8; i += 1, p64 += 1){
+      if (*p64 != 0){
+        result = 0;
+        goto done;
+      }
+    }
+  }
+
+  // check extra
+  if(result)
+  {
+    U8 *p8 = (U8*)p64;
+    for (U64 i = 0; i < extra; i += 1, p8 += 1){
+      if (*p8 != 0){
+        result = 0;
+        goto done;
+      }
+    }
+  }
+
+  done:;
+  return(result);
+}
+
