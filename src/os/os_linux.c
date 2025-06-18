@@ -89,7 +89,7 @@ os_file_open(Str8 path, Os_AccessFlags flags)
     }
     else if(flags & OS_AccessFlag_Write)
     {
-        lnx_flags = O_WRONLY;
+        lnx_flags = O_WRONLY|O_TRUNC;
     }
     else if(flags & OS_AccessFlag_Read)
     {
@@ -103,8 +103,8 @@ os_file_open(Str8 path, Os_AccessFlags flags)
     {
         lnx_flags |= O_CREAT;
     }
-    U32 fd = open((char *)path.str, lnx_flags, 0755);
-    return fd;
+    Os_File file = open((char *)path.str, lnx_flags, 0666);
+    return file;
 }
 
 internal void

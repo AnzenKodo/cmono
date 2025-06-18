@@ -1,11 +1,31 @@
 // String Constructors
 //====================================================================
 
-internal Str8 str8_init(U8 *str, U64 size) {
+internal Str8
+str8_init(U8 *str, U64 size) {
     return (Str8){str, size};
 }
-internal Str8 str8_from_cstr(char *c)      {
+internal Str8
+str8_from_cstr(char *c) {
     return (Str8){(U8*)c, cstr8_length((U8*)c)};
+}
+
+internal Str16
+str16_init(U16 *str, U64 size) {
+    return (Str16){str, size};
+}
+internal Str16
+str16_from_cstr(U16 *c) {
+    return (Str16){(U16*)c, cstr16_length((U16*)c)};
+}
+
+internal Str32
+str32_init(U32 *str, U64 size) {
+    return (Str32){str, size};
+}
+internal Str32
+str32_from_cstr(U32 *c) {
+    return (Str32){(U32*)c, cstr32_length((U32*)c)};
 }
 
 // String Matching
@@ -59,3 +79,17 @@ internal U64 cstr8_length(U8 *c)
     for (;*p != 0; p += 1);
     return(p - c);
 }
+internal U64
+cstr16_length(U16 *c){
+    U16 *p = c;
+    for (;*p != 0; p += 1);
+    return(p - c);
+}
+
+internal U64
+cstr32_length(U32 *c){
+    U32 *p = c;
+    for (;*p != 0; p += 1);
+    return(p - c);
+}
+

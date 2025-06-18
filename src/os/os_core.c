@@ -6,3 +6,27 @@ os_memory_alloc(U64 size)
     return result;
 }
 
+internal Str8
+os_file_read_str(Os_File file, Rng1U64 range, Alloc alloc)
+{
+    Str8 result;
+    result.size = dim_1u64(range);
+    result.str = alloc_make(alloc, U8, result.size);
+    U64 actual_read_size = os_file_read(file, range, result.str);
+    if(actual_read_size < result.size)
+    {
+        alloc_free(alloc, result.str, result.size);
+        result.size = actual_read_size;
+    }
+    return result;
+}
+
+internal Str8
+os_file_read_str_full(Os_File file, Alloc alloc)
+{
+    Str8 result;
+    Os_FileProperties prop = os_file_properties(file);
+    result = os_file_read_str(file, rng_1u64(0, prop.size), alloc);
+    return result;
+}
+
