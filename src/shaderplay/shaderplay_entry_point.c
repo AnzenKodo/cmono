@@ -18,17 +18,6 @@
 internal void
 entry_point(char *argv[])
 {
-    U64 size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-
-    Os_File file = os_file_open(str8("./test.txt"), OS_AccessFlag_Write);
-
-    Str8 str = str8("str asdf as sdfasdf");
-    Os_FileProperties prop = os_file_properties(file);
-    os_file_write(file, rng_1u64(0, str.size), str.str);
-
-    os_file_close(file);
 }
 
 char *vertexShaderSource = "";

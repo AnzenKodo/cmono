@@ -228,7 +228,31 @@ os_sleep_microsec(U64 micosec)
 // OS Entry Points
 //=============================================================================
 
+typedef struct Str8Node Str8Node;
+struct Str8Node
+{
+  Str8Node *next;
+  Str8 string;
+};
+
+typedef struct Str8List Str8List;
+struct Str8List
+{
+  Str8Node *first;
+  Str8Node *last;
+  U64 node_count;
+  U64 total_size;
+};
+
 int main(int argc, char *argv[])
 {
+    Str8List result = {0};
+    for(int i = 0; i < argc; i += 1)
+    {
+        Str8 str = str8_from_cstr(argv[i]);
+        // str8_list_push(arena, &result, str);
+    }
+    return result;
+
     entry_point(argv);
 }
