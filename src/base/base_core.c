@@ -28,7 +28,7 @@ safe_cast_s32(I64 x)
 //=============================================================================
 
 internal Context_Os
-context_of_operating_system(void)
+context_of_os(void)
 {
     Context_Os os = Context_Os_Null;
 #if OS_WINDOWS

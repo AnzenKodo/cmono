@@ -16,8 +16,20 @@
 #include <stdio.h>
 
 internal void
-entry_point(char *argv[])
+entry_point(Str8List *args_list)
 {
+    // Program Init ==========================================================
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+
+    Os_File file = os_file_open(str8("build.c"), OS_AccessFlag_Read);
+    Str8 str = os_file_read_str_full(file, alloc);
+    printf("%s", str.str);
+
+    // Free Everything ========================================================
+    os_file_close(file);
+    os_memory_free(buffer, size);
 }
 
 char *vertexShaderSource = "";

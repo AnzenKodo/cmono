@@ -86,6 +86,26 @@ global I32 min_i32 = (I32)0xffffffff;
 global I16 min_i16 = (I16)0xffff;
 global I8  min_i8  =  (I8)0xff;
 
+// Link Lists
+//=============================================================================
+
+#define CheckNil(nil,p) ((p) == 0 || (p) == nil)
+#define SetNil(nil,p) ((p) = nil)
+
+#define SLLPush_NZ(nil,fist,last,node,next) (CheckNil(nil,fist)?\
+    ((fist)=(last)=(node),SetNil(nil,(node)->next)):\
+    ((last)->next=(node),(last)=(node),SetNil(nil,(node)->next)))
+#define SLLPushFront_NZ(nil,first,last,node,next) (CheckNil(nil,first)?\
+    ((first)=(last)=(node),SetNil(nil,(node)->next)):\
+    ((node)->next=(first),(first)=(node)))
+#define SLLPop_NZ(nil,first,last,next) ((first)==(last)?\
+    (SetNil(nil,first),SetNil(nil,last)):\
+    ((first)=(first)->next))
+
+#define SLLPush(first,last,node) SLLPush_NZ(0,first,last,node,next)
+#define SLLPushFront(fist,last,node) SLLPushFront_NZ(0,fist,last,node,next)
+#define SLLPop(first,last) SLLPop_NZ(0,first,last,next)
+
 // Misc. Macros
 //=============================================================================
 
@@ -160,7 +180,7 @@ internal I32 safe_cast_s32(I64 x);
 // Toolchain/Environment Enum Functions
 //=============================================================================
 
-internal Context_Os context_of_operating_system(void);
+internal Context_Os context_of_os(void);
 internal Context_Arch context_of_arch(void);
 internal Context_Compiler context_of_compiler(void);
 

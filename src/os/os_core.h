@@ -80,6 +80,6 @@ internal void os_sleep_ms(U32 msec);
 // Program Entry Points
 //=============================================================================
 
-internal void entry_point(char *argv[]);
+internal void entry_point(Str8List *args_list);
 
 #endif // OS_CORE_H

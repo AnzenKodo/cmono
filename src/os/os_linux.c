@@ -4,7 +4,7 @@
 internal DateTime
 os_lnx_date_time_from_tm(struct tm in, U32 msec)
 {
-    DateTime dt = {0};
+    DateTime dt = ZERO_STRUCT;
     dt.sec  = in.tm_sec;
     dt.min  = in.tm_min;
     dt.hour = in.tm_hour;
@@ -20,7 +20,7 @@ os_lnx_dense_time_from_timespec(struct timespec in)
 {
     DenseTime result = 0;
     {
-        struct tm tm_time = {0};
+        struct tm tm_time = ZERO_STRUCT;
         gmtime_r(&in.tv_sec, &tm_time);
         DateTime date_time = os_lnx_date_time_from_tm(
             tm_time, in.tv_nsec/Million(1)
@@ -33,7 +33,7 @@ os_lnx_dense_time_from_timespec(struct timespec in)
 internal Os_FileProperties
 os_lnx_file_properties_from_stat(struct stat *s)
 {
-    Os_FileProperties props = {0};
+    Os_FileProperties props = ZERO_STRUCT;
     props.size     = s->st_size;
     props.created  = os_lnx_dense_time_from_timespec(s->st_ctim);
     props.modified = os_lnx_dense_time_from_timespec(s->st_mtim);
@@ -166,9 +166,9 @@ os_file_write(Os_File file, Rng1U64 rng, void *data)
 internal Os_FileProperties
 os_file_properties(Os_File file)
 {
-    struct stat fd_stat = {0};
+    struct stat fd_stat = ZERO_STRUCT;
     int fstat_result = fstat(file, &fd_stat);
-    Os_FileProperties props = {0};
+    Os_FileProperties props = ZERO_STRUCT;
     if(fstat_result != -1)
     {
         props = os_lnx_file_properties_from_stat(&fd_stat);
@@ -228,31 +228,18 @@ os_sleep_microsec(U64 micosec)
 // OS Entry Points
 //=============================================================================
 
-typedef struct Str8Node Str8Node;
-struct Str8Node
-{
-  Str8Node *next;
-  Str8 string;
-};
-
-typedef struct Str8List Str8List;
-struct Str8List
-{
-  Str8Node *first;
-  Str8Node *last;
-  U64 node_count;
-  U64 total_size;
-};
-
 int main(int argc, char *argv[])
 {
-    Str8List result = {0};
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+
+    Str8List args_list = ZERO_STRUCT;
     for(int i = 0; i < argc; i += 1)
     {
         Str8 str = str8_from_cstr(argv[i]);
-        // str8_list_push(arena, &result, str);
+        str8_list_push(alloc, &args_list, str);
     }
-    return result;
 
-    entry_point(argv);
+    entry_point(&args_list);
 }

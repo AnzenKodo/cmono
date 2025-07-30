@@ -4,7 +4,7 @@
         {
             "label": "Scuttle build",
             "type": "shell",
-            "command": "cc build.c && ./a.out build-debugger",
+            "command": "cc build.c && ./a.out debugger",
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": ["relative", "${workspaceFolder}"],

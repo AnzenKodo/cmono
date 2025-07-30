@@ -15,18 +15,16 @@
 #define BUILD_DIR       "build"
 
 const char *help_message = "build.c: C file that build's C projects.\n"
-"Version: "PROJECT_VERSION"\n"
 "Options:\n"
-"   build                   Build project\n"
-"   run                     Run project\n"
-"   build-run               Build and Run project\n"
-"   build-debugger          Build for Debugger\n"
-"   test                    Test project (Requires: valgrid, typos)\n"
-"   profiler                Runs Profiler (Requires: perf)\n"
-"   version --version -v    Print project version\n"
-"   help --help -h          Print help\n";
+"   build                Build project\n"
+"   run                  Run project\n"
+"   build-run            Build and Run project\n"
+"   build-debugger       Build for Debugger\n"
+"   test                 Test project (Requires: valgrid, typos)\n"
+"   profile             Runs Profiler (Requires: perf)\n"
+"   version --version -v Print project version\n"
+"   help --help -h       Print help\n";
 
-char cmd[100] = "";
 
 internal void build_cmd_append(char *cmd, char *src);
 internal void build_cmd_finish(char *cmd);
@@ -53,7 +51,6 @@ internal void build_compile(char *cmd)
     if (os_dir_make(str8(BUILD_DIR))) {
         printf("Created `"BUILD_DIR"` directory.\n");
     }
-
     printf("Compiling:\n");
     build_compile_cc(cmd);
     // Disable useless warnings
@@ -75,7 +72,6 @@ internal void build_debugger(char *cmd)
     if (os_dir_make(str8(BUILD_DIR))) {
         printf("Created `"BUILD_DIR"` directory.\n");
     }
-
     printf("Compiling:\n");
     build_compile_cc(cmd);
     // Disable useless warnings
@@ -90,11 +86,9 @@ internal void build_test(char *cmd)
     build_compile_cc(cmd);
     build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(cmd);
-
     printf("Test Typos:\n");
     build_cmd_append(cmd, "typos");
     build_cmd_finish(cmd);
-
     printf("Test Memory Leaks:\n");
     build_cmd_append(cmd, "valgrind ");
     build_cmd_append(cmd, " --leak-check=full --track-origins=yes ");
@@ -109,52 +103,76 @@ internal void build_profiler(char *cmd)
     build_compile_cc(cmd);
     build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(cmd);
-
     printf("Profiler Recording:\n");
     build_cmd_append(cmd, "perf record -o ./"BUILD_DIR"/perf.data -g ./"BUILD_DIR"/"PROJECT_NAME);
     build_cmd_finish(cmd);
-
     printf("Profiler Report:\n");
     build_cmd_append(cmd, "perf report -i ./"BUILD_DIR"/perf.data");
     build_cmd_finish(cmd);
 }
 
-internal void entry_point(char *argv[])
+char cmd[100] = "";
+internal void entry_point(Str8List *args_list)
 {
-    // char *cmd = getenv("CMDLINE");
-    char *option = argv[1];
-
-    if (!option) {
-        fprintf(stderr, "Error: no options provided.\n\n");
+    bool should_print_help = false;
+    bool should_print_version = false;
+    bool should_program_build = false;
+    bool should_program_run = false;
+    bool should_program_debug = false;
+    bool should_program_test = false;
+    bool should_program_profiler = false;
+    for (Str8Node *node = args_list->first->next; node != NULL; node = node->next) {
+        if (
+            str8_match(node->string, str8("help"), 0) ||
+            str8_match(node->string, str8("--help"), 0) ||
+            str8_match(node->string, str8("-h"), 0)
+        ) {
+            should_print_help = true;
+            should_print_version = true;
+        } else if (
+            str8_match(node->string, str8("version"), 0) ||
+            str8_match(node->string, str8("--version"), 0) ||
+            str8_match(node->string, str8("-v"), 0)
+        ) {
+            should_print_version = true;
+        } else if (str8_match(node->string, str8("build"), 0)) {
+            should_program_build = true;
+        } else if (!should_program_test && str8_match(node->string, str8("debug"), 0)) {
+            should_program_debug = true;
+        } else if (!should_program_debug && str8_match(node->string, str8("test"), 0)) {
+            should_program_test = true;
+        } else if (str8_match(node->string, str8("run"), 0)) {
+            should_program_run = true;
+        } else if(!should_program_build && str8_match(node->string, str8("profile"), 0)) {
+            should_program_profiler = false;
+        } else {
+            fprintf(stderr, "Error: wrong option provided `%s`.\n\n", node->string.str);
+            should_print_help = true;
+            should_print_version = true;
+        }
+    }
+    if (!(should_print_help || should_print_version)) {
+        if (should_program_build) {
+            if (should_program_debug) {
+                build_debugger(cmd);
+            } else if (should_program_test) {
+                build_test(cmd);
+            } else {
+                build_compile(cmd);
+            }
+        }
+        if (should_program_run) {
+            build_run(cmd);
+        }
+        if (should_program_profiler) {
+            build_profiler(cmd);
+        }
+    }
+    if (should_print_help) {
         printf(help_message);
-    } else if (str8_match(str8_from_cstr(option), str8("build"))) {
-        build_compile(cmd);
-    } else if (str8_match(str8_from_cstr(option), str8("build-run"))) {
-        build_compile(cmd);
-        build_run(cmd);
-    } else if (str8_match(str8_from_cstr(option), str8("build-debugger"))) {
-        build_debugger(cmd);
-    } else if (str8_match(str8_from_cstr(option), str8("run"))) {
-        build_run(cmd);
-    } else if (str8_match(str8_from_cstr(option), str8("test"))) {
-        build_test(cmd);
-    } else if (str8_match(str8_from_cstr(option), str8("profiler"))) {
-        build_profiler(cmd);
-    } else if (
-        str8_match(str8_from_cstr(option), str8("version")) ||
-        str8_match(str8_from_cstr(option), str8("--version")) ||
-        str8_match(str8_from_cstr(option), str8("-v"))
-    ) {
-        printf(PROJECT_VERSION);
-    } else if (
-        str8_match(str8_from_cstr(option), str8("help")) ||
-        str8_match(str8_from_cstr(option), str8("--help")) ||
-        str8_match(str8_from_cstr(option), str8("-h"))
-    ) {
-        printf(help_message);
-    } else {
-        fprintf(stderr, "Error: wrong option provided `%s`.\n\n", option);
-        printf(help_message);
+    }
+    if (should_print_version) {
+        printf("Version: "PROJECT_VERSION);
     }
 }
 

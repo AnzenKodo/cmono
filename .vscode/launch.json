@@ -15,7 +15,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
             "cwd": "${workspaceFolder}",
-            "type": "cppdbg"
+            "type": "cppdbg",
+            "args": ["help", "--help", "--version"]
         }
     ]
 }
