@@ -7,7 +7,7 @@
             "program": "${workspaceFolder}/build/Scuttle",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "type": "cppdbg",
+            "type": "gdb",
             "preLaunchTask": "Scuttle build"
         },
         {
@@ -15,7 +15,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
             "cwd": "${workspaceFolder}",
-            "type": "cppdbg",
+            "type": "gdb",
             "args": ["help", "--help", "--version"]
         }
     ]
