@@ -21,7 +21,7 @@ const char *help_message = "build.c: C file that build's C projects.\n"
 "   build-run            Build and Run project\n"
 "   build-debugger       Build for Debugger\n"
 "   test                 Test project (Requires: valgrid, typos)\n"
-"   profile             Runs Profiler (Requires: perf)\n"
+"   profile              Runs Profiler (Requires: perf)\n"
 "   version --version -v Print project version\n"
 "   help --help -h       Print help\n";
 
@@ -121,6 +121,9 @@ internal void entry_point(Str8List *args_list)
     bool should_program_debug = false;
     bool should_program_test = false;
     bool should_program_profiler = false;
+    if (args_list->count == 1) {
+        should_print_help = true;
+    }
     for (Str8Node *node = args_list->first->next; node != NULL; node = node->next) {
         if (
             str8_match(node->string, str8("help"), 0) ||
@@ -137,7 +140,10 @@ internal void entry_point(Str8List *args_list)
             should_print_version = true;
         } else if (str8_match(node->string, str8("build"), 0)) {
             should_program_build = true;
-        } else if (!should_program_test && str8_match(node->string, str8("debug"), 0)) {
+        } else if (str8_match(node->string, str8("build-run"), 0)) {
+            should_program_build = true;
+            should_program_run = true;
+        } else if (!should_program_test && str8_match(node->string, str8("build-debugger"), 0)) {
             should_program_debug = true;
         } else if (!should_program_debug && str8_match(node->string, str8("test"), 0)) {
             should_program_test = true;
