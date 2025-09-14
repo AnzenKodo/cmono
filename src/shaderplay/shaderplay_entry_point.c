@@ -15,27 +15,15 @@
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
 
+char *vertexShaderSource = "#version 300 es\n"
+"precision highp float;\n"
+"in vec4 position;\n"
+"void main() {\n"
+"    gl_Position = position;\n"
+"}\n";
+
 internal void
 entry_point(Str8List *args_list)
-{
-    // Program Init ==========================================================
-    U64 size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-
-    Os_File file = os_file_open(str8("build.c"), OS_AccessFlag_Read);
-    Str8 str = os_file_read_str_full(file, alloc);
-    printf("%s", str.str);
-
-    // Free Everything ========================================================
-    os_file_close(file);
-    os_memory_free(buffer, size);
-}
-
-char *vertexShaderSource = "";
-char *fragmentShaderSource = "";
-internal void
-entry_point2(char *argv[])
 {
     // Program Init ==========================================================
     wl_window_open(str8("Scuttle"), vec2i32(750, 750));
@@ -44,6 +32,9 @@ entry_point2(char *argv[])
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     Draw_Buffer draw_buffer = render_init(alloc);
+
+    Os_File file = os_file_open(str8("shaders/shader.frag"), OS_AccessFlag_Read);
+    Str8 fragmentShaderSource = os_file_read_str_full(file, alloc);
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -58,7 +49,7 @@ entry_point2(char *argv[])
     }
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource.str, NULL);
     glCompileShader(fragmentShader);
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
     if (!status) {
@@ -111,8 +102,7 @@ entry_point2(char *argv[])
         wl_set_fps(60);
         wl_update_events();
         if (
-            wl_is_key_pressed(Wl_Key_Esc) ||
-            wl_is_event_happen(Wl_EventType_WindowClose)
+            wl_is_key_pressed(Wl_Key_Esc) || wl_is_event_happen(Wl_EventType_WindowClose)
         ) {
             wl_set_window_close();
         }
@@ -135,6 +125,7 @@ entry_point2(char *argv[])
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     glDeleteBuffers(1, &vbo);
+    os_file_close(file);
     render_deinit();
     os_memory_free(buffer, size);
     wl_window_close();
