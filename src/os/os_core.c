@@ -30,3 +30,8 @@ os_file_read_str_full(Os_File file, Alloc alloc)
     return result;
 }
 
+internal Str8List *
+os_args_get(void)
+{
+    return &os_core_state.args;
+}

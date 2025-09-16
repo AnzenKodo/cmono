@@ -45,6 +45,13 @@ enum
     OS_AccessFlag_Inherited   = (1<<6),
 };
 
+// State
+//=============================================================================
+typedef struct Os_Core_State Os_Core_State;
+struct Os_Core_State {
+    Str8List args;
+};
+
 // Memory Allocation
 //=============================================================================
 
@@ -77,9 +84,19 @@ internal void os_exit(I32 exit_code);
 internal U32 os_now_unix(void);
 internal void os_sleep_ms(U32 msec);
 
+// Command line arguments
+//=============================================================================
+
+internal Str8List *os_agrs_get();
+
 // Program Entry Points
 //=============================================================================
 
-internal void entry_point(Str8List *args_list);
+internal void entry_point(void);
+
+// Global Variables
+//=============================================================================
+
+global Os_Core_State os_core_state = ZERO_STRUCT;
 
 #endif // OS_CORE_H

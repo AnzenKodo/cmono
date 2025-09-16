@@ -234,12 +234,11 @@ int main(int argc, char *argv[])
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
 
-    Str8List args_list = ZERO_STRUCT;
     for(int i = 0; i < argc; i += 1)
     {
         Str8 str = str8_from_cstr(argv[i]);
-        str8_list_push(alloc, &args_list, str);
+        str8_list_push(alloc, &os_core_state.args, str);
     }
 
-    entry_point(&args_list);
+    entry_point();
 }
