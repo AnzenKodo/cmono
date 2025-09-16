@@ -6,13 +6,21 @@ char_is_space(U8 c)
 {
     return(c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f' || c == '\v');
 }
+internal U8
+char_to_correct_slash(U8 c)
+{
+    if(char_is_slash(c))
+    {
+        c = '/';
+    }
+    return(c);
+}
 
 internal bool
 char_is_upper(U8 c)
 {
     return('A' <= c && c <= 'Z');
 }
-
 internal bool
 char_is_lower(U8 c)
 {
@@ -40,23 +48,12 @@ char_to_lower(U8 c)
     }
     return(c);
 }
-
 internal U8
 char_to_upper(U8 c)
 {
     if (char_is_lower(c))
     {
         c += ('A' - 'a');
-    }
-    return(c);
-}
-
-internal U8
-char_to_correct_slash(U8 c)
-{
-    if(char_is_slash(c))
-    {
-        c = '/';
     }
     return(c);
 }
@@ -78,7 +75,6 @@ cstr16_length(U16 *c)
     for (;*p != 0; p += 1);
     return(p - c);
 }
-
 internal U64
 cstr32_length(U32 *c)
 {
@@ -123,7 +119,6 @@ str8_range(U8 *first, U8 *one_past_last)
     Str8 result = {first, (U64)(one_past_last - first)};
     return result;
 }
-
 
 // String Matching
 //=============================================================================
@@ -383,6 +378,243 @@ str8_copy(Alloc alloc, Str8 s)
     mem_copy(str.str, s.str, s.size);
     str.str[str.size] = 0;
     return(str);
+}
+
+// UTF-8 & UTF-16 Decoding/Encoding
+//=============================================================================
+
+read_only global U8 utf8_class[32] = {
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,2,2,2,2,3,3,4,5,
+};
+
+internal UnicodeDecode
+utf8_decode(U8 *str, U64 max)
+{
+    UnicodeDecode result = {1, max_u32};
+    U8 byte = str[0];
+    U8 byte_class = utf8_class[byte >> 3];
+    switch (byte_class)
+    {
+        case 1:{
+            result.codepoint = byte;
+        }break;
+        case 2: {
+            if (1 < max)
+            {
+                U8 cont_byte = str[1];
+                if (utf8_class[cont_byte >> 3] == 0)
+                {
+                    result.codepoint = (byte & bitmask5) << 6;
+                    result.codepoint |=  (cont_byte & bitmask6);
+                    result.inc = 2;
+                }
+            }
+        }break;
+        case 3:
+        {
+            if (2 < max)
+            {
+                U8 cont_byte[2] = {str[1], str[2]};
+                if (
+                    utf8_class[cont_byte[0] >> 3] == 0 &&
+                    utf8_class[cont_byte[1] >> 3] == 0
+                ) {
+                    result.codepoint = (byte & bitmask4) << 12;
+                    result.codepoint |= ((cont_byte[0] & bitmask6) << 6);
+                    result.codepoint |=  (cont_byte[1] & bitmask6);
+                    result.inc = 3;
+                }
+            }
+        }break;
+        case 4:
+        {
+            if (3 < max)
+            {
+                U8 cont_byte[3] = {str[1], str[2], str[3]};
+                if (
+                    utf8_class[cont_byte[0] >> 3] == 0 &&
+                    utf8_class[cont_byte[1] >> 3] == 0 &&
+                    utf8_class[cont_byte[2] >> 3] == 0
+                ) {
+                    result.codepoint = (byte & bitmask3) << 18;
+                    result.codepoint |= ((cont_byte[0] & bitmask6) << 12);
+                    result.codepoint |= ((cont_byte[1] & bitmask6) <<  6);
+                    result.codepoint |=  (cont_byte[2] & bitmask6);
+                    result.inc = 4;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+internal UnicodeDecode
+utf16_decode(U16 *str, U64 max)
+{
+    UnicodeDecode result = {1, max_u32};
+    result.codepoint = str[0];
+    result.inc = 1;
+    if (max > 1 && 0xD800 <= str[0] && str[0] < 0xDC00 && 0xDC00 <= str[1] && str[1] < 0xE000){
+        result.codepoint = ((str[0] - 0xD800) << 10) | ((str[1] - 0xDC00) + 0x10000);
+        result.inc = 2;
+    }
+    return result;
+}
+
+internal U32
+utf8_encode(U8 *str, U32 codepoint)
+{
+    U32 inc = 0;
+    if (codepoint <= 0x7F){
+        str[0] = (U8)codepoint;
+        inc = 1;
+    }
+    else if (codepoint <= 0x7FF){
+        str[0] = (bitmask2 << 6) | ((codepoint >> 6) & bitmask5);
+        str[1] = bit8 | (codepoint & bitmask6);
+        inc = 2;
+    }
+    else if (codepoint <= 0xFFFF){
+        str[0] = (bitmask3 << 5) | ((codepoint >> 12) & bitmask4);
+        str[1] = bit8 | ((codepoint >> 6) & bitmask6);
+        str[2] = bit8 | ( codepoint       & bitmask6);
+        inc = 3;
+    }
+    else if (codepoint <= 0x10FFFF){
+        str[0] = (bitmask4 << 4) | ((codepoint >> 18) & bitmask3);
+        str[1] = bit8 | ((codepoint >> 12) & bitmask6);
+        str[2] = bit8 | ((codepoint >>  6) & bitmask6);
+        str[3] = bit8 | ( codepoint        & bitmask6);
+        inc = 4;
+    }
+    else{
+        str[0] = '?';
+        inc = 1;
+    }
+    return(inc);
+}
+
+internal U32
+utf16_encode(U16 *str, U32 codepoint)
+{
+    U32 inc = 1;
+    if (codepoint == max_u32){
+        str[0] = (U16)'?';
+    }
+    else if (codepoint < 0x10000){
+        str[0] = (U16)codepoint;
+    }
+    else{
+        U32 v = codepoint - 0x10000;
+        str[0] = safe_cast_u16(0xD800 + (v >> 10));
+        str[1] = safe_cast_u16(0xDC00 + (v & bitmask10));
+        inc = 2;
+    }
+    return(inc);
+}
+
+internal U32
+utf8_from_utf32_single(U8 *buffer, U32 character)
+{
+    return(utf8_encode(buffer, character));
+}
+
+// Unicode String Conversions
+//=============================================================================
+
+internal Str8
+str8_from_16(Alloc alloc, Str16 in)
+{
+    Str8 result = ZERO_STRUCT;
+    if(in.size)
+    {
+        U64 cap = in.size*3;
+        U8 *str = alloc_make(alloc, U8, cap + 1);
+        U16 *ptr = in.str;
+        U16 *opl = ptr + in.size;
+        U64 size = 0;
+        UnicodeDecode consume;
+        for(;ptr < opl; ptr += consume.inc)
+        {
+            consume = utf16_decode(ptr, opl - ptr);
+            size += utf8_encode(str + size, consume.codepoint);
+        }
+        str[size] = 0;
+        alloc_free(alloc, str, (cap - size));
+        result = str8_init(str, size);
+    }
+    return result;
+}
+
+internal Str16
+str16_from_8(Alloc alloc, Str8 in)
+{
+    Str16 result = ZERO_STRUCT;
+    if(in.size)
+    {
+        U64 cap = in.size*2;
+        U16 *str = alloc_make(alloc, U16, cap + 1);
+        U8 *ptr = in.str;
+        U8 *opl = ptr + in.size;
+        U64 size = 0;
+        UnicodeDecode consume;
+        for(;ptr < opl; ptr += consume.inc)
+        {
+            consume = utf8_decode(ptr, opl - ptr);
+            size += utf16_encode(str + size, consume.codepoint);
+        }
+        str[size] = 0;
+        alloc_free(alloc, str, (cap - size)*2);
+        result = str16_init(str, size);
+    }
+    return result;
+}
+
+internal Str8
+str8_from_32(Alloc alloc, Str32 in)
+{
+    Str8 result = ZERO_STRUCT;
+    if(in.size)
+    {
+        U64 cap = in.size*4;
+        U8 *str = alloc_make(alloc, U8, cap + 1);
+        U32 *ptr = in.str;
+        U32 *opl = ptr + in.size;
+        U64 size = 0;
+        for(;ptr < opl; ptr += 1)
+        {
+            size += utf8_encode(str + size, *ptr);
+        }
+        str[size] = 0;
+        alloc_free(alloc, str, (cap - size));
+        result = str8_init(str, size);
+    }
+    return result;
+}
+
+internal Str32
+str32_from_8(Alloc alloc, Str8 in)
+{
+    Str32 result = ZERO_STRUCT;
+    if(in.size)
+    {
+        U64 cap = in.size;
+        U32 *str = alloc_make(alloc, U32, cap + 1);
+        U8 *ptr = in.str;
+        U8 *opl = ptr + in.size;
+        U64 size = 0;
+        UnicodeDecode consume;
+        for(;ptr < opl; ptr += consume.inc)
+        {
+            consume = utf8_decode(ptr, opl - ptr);
+            str[size] = consume.codepoint;
+            size += 1;
+        }
+        str[size] = 0;
+        alloc_free(alloc, str, (cap - size)*4);
+        result = str32_init(str, size);
+    }
+    return result;
 }
 
 // String Hash
