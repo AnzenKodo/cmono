@@ -10,10 +10,9 @@
 // Types
 //=============================================================================
 
-typedef I32 Os_File;
+typedef U64 Os_File;
 
-// File Property
-// ============================================================================
+// File Property ==============================================================
 
 typedef U32 FilePropertyFlags;
 enum
@@ -30,8 +29,7 @@ struct Os_FileProperties
     FilePropertyFlags flags;
 };
 
-// Access Flags
-// ============================================================================
+// Access Flags ===============================================================
 
 typedef U32 Os_AccessFlags;
 enum
@@ -45,24 +43,24 @@ enum
     OS_AccessFlag_Inherited   = (1<<6),
 };
 
-// State
-//=============================================================================
+// State ======================================================================
 typedef struct Os_Core_State Os_Core_State;
 struct Os_Core_State {
     Str8List args;
 };
 
-// Memory Allocation
+// Functions
 //=============================================================================
 
+// Memory Allocation ==========================================================
+
 internal void *os_memory_create(U64 size);
-internal I32 os_memory_commit(void *ptr, U64 size);
+internal bool os_memory_commit(void *ptr, U64 size);
 internal void os_memory_decommit(void *ptr, U64 size);
 internal void *os_memory_alloc(U64 size);
 internal void os_memory_free(void *ptr, U64 size);
 
-// File System
-//=============================================================================
+// File System ================================================================
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags);
 internal void os_file_close(Os_File file);
@@ -73,24 +71,21 @@ internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data);
 internal Os_FileProperties os_file_properties(Os_File file);
 internal bool os_dir_make(Str8 path);
 
-// Exit
-//=============================================================================
+// Exit =======================================================================
 
 internal void os_exit(I32 exit_code);
 
-// Time
-//=============================================================================
+// Time =======================================================================
 
 internal U32 os_now_unix(void);
-internal void os_sleep_ms(U32 msec);
+internal void os_sleep_ms(U32 microsec);
+internal void os_sleep_millisec(U32 millisec);
 
-// Command line arguments
-//=============================================================================
+// Command line arguments =====================================================
 
 internal Str8List *os_agrs_get();
 
-// Program Entry Points
-//=============================================================================
+// Program Entry Points =======================================================
 
 internal void entry_point(void);
 

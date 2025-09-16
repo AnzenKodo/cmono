@@ -5,8 +5,10 @@
 
 #if OS_LINUX
 #   include "os_linux.h"
+#elif OS_WINDOWS
+#   include "os_windows.h"
 #else
-#   error OS window layer not implemented for this operating system.
+#   error OS layer not implemented for this operating system.
 #endif
 
 #endif // OS_INCLUDE_H

@@ -56,11 +56,11 @@ os_memory_create(U64 size)
     return result;
 }
 
-internal I32
+internal bool
 os_memory_commit(void *ptr, U64 size)
 {
     mprotect(ptr, size, PROT_READ|PROT_WRITE);
-    return 1;
+    return true;
 }
 
 internal void
@@ -223,6 +223,12 @@ os_sleep_microsec(U64 micosec)
         .tv_nsec = (micosec % Million(1)) * Thousand(1),
     };
     nanosleep(&ts, NULL);
+}
+
+internal void
+os_sleep_millisec(U32 millisec)
+{
+    usleep(millisec*Thousand(1));
 }
 
 // OS Entry Points

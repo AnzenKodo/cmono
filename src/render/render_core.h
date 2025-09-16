@@ -7,6 +7,7 @@
 #define RENDER_BACKEND_STUB     0
 #define RENDER_BACKEND_X11      1
 #define RENDER_BACKEND_OPENGL   2
+#define RENDER_BACKEND_WIN32    3
 
 // Context detection for Render Backends
 //=============================================================================
@@ -14,6 +15,8 @@
 #ifndef RENDER_BACKEND
 #   if OS_LINUX
 #        define RENDER_BACKEND RENDER_BACKEND_X11
+#   elif OS_WINDOWS
+#        define RENDER_BACKEND RENDER_BACKEND_WIN32
 #   endif
 #endif
 

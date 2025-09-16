@@ -42,8 +42,11 @@ internal void build_compile_cc(char *cmd) {
     // Performance
     // build_cmd_append(cmd, " -mavx2 -O3");
     // Libs
-    // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
-    build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+    Context_Os os = context_of_os();
+    if (os == Context_Os_Linux) {
+        // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
+        build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+    }
 }
 
 internal void build_compile(char *cmd)
@@ -179,7 +182,7 @@ internal void entry_point()
         }
     }
     if (should_print_help) {
-        printf(help_message);
+        printf("%s", help_message);
     }
     if (should_print_version) {
         printf("Version: "PROJECT_VERSION);

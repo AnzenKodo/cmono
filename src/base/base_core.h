@@ -176,6 +176,7 @@ global I8  min_i8  =  (I8)0xff;
 internal U16 safe_cast_u16(U32 x);
 internal U32 safe_cast_u32(U64 x);
 internal I32 safe_cast_s32(I64 x);
+internal U32 u32_from_u64_saturate(U64 x);
 
 // Toolchain/Environment Enum Functions
 //=============================================================================
