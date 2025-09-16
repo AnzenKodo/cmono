@@ -68,6 +68,15 @@ Context_Compiler;
 #define global          static
 #define local_persist   static
 
+#if (COMPILER_MSVC || (COMPILER_CLANG && OS_WINDOWS)) && !(TOOLCHAIN_MINGW)
+#   pragma section(".rdata$", read)
+#   define read_only __declspec(allocate(".rdata$"))
+#elif COMPILER_CLANG && (OS_LINUX || TOOLCHAIN_MINGW)
+#   define read_only __attribute__((section(".rodata")))
+#else
+#   define read_only
+#endif
+
 // Constants
 //=============================================================================
 
