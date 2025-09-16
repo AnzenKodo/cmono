@@ -275,13 +275,14 @@ int main(int argc, char *argv[])
 {
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
+    os_core_state.alloc = alloc_arena_init(buffer, size);
 
     for(int i = 0; i < argc; i += 1)
     {
         Str8 str = str8_from_cstr(argv[i]);
-        str8_list_push(alloc, &os_core_state.args, str);
+        str8_list_push(os_core_state.alloc, &os_core_state.args, str);
     }
 
     entry_point();
+    os_memory_free(buffer, size);
 }
