@@ -63,6 +63,7 @@ internal void build_compile(char *cmd)
 internal void build_run(char *cmd)
 {
     build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
+    build_cmd_append(cmd, " shaders/shader.frag");
     printf("Running:\n");
     build_cmd_finish(cmd);
 }
@@ -112,7 +113,7 @@ internal void build_profiler(char *cmd)
 }
 
 char cmd[100] = "";
-internal void entry_point(Str8List *args_list)
+internal void entry_point()
 {
     bool should_print_help = false;
     bool should_print_version = false;
@@ -121,6 +122,9 @@ internal void entry_point(Str8List *args_list)
     bool should_program_debug = false;
     bool should_program_test = false;
     bool should_program_profiler = false;
+
+    Str8List *args_list = os_args_get();
+
     if (args_list->count == 1) {
         should_print_help = true;
     }

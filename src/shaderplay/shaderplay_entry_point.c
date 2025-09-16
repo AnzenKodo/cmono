@@ -23,9 +23,9 @@ char *vertexShaderSource = "#version 300 es\n"
 "}\n";
 
 internal void
-entry_point(Str8List *args_list)
+entry_point(void)
 {
-    // Program Init ==========================================================
+    // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec2i32(750, 750));
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
     U64 size = MB(10);
@@ -33,7 +33,11 @@ entry_point(Str8List *args_list)
     Alloc alloc = alloc_arena_init(buffer, size);
     Draw_Buffer draw_buffer = render_init(alloc);
 
-    Os_File file = os_file_open(str8("shaders/shader.frag"), OS_AccessFlag_Read);
+
+    // Load fragment shader file ==============================================
+    Str8List *args = os_args_get();
+    Str8Node *frag_filename = args->first->next;
+    Os_File file = os_file_open(frag_filename->string, OS_AccessFlag_Read);
     Str8 fragmentShaderSource = os_file_read_str_full(file, alloc);
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
