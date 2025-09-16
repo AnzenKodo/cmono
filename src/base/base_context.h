@@ -156,6 +156,11 @@
 # define ARCH_LITTLE_ENDIAN 1
 #else
 # error Endianness of this architecture not understood by context cracker.
+// MinGW Checking
+//=============================================================================
+
+#ifdef __MINGW32__
+#   define TOOLCHAIN_MINGW 1
 #endif
 
 #endif // BASE_CONTEXT_H
