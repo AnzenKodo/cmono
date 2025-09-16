@@ -269,22 +269,22 @@ global const U64 bit64 = (1ull<<63);
 #define PtrFromInt(i) (void*)((U8*)0 + (i))
 
 #if LANG_CPP
-# define ZERO_STRUCT {}
+#   define ZERO_STRUCT {}
 #else
-# define ZERO_STRUCT {0}
+#   define ZERO_STRUCT {0}
 #endif
 
 // Alignment
 //=============================================================================
 
 #if COMPILER_MSVC
-# define AlignOf(T) __alignof(T)
+#   define AlignOf(T) __alignof(T)
 #elif COMPILER_CLANG
-# define AlignOf(T) __alignof(T)
+#   define AlignOf(T) __alignof(T)
 #elif COMPILER_GCC
-# define AlignOf(T) __alignof__(T)
+#   define AlignOf(T) __alignof__(T)
 #else
-# error AlignOf not defined for this compiler.
+#   error AlignOf not defined for this compiler.
 #endif
 
 // Asserts

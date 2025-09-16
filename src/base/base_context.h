@@ -10,8 +10,10 @@
 #   define LANG_C 1
 #endif
 
-// Clang OS/Arch Chacking
+// Compiler OS/Arch Chacking
 //=============================================================================
+
+// Clang ======================================================================
 
 #if defined(__clang__)
 
@@ -39,8 +41,7 @@
 #       error Architecture not supported.
 #   endif
 
-// MSVC OS/Arch Cracking
-//=============================================================================
+// MSVC OS/Arch Cracking ======================================================
 
 #elif defined(_MSC_VER)
 
@@ -84,8 +85,7 @@
 #       error Architecture not supported.
 #   endif
 
-// GCC OS/Arch Cracking
-//=============================================================================
+// GCC OS/Arch Cracking =======================================================
 
 #elif defined(__GNUC__) || defined(__GNUG__)
 
@@ -109,8 +109,7 @@
 #       error Architecture not supported.
 #   endif
 
-// TCC OS/Arch Checking
-//=============================================================================
+// TCC OS/Arch Checking =======================================================
 
 #elif defined(__TINYC__)
 
@@ -136,26 +135,27 @@
 #       error Architecture not supported by TCC.
 #   endif
 
-// Not supported compiler
-//=============================================================================
+// Not supported compiler =====================================================
 
 #else
 #   error Compiler not supported.
 #endif
 
-// Arch Cracking
+// Arch Checking
 //=============================================================================
 
 #if defined(ARCH_X64)
-# define ARCH_64BIT 1
+#   define ARCH_64BIT 1
 #elif defined(ARCH_X86)
-# define ARCH_32BIT 1
+#   define ARCH_32BIT 1
 #endif
 
 #if ARCH_ARM32 || ARCH_ARM64 || ARCH_X64 || ARCH_X86
-# define ARCH_LITTLE_ENDIAN 1
+#   define ARCH_LITTLE_ENDIAN 1
 #else
-# error Endianness of this architecture not understood by context cracker.
+#   error Endianness of this architecture not understood by context cracker.
+#endif
+
 // MinGW Checking
 //=============================================================================
 
