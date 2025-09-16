@@ -208,11 +208,12 @@ internal bool
 os_dir_make(Str8 path)
 {
     bool result = false;
+    Str16 path16 = str16_from_8(os_core_state.alloc, path);
     WIN32_FILE_ATTRIBUTE_DATA attributes = {0};
-    GetFileAttributesExW((WCHAR*)path.str, GetFileExInfoStandard, &attributes);
+    GetFileAttributesExW((WCHAR*)path16.str, GetFileExInfoStandard, &attributes);
     if(attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         result = true;
-    } else if(CreateDirectoryW((WCHAR*)path.str, 0)) {
+    } else if(CreateDirectoryW((WCHAR*)path16.str, 0)) {
         result = true;
     }
     return(result);
