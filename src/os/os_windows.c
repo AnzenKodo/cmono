@@ -82,6 +82,7 @@ os_memory_free(void *ptr, U64 size)
 internal Os_File
 os_file_open(Str8 path, Os_AccessFlags flags)
 {
+    Str16 path16 = str16_from_8(os_core_state.alloc, path);
     DWORD access_flags = 0;
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
@@ -112,7 +113,7 @@ os_file_open(Str8 path, Os_AccessFlags flags)
         security_attributes.bInheritHandle = 1;
     }
     HANDLE handle = CreateFileW(
-        (WCHAR *)path.str, access_flags, share_mode, &security_attributes,
+        (WCHAR *)path16.str, access_flags, share_mode, &security_attributes,
         creation_disposition, FILE_ATTRIBUTE_NORMAL, 0
     );
     return (Os_File)handle;

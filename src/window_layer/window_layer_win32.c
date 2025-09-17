@@ -1,11 +1,6 @@
 // Basic Window functions
 //=============================================================================
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_DESTROY:
-            PostQuitMessage(0);  // Quit the message loop
-            return 0;
 LRESULT CALLBACK
 wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -125,32 +120,32 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 internal void
 wl_window_open(Str8 title, Vec2I32 win_size)
 {
-    HINSTANCE instance = GetModuleHandle(NULL);
-    WNDCLASSEXW wc = {
-        .style = CS_HREDRAW | CS_VREDRAW,
-        .lpfnWndProc = WindowProc,
-        .hInstance = instance,
-        .hCursor = LoadCursor(NULL, IDC_ARROW),
-        .hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
-        .lpszClassName = TEXT("SimpleWindowClass")
-    };
+    HINSTANCE instance = GetModuleHandleW(NULL);
 
+    WNDCLASSEXW wc = {
+        .lpfnWndProc = wl_w32_window_proc,
+        .hInstance = instance,
+        .lpszClassName = TEXT("SimpleWindowClass"),
+        .hCursor = LoadCursor(NULL, IDC_ARROW),
+        .hIcon = LoadIcon(instance, MAKEINTRESOURCE(1)),
+        .style = CS_HREDRAW | CS_VREDRAW,
+    };
     RegisterClassExW(&wc);
 
-    // Create the window
-    HWND hwnd = CreateWindow(
-        TEXT("SimpleWindowClass"),
-        TEXT("Simple Win32 Window"),
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 400, 300,
-        NULL, NULL, instance, NULL
+    Str16 title16 = str16_from_8(os_core_state.alloc, title);
+    HWND hwnd = CreateWindowExW(
+        WS_EX_APPWINDOW,
+        TEXT("graphical-window"), title16.str,
+        WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        win_size.x, win_size.y,
+        0, 0,
+        instance, 0
     );
 
-    // Show the window
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 
-    // Message loop
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
