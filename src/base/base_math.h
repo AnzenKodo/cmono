@@ -360,6 +360,15 @@ internal F32 dim_1f32(Rng1F32 r);
 
 // 2 Range (Rectangles) =======================================================
 
+internal Rng2I16 rng_2i16(Vec2I16 min, Vec2I16 max);
+internal Rng2I32 rng_2i32(Vec2I32 min, Vec2I32 max);
+internal Rng2I64 rng_2i64(Vec2I64 min, Vec2I64 max);
+internal Rng2F32 rng_2f32(Vec2F32 min, Vec2F32 max);
+
+#define rng_2i16p(x, y, z, w) rng_2i16(vec_2i16((x), (y)), vec_2i16((z), (w)))
+#define rng_2i32p(x, y, z, w) rng_2i32(vec_2i32((x), (y)), vec_2i32((z), (w)))
+#define rng_2i64p(x, y, z, w) rng_2i64(vec_2i64((x), (y)), vec_2i64((z), (w)))
+#define rng_2f32p(x, y, z, w) rng_2f32(vec_2f32((x), (y)), vec_2f32((z), (w)))
 internal Vec2I16 dim_2i16(Rng2I16 r);
 internal Vec2I32 dim_2s32(Rng2I32 r);
 internal Vec2I64 dim_2s64(Rng2I64 r);

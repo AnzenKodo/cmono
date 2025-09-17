@@ -62,8 +62,41 @@ internal Vec4I32 vec4i32(I32 x, I32 y, I32 z, I32 w)
 
 internal U32
 dim_1u32(Rng1U32 r)
+internal Rng1I32
+rng_1i32(I32 min, I32 max)
 {
-    return (r.max > r.min) ? (r.max - r.min) : 0;
+    Rng1I32 r = {min, max};
+    if(r.min > r.max) {
+        Swap(I32, r.min, r.max);
+    }
+    return r;
+}
+internal Rng1I64
+rng_1i64(I64 min, I64 max)
+{
+    Rng1I64 r = {min, max};
+    if (r.min > r.max) {
+        Swap(I64, r.min, r.max);
+    }
+    return r;
+}
+internal Rng1U64
+rng_1u64(U64 min, U64 max)
+{
+    Rng1U64 r = {min, max};
+    if(r.min > r.max) {
+        Swap(U64, r.min, r.max);
+    }
+    return r;
+}
+internal Rng1F32
+rng_1f32(F32 min, F32 max)
+{
+    Rng1F32 r = {min, max};
+    if (r.min > r.max) {
+        Swap(F32, r.min, r.max);
+    }
+    return r;
 }
 internal Rng1U32
 rng_1u32(U32 min, U32 max)
@@ -134,6 +167,26 @@ internal Rng1F32 rng_1f32(F32 min, F32 max) {
 
 // 2 Range (Rectangles) =======================================================
 
+internal Rng2I16
+rng_2i16(Vec2I16 min, Vec2I16 max)
+{
+    return (Rng2I16){min, max};
+}
+internal Rng2I32
+rng_2i32(Vec2I32 min, Vec2I32 max)
+{
+    return (Rng2I32){min, max};
+}
+internal Rng2I64
+rng_2i64(Vec2I64 min, Vec2I64 max)
+{
+    return (Rng2I64){min, max};
+}
+internal Rng2F32
+rng_2f32(Vec2F32 min, Vec2F32 max)
+{
+    return (Rng2F32){min, max};
+}
 internal Vec2I16
 dim_2i16(Rng2I16 r)
 {
