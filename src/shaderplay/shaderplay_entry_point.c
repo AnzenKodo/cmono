@@ -19,11 +19,11 @@ internal void
 entry_point(void)
 {
     // Program Init ===========================================================
-    wl_window_open(str8("Scuttle"), vec2i32(750, 750));
-    // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
+    wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
+    // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================
     Str8List *args = os_args_get();
