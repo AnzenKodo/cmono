@@ -164,10 +164,10 @@ internal U32 utf8_from_utf32_single(U8 *buffer, U32 character);
 
 // Unicode String Conversions =================================================
 
-internal Str8 str8_from_16(Alloc alloc, Str16 in)
-internal Str16 str16_from_8(Alloc alloc, Str8 in)
-internal Str8 str8_from_32(Alloc alloc, Str32 in)
-internal Str32 str32_from_8(Alloc alloc, Str8 in)
+internal Str8 str8_from_16(Alloc alloc, Str16 in);
+internal Str16 str16_from_8(Alloc alloc, Str8 in);
+internal Str8 str8_from_32(Alloc alloc, Str32 in);
+internal Str32 str32_from_8(Alloc alloc, Str8 in);
 
 // String Hash ================================================================
 

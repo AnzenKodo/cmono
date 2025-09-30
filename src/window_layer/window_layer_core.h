@@ -27,7 +27,7 @@ enum Wl_ModKey
     Wl_ModKey_Ctrl  = (1<<0),
     Wl_ModKey_Shift = (1<<1),
     Wl_ModKey_Alt   = (1<<2),
-    Wl_ModKey_Super = (1<<3),
+    Wl_ModKey_Window = (1<<3),
 };
 
 typedef enum Wl_Key Wl_Key;
@@ -191,8 +191,9 @@ typedef struct Wl_Event Wl_Event;
 struct Wl_Event {
     Wl_ModKey mod_key;
     Wl_Key key;
-    Vec2F32 pos;
     Wl_EventType type;
+    Vec2F32 pos;
+    Vec2F32 delta;
 };
 
 typedef struct Wl_State Wl_State;

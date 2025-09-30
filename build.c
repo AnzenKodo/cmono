@@ -93,17 +93,19 @@ internal void build_run(char *cmd)
     Context_Os os = context_of_os();
     if (os == Context_Os_Windows)
     {
-        build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME".exe");
+        build_cmd_append(cmd, BUILD_DIR"\\"PROJECT_NAME".exe");
+        build_cmd_append(cmd, " shaders\\shader.frag");
     }
     else if (build_use_mingw)
     {
         build_cmd_append(cmd, "WINEARCH=win64 wine ./"BUILD_DIR"/"PROJECT_NAME".exe");
+        build_cmd_append(cmd, " shaders/shader.frag");
     }
     else
     {
         build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
+        build_cmd_append(cmd, " shaders/shader.frag");
     }
-    build_cmd_append(cmd, " shaders/shader.frag");
     printf("Running:\n");
     build_cmd_finish(cmd);
 }
