@@ -39,6 +39,7 @@ internal void os_entry_point(int argc, char *argv[])
     Alloc alloc = alloc_arena_init(buffer, size);
 
     os_core_state.args = str8_array_reserve(alloc, argc);
+    os_core_state.alloc = alloc;
     for(int i = 0; i < argc; i += 1)
     {
         Str8 str = str8_from_cstr(argv[i]);
