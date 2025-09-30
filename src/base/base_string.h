@@ -16,7 +16,7 @@
 // String Types ===============================================================
 
 typedef struct Str8 {
-    U8 *str;
+    U8 *cstr;
     U64 size;
 } Str8;
 typedef struct Str16 Str16;
@@ -46,8 +46,16 @@ struct Str8List
 {
   Str8Node *first;
   Str8Node *last;
-  U64 count;
-  U64 total_size;
+  U64 index;
+  U64 size;
+};
+
+typedef struct Str8Array Str8Array;
+struct Str8Array
+{
+  Str8 *strings;
+  U64 length;
+  U64 size;
 };
 
 // String Matching, Splitting, & Joining Types ================================
@@ -132,6 +140,11 @@ internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2);
 
 internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string);
 
+// String Arrays ==============================================================
+
+internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
+internal Str8Array str8_array_reserve(Alloc alloc, U64 count);
+
 // String Split and Join ======================================================
 
 internal Str8List str8_split(Alloc alloc, Str8 string, U8 *split_chars, U64 split_char_count, StrSplitFlags flags);
@@ -148,6 +161,13 @@ internal UnicodeDecode utf16_decode(U16 *str, U64 max);
 internal U32 utf8_encode(U8 *str, U32 codepoint);
 internal U32 utf16_encode(U16 *str, U32 codepoint);
 internal U32 utf8_from_utf32_single(U8 *buffer, U32 character);
+
+// Unicode String Conversions =================================================
+
+internal Str8 str8_from_16(Alloc alloc, Str16 in)
+internal Str16 str16_from_8(Alloc alloc, Str8 in)
+internal Str8 str8_from_32(Alloc alloc, Str32 in)
+internal Str32 str32_from_8(Alloc alloc, Str8 in)
 
 // String Hash ================================================================
 
