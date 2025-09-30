@@ -23,16 +23,17 @@ entry_point(void)
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
+    Str8Array *args = os_args_get();
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================
-    Str8List *args = os_args_get();
-    Str8Node *frag_filename = args->first->next;
-    Os_File file = os_file_open(frag_filename->string, OS_AccessFlag_Read);
-    Str8 fragmentShaderSource = os_file_read_str_full(file, alloc);
+    // Str8List *args = os_args_get();
+    // Str8Node *frag_filename = args->first->next;
+    // Os_File file = os_file_open(frag_filename->string, OS_AccessFlag_Read);
+    // Str8 fragmentShaderSource = os_file_read_str_full(file, alloc);
 
     // Free Everything ========================================================
-    os_file_close(file);
+    // os_file_close(file);
     os_memory_free(buffer, size);
     wl_window_close();
 }

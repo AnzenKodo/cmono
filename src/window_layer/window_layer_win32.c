@@ -1,11 +1,10 @@
 // Basic Window functions
 //=============================================================================
 
-LRESULT CALLBACK
-wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+LRESULT CALLBACK wl_w32_window_proc(
+    HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
+) {
     LRESULT result = 0;
-
     switch(uMsg)
     {
         default: {
@@ -80,85 +79,81 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }break;
         case WM_WINDOWPOSCHANGED: {
         }break;
-        case WM_NCUAHDRAWCAPTION:
-        case WM_NCUAHDRAWFRAME: {
-        }break;
-        case WM_SETICON:
-        case WM_SETTEXT: {
-        }break;
 
         case WM_NCACTIVATE: {
         }break;
         case WM_NCCALCSIZE: {
         }break;
         case WM_NCHITTEST: {
-                if(window == 0 || window->custom_border == 0 || is_fullscreen)
-                {
-                    result = DefWindowProcW(hwnd, uMsg, wParam, lParam);
-                }
-                else
-                {
-                    result = DefWindowProc(hwnd, uMsg, wParam, lParam);
-                    switch (result)
-                    {
-                        case HTNOWHERE:
-                        case HTRIGHT:
-                        case HTLEFT:
-                        case HTTOPLEFT:
-                        case HTTOPRIGHT:
-                        case HTBOTTOMRIGHT:
-                        case HTBOTTOM:
-                        case HTBOTTOMLEFT: {
-                        } break;
-                    }
+                // if(window == 0 || window->custom_border == 0 || is_fullscreen)
+                // {
+                //     result = DefWindowProcW(hwnd, uMsg, wParam, lParam);
+                // }
+                // else
+                // {
+                //     result = DefWindowProc(hwnd, uMsg, wParam, lParam);
+                //     switch (result)
+                //     {
+                //         case HTNOWHERE:
+                //         case HTRIGHT:
+                //         case HTLEFT:
+                //         case HTTOPLEFT:
+                //         case HTTOPRIGHT:
+                //         case HTBOTTOMRIGHT:
+                //         case HTBOTTOM:
+                //         case HTBOTTOMLEFT: {
+                //         } break;
+                //     }
         }break;
     }
-    ProfEnd();
     return result;
 }
-
-internal void
-wl_window_open(Str8 title, Vec2I32 win_size)
+#include <stdio.h>
+internal void wl_window_open(Str8 title, Vec2I32 win_size)
 {
     HINSTANCE instance = GetModuleHandleW(NULL);
 
-    WNDCLASSEXW wc = {
-        .lpfnWndProc = wl_w32_window_proc,
-        .hInstance = instance,
-        .lpszClassName = TEXT("SimpleWindowClass"),
-        .hCursor = LoadCursor(NULL, IDC_ARROW),
-        .hIcon = LoadIcon(instance, MAKEINTRESOURCE(1)),
-        .style = CS_HREDRAW | CS_VREDRAW,
-    };
-    RegisterClassExW(&wc);
+    WNDCLASSEXW wc = ZERO_STRUCT;
+    wc.cbSize = sizeof(WNDCLASSEXW);
+    wc.lpfnWndProc = wl_w32_window_proc;
+    wc.hInstance = instance;
+    wc.lpszClassName = L"SimpleWindowClass";
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hIcon = LoadIconW(NULL, MAKEINTRESOURCE(1));
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    if (!RegisterClassExW(&wc)) {
+        MessageBoxW(
+            NULL, L"Failed to register window class!", L"Error",
+            MB_OK | MB_ICONERROR
+        );
+        os_exit(1);
+    }
 
     Str16 title16 = str16_from_8(os_core_state.alloc, title);
-    HWND hwnd = CreateWindowExW(
-        WS_EX_APPWINDOW,
-        TEXT("graphical-window"), title16.str,
-        WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        win_size.x, win_size.y,
-        0, 0,
-        instance, 0
-    );
+    // HWND hwnd = CreateWindowExW(
+    //     WS_EX_APPWINDOW,
+    //     TEXT("graphical-window"), L"Hello", //title16.str,
+    //     WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
+    //     CW_USEDEFAULT, CW_USEDEFAULT,
+    //     win_size.x, win_size.y,
+    //     0, 0,
+    //     instance, 0
+    // );
+    // ShowWindow(hwnd, SW_SHOW);
+    // UpdateWindow(hwnd);
 
-    ShowWindow(hwnd, SW_SHOW);
-    UpdateWindow(hwnd);
-
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+    // MSG msg;
+    // while (GetMessage(&msg, NULL, 0, 0)) {
+    //     TranslateMessage(&msg);
+    //     DispatchMessage(&msg);
+    // }
 }
 
 internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
 {
 }
 
-internal void
-wl_window_close(void)
+internal void wl_window_close(void)
 {
 }
 
@@ -167,4 +162,6 @@ wl_window_close(void)
 
 internal Wl_Event wl_get_event(void)
 {
+    Wl_Event event = ZERO_STRUCT;
+    return event;
 }

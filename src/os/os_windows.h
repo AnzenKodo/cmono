@@ -5,7 +5,7 @@
 //=============================================================================
 
 #include <winsock2.h>
-#include <Mswsock.h>
+#include <mswsock.h>
 #include <windows.h>
 
 // Types

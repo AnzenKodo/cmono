@@ -93,6 +93,8 @@
 
 #   if defined(__gnu_linux__) || defined(__linux__)
 #       define OS_LINUX 1
+#   elif defined(_WIN32)
+#       define OS_WINDOWS 1
 #   else
 #       error This compiler/OS combo is not supported.
 #   endif
