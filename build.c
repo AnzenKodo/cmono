@@ -26,24 +26,45 @@ const char *help_message = "build.c: C file that build's C projects.\n"
 "   help --help -h       Print help\n";
 
 
+global bool build_use_mingw = false;
 internal void build_cmd_append(char *cmd, char *src);
 internal void build_cmd_finish(char *cmd);
 internal void build_cmd_run(char *cmd);
 
-internal void build_compile_cc(char *cmd) {
-    build_cmd_append(cmd, "cc "BUILD_MAIN_FILE);
-    build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
+internal void build_compile_cc(char *cmd)
+{
+    Context_Os os = context_of_os();
+    if (build_use_mingw) {
+        build_cmd_append(cmd, "x86_64-w64-mingw32-gcc ");
+    }
+    else
+    {
+        build_cmd_append(cmd, "cc ");
+    }
+    build_cmd_append(cmd, BUILD_MAIN_FILE);
+    if (os == Context_Os_Windows || build_use_mingw)
+    {
+        build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME".exe"); // Output
+    }
+    else
+    {
+        build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
+    }
     build_cmd_append(cmd, " -ggdb -g3 -DBUILD_DEBUG");       // Debug
     build_cmd_append(cmd, " -Wall -Wextra");                 // Warnings
     // Security
-    build_cmd_append(cmd, " -mshstk -fstack-protector -fcf-protection=full");
+    if (!build_use_mingw)
+    {
+        build_cmd_append(cmd, " -fstack-protector");
+    }
+    build_cmd_append(cmd, " -mshstk -fcf-protection=full");
     // Disable useless warnings in C
     build_cmd_append(cmd, "  -Wno-incompatible-pointer-types -Wno-override-init");
     // Performance
     // build_cmd_append(cmd, " -mavx2 -O3");
     // Libs
-    Context_Os os = context_of_os();
-    if (os == Context_Os_Linux) {
+    if (os == Context_Os_Linux && !build_use_mingw)
+    {
         // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
         build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
     }
@@ -51,7 +72,8 @@ internal void build_compile_cc(char *cmd) {
 
 internal void build_compile(char *cmd)
 {
-    if (os_dir_make(str8(BUILD_DIR))) {
+    if (os_dir_make(str8(BUILD_DIR)))
+    {
         printf("Created `"BUILD_DIR"` directory.\n");
     }
     printf("Compiling:\n");
@@ -59,13 +81,28 @@ internal void build_compile(char *cmd)
     // Disable useless warnings
     build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable -Wno-missing-braces");
     // build_cmd_append(cmd, " -static");
-    build_cmd_append(cmd, " -fsanitize=address");
+    if (!build_use_mingw)
+    {
+        build_cmd_append(cmd, " -fsanitize=address");
+    }
     build_cmd_finish(cmd);
 }
 
 internal void build_run(char *cmd)
 {
-    build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
+    Context_Os os = context_of_os();
+    if (os == Context_Os_Windows)
+    {
+        build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME".exe");
+    }
+    else if (build_use_mingw)
+    {
+        build_cmd_append(cmd, "WINEARCH=win64 wine ./"BUILD_DIR"/"PROJECT_NAME".exe");
+    }
+    else
+    {
+        build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
+    }
     build_cmd_append(cmd, " shaders/shader.frag");
     printf("Running:\n");
     build_cmd_finish(cmd);
@@ -73,7 +110,8 @@ internal void build_run(char *cmd)
 
 internal void build_debugger(char *cmd)
 {
-    if (os_dir_make(str8(BUILD_DIR))) {
+    if (os_dir_make(str8(BUILD_DIR)))
+    {
         printf("Created `"BUILD_DIR"` directory.\n");
     }
     printf("Compiling:\n");
@@ -115,7 +153,7 @@ internal void build_profiler(char *cmd)
     build_cmd_finish(cmd);
 }
 
-char cmd[100] = "";
+char cmd[500] = "";
 internal void entry_point()
 {
     bool should_print_help = false;
@@ -126,65 +164,92 @@ internal void entry_point()
     bool should_program_test = false;
     bool should_program_profiler = false;
 
-    Str8List *args_list = os_args_get();
+    Str8Array *args = os_args_get();
 
-    if (args_list->count == 1) {
+    if (args->length == 1)
+    {
         should_print_help = true;
     }
-    for (Str8Node *node = args_list->first->next; node != NULL; node = node->next) {
-        if (
-            str8_match(node->string, str8("help"), 0) ||
-            str8_match(node->string, str8("--help"), 0) ||
-            str8_match(node->string, str8("-h"), 0)
-        ) {
-            should_print_help = true;
-            should_print_version = true;
-        } else if (
-            str8_match(node->string, str8("version"), 0) ||
-            str8_match(node->string, str8("--version"), 0) ||
-            str8_match(node->string, str8("-v"), 0)
-        ) {
-            should_print_version = true;
-        } else if (str8_match(node->string, str8("build"), 0)) {
-            should_program_build = true;
-        } else if (str8_match(node->string, str8("build-run"), 0)) {
-            should_program_build = true;
-            should_program_run = true;
-        } else if (!should_program_test && str8_match(node->string, str8("build-debugger"), 0)) {
-            should_program_debug = true;
-        } else if (!should_program_debug && str8_match(node->string, str8("test"), 0)) {
-            should_program_test = true;
-        } else if (str8_match(node->string, str8("run"), 0)) {
-            should_program_run = true;
-        } else if(!should_program_build && str8_match(node->string, str8("profile"), 0)) {
-            should_program_profiler = false;
-        } else {
-            fprintf(stderr, "Error: wrong option provided `%s`.\n\n", node->string.str);
-            should_print_help = true;
-            should_print_version = true;
-        }
+
+    Str8 arg_str = args->strings[1];
+    if (str8_match(arg_str, str8("help"), 0) || str8_match(arg_str,
+        str8("--help"), 0) || str8_match(arg_str, str8("-h"), 0))
+    {
+        should_print_help = true;
+        should_print_version = true;
     }
-    if (!(should_print_help || should_print_version)) {
+    else if (str8_match(arg_str, str8("version"), 0) ||
+        str8_match(arg_str, str8("--version"), 0) ||
+        str8_match(arg_str, str8("-v"), 0))
+    {
+        should_print_version = true;
+    }
+    else if (str8_match(arg_str, str8("build"), 0))
+    {
+        should_program_build = true;
+    }
+    else if (str8_match(arg_str, str8("build-run"), 0))
+    {
+        should_program_build = true;
+        should_program_run = true;
+    }
+    else if (!should_program_test && str8_match(arg_str, str8("build-debugger"), 0))
+    {
+        should_program_debug = true;
+    } else if (!should_program_debug && str8_match(arg_str, str8("test"), 0))
+    {
+        should_program_test = true;
+    }
+    else if (str8_match(arg_str, str8("run"), 0))
+    {
+        should_program_run = true;
+    }
+    else if(!should_program_build && str8_match(arg_str, str8("profile"), 0))
+    {
+        should_program_profiler = false;
+    }
+    else
+    {
+        fprintf(stderr, "Error: wrong option provided `%s`.\n\n", arg_str.cstr);
+        should_print_help = true;
+        should_print_version = true;
+    }
+    if (str8_match(args->strings[2], str8("mingw"), 0))
+    {
+        build_use_mingw = true;
+    }
+
+    if (!(should_print_help || should_print_version))
+    {
         if (should_program_build) {
-            if (should_program_debug) {
+            if (should_program_debug)
+            {
                 build_debugger(cmd);
-            } else if (should_program_test) {
+            }
+            else if (should_program_test)
+            {
                 build_test(cmd);
-            } else {
+            }
+            else
+            {
                 build_compile(cmd);
             }
         }
-        if (should_program_run) {
+        if (should_program_run)
+        {
             build_run(cmd);
         }
-        if (should_program_profiler) {
+        if (should_program_profiler)
+        {
             build_profiler(cmd);
         }
     }
-    if (should_print_help) {
+    if (should_print_help)
+    {
         printf("%s", help_message);
     }
-    if (should_print_version) {
+    if (should_print_version)
+    {
         printf("Version: "PROJECT_VERSION);
     }
 }
