@@ -46,7 +46,7 @@ enum
 // State ======================================================================
 typedef struct Os_Core_State Os_Core_State;
 struct Os_Core_State {
-    Str8List args;
+    Str8Array args;
     Alloc alloc;
 };
 
