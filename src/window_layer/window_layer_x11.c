@@ -28,11 +28,11 @@ wl_window_open(Str8 title, Vec2I32 win_size)
     // Set Window Title =======================================================
     xcb_change_property(
         connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME,
-        XCB_ATOM_STRING, 8, title.size, title.str
+        XCB_ATOM_STRING, 8, title.size, title.cstr
     );
     xcb_change_property(
         connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_ICON_NAME,
-        XCB_ATOM_STRING, 8, title.size, title.str
+        XCB_ATOM_STRING, 8, title.size, title.cstr
     );
     // xcb_change_property(
     //     connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS,

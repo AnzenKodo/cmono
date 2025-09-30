@@ -103,7 +103,7 @@ os_file_open(Str8 path, Os_AccessFlags flags)
     {
         lnx_flags |= O_CREAT;
     }
-    Os_File file = open((char *)path.str, lnx_flags, 0666);
+    Os_File file = open((char *)path.cstr, lnx_flags, 0666);
     return file;
 }
 
@@ -179,7 +179,7 @@ os_file_properties(Os_File file)
 internal bool
 os_dir_make(Str8 path)
 {
-    I32 result = mkdir((const char *)path.str, 0700);
+    I32 result = mkdir((const char *)path.cstr, 0700);
     if (result == 0) {
         return true;
     } else {
