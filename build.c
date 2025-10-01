@@ -60,9 +60,11 @@ internal void build_compile_cc(char *cmd)
     build_cmd_append(cmd, " -mshstk -fcf-protection=full");
     // Disable useless warnings in C
     build_cmd_append(cmd, "  -Wno-incompatible-pointer-types -Wno-override-init");
-    // Performance
-    // build_cmd_append(cmd, " -mavx2 -O3");
     // Libs
+    if (os == Context_Os_Windows) {
+        build_cmd_append(cmd, " -Wl,/subsystem:windows -Wl,/ENTRY:mainCRTStartup");
+        build_cmd_append(cmd, " -lgdi32 -luser32");
+    }
     if (os == Context_Os_Linux && !build_use_mingw)
     {
         // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
@@ -81,7 +83,8 @@ internal void build_compile(char *cmd)
     // Disable useless warnings
     build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable -Wno-missing-braces");
     // build_cmd_append(cmd, " -static");
-    if (!build_use_mingw)
+    Context_Os os = context_of_os();
+    if (!build_use_mingw && os != Context_Os_Windows)
     {
         build_cmd_append(cmd, " -fsanitize=address");
     }
