@@ -1,8 +1,7 @@
 // Helpers Functions
 //=============================================================================
 
-internal U32
-os_w32_unix_time_from_file_time(FILETIME file_time)
+internal U32 os_w32_unix_time_from_file_time(FILETIME file_time)
 {
     U64 win32_time = ((U64)file_time.dwHighDateTime << 32) | file_time.dwLowDateTime;
     U64 unix_time64 = ((win32_time - 0x19DB1DED53E8000ULL) / 10000000);
@@ -13,9 +12,9 @@ os_w32_unix_time_from_file_time(FILETIME file_time)
     return unix_time32;
 }
 
-internal FilePropertyFlags
-os_w32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes)
-{
+internal FilePropertyFlags os_w32_file_property_flags_from_dwFileAttributes(
+    DWORD dwFileAttributes
+) {
     FilePropertyFlags flags = 0;
     if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
@@ -24,8 +23,7 @@ os_w32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes)
     return flags;
 }
 
-internal void
-os_w32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
+internal void os_w32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
 {
     SYSTEMTIME systime = {0};
     FileTimeToSystemTime(in, &systime);
@@ -34,8 +32,7 @@ os_w32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
     *out = dense_time_from_date_time(date_time);
 }
 
-internal void
-os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in)
+internal void os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in)
 {
     out->year    = in->wYear;
     out->mon     = in->wMonth - 1;
@@ -50,28 +47,24 @@ os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in)
 // Memory Allocation
 //=============================================================================
 
-internal void *
-os_memory_create(U64 size)
+internal void *os_memory_create(U64 size)
 {
     void *result = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
     return result;
 }
 
-internal bool
-os_memory_commit(void *ptr, U64 size)
+internal bool os_memory_commit(void *ptr, U64 size)
 {
     bool result = (VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE) != 0);
     return result;
 }
 
-internal void
-os_memory_decommit(void *ptr, U64 size)
+internal void os_memory_decommit(void *ptr, U64 size)
 {
     VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
-internal void
-os_memory_free(void *ptr, U64 size)
+internal void os_memory_free(void *ptr, U64 size)
 {
     VirtualFree(ptr, 0, MEM_RELEASE);
 }
@@ -79,8 +72,7 @@ os_memory_free(void *ptr, U64 size)
 // File System
 //=============================================================================
 
-internal Os_File
-os_file_open(Str8 path, Os_AccessFlags flags)
+internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
     Str16 path16 = str16_from_8(os_core_state.alloc, path);
     DWORD access_flags = 0;
@@ -119,14 +111,12 @@ os_file_open(Str8 path, Os_AccessFlags flags)
     return (Os_File)handle;
 }
 
-internal void
-os_file_close(Os_File file)
+internal void os_file_close(Os_File file)
 {
     CloseHandle((HANDLE)file);
 }
 
-internal U64
-os_file_read(Os_File file, Rng1U64 rng, void *out_data)
+internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
 {
     U64 size = 0;
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
@@ -157,8 +147,7 @@ os_file_read(Os_File file, Rng1U64 rng, void *out_data)
     return total_read_size;
 }
 
-internal U64
-os_file_write(Os_File file, Rng1U64 rng, void *data)
+internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
 {
     U64 src_off = 0;
     U64 dst_off = rng.min;
@@ -187,8 +176,7 @@ os_file_write(Os_File file, Rng1U64 rng, void *data)
     return src_off;
 }
 
-internal Os_FileProperties
-os_file_properties(Os_File file)
+internal Os_FileProperties os_file_properties(Os_File file)
 {
     Os_FileProperties props = {0};
     BY_HANDLE_FILE_INFORMATION info;
@@ -205,8 +193,7 @@ os_file_properties(Os_File file)
     return props;
 }
 
-internal bool
-os_dir_make(Str8 path)
+internal bool os_dir_make(Str8 path)
 {
     bool result = false;
     Str16 path16 = str16_from_8(os_core_state.alloc, path);
@@ -223,8 +210,7 @@ os_dir_make(Str8 path)
 // Exit
 //=============================================================================
 
-internal void
-os_exit(I32 exit_code)
+internal void os_exit(I32 exit_code)
 {
     ExitProcess(exit_code);
 }
@@ -232,8 +218,7 @@ os_exit(I32 exit_code)
 // Time
 //=============================================================================
 
-internal U32
-os_now_unix(void)
+internal U32 os_now_unix(void)
 {
     FILETIME file_time;
     GetSystemTimeAsFileTime(&file_time);
@@ -241,8 +226,7 @@ os_now_unix(void)
     return unix_time;
 }
 
-internal U64
-os_now_microsec(void)
+internal U64 os_now_microsec(void)
 {
     U64 result = 0;
     LARGE_INTEGER large_int_counter;
@@ -253,8 +237,7 @@ os_now_microsec(void)
     return result;
 }
 
-internal void
-os_sleep_microsec(U64 microsec)
+internal void os_sleep_microsec(U64 microsec)
 {
     DWORD millisec = (DWORD)(microsec / 1000); // Integer division to get milliseconds
     if (microsec % 1000 >= 500) {
@@ -263,8 +246,7 @@ os_sleep_microsec(U64 microsec)
     os_sleep_millisec(millisec);
 }
 
-internal void
-os_sleep_millisec(U32 millisec)
+internal void os_sleep_millisec(U32 millisec)
 {
     Sleep(millisec);
 }
