@@ -13,10 +13,18 @@
         {
             "name": "Debug file",
             "request": "launch",
-            "program": "${workspaceFolder}/a.out",
+            "program": "${workspaceFolder}/a.exe",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
-            "args": ["help", "--help", "--version"]
-        }
+            "arguments": "build-run"
+        },
+        {
+            "name": "Scuttle Debug Windows",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Scuttle.exe",
+            "cwd": "${workspaceFolder}",
+            "type": "gdb",
+            // "preLaunchTask": "Scuttle build"
+        },
     ]
 }
