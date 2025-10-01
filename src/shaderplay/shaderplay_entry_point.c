@@ -27,6 +27,11 @@ entry_point(void)
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
     // Str8List *args = os_args_get();
     // Str8Node *frag_filename = args->first->next;
     // Os_File file = os_file_open(frag_filename->string, OS_AccessFlag_Read);

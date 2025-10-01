@@ -5,7 +5,8 @@ internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
 {
     local_persist I32 first = 1;
     local_persist Wl_Key key_table[256];
-    if (first){
+    if (first)
+    {
         first = 0;
         MemoryZeroArray(key_table);
 
@@ -36,13 +37,16 @@ internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
         key_table[(unsigned int)'Y'] = Wl_Key_Y;
         key_table[(unsigned int)'Z'] = Wl_Key_Z;
 
-        for (U64 i = '0', j = Wl_Key_0; i <= '9'; i += 1, j += 1){
+        for (U64 i = '0', j = Wl_Key_0; i <= '9'; i += 1, j += 1)
+        {
             key_table[i] = (Wl_Key)j;
         }
-        for (U64 i = VK_NUMPAD0, j = Wl_Key_0; i <= VK_NUMPAD9; i += 1, j += 1){
+        for (U64 i = VK_NUMPAD0, j = Wl_Key_0; i <= VK_NUMPAD9; i += 1, j += 1)
+        {
             key_table[i] = (Wl_Key)j;
         }
-        for (U64 i = VK_F1, j = Wl_Key_F1; i <= VK_F24; i += 1, j += 1){
+        for (U64 i = VK_F1, j = Wl_Key_F1; i <= VK_F24; i += 1, j += 1)
+        {
             key_table[i] = (Wl_Key)j;
         }
 
@@ -84,14 +88,14 @@ internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
         key_table[VK_APPS]      = Wl_Key_Menu;
 
         key_table[VK_CONTROL]   = Wl_Key_Ctrl;
-        key_table[VK_LCONTROL]  = Wl_Key_Ctrl;
-        key_table[VK_RCONTROL]  = Wl_Key_Ctrl;
+        key_table[VK_LCONTROL]  = Wl_Key_CtrlLeft;
+        key_table[VK_RCONTROL]  = Wl_Key_CtrlRight;
         key_table[VK_SHIFT]     = Wl_Key_Shift;
-        key_table[VK_LSHIFT]    = Wl_Key_Shift;
-        key_table[VK_RSHIFT]    = Wl_Key_Shift;
+        key_table[VK_LSHIFT]    = Wl_Key_ShiftLeft;
+        key_table[VK_RSHIFT]    = Wl_Key_ShiftRight;
         key_table[VK_MENU]      = Wl_Key_Alt;
-        key_table[VK_LMENU]     = Wl_Key_Alt;
-        key_table[VK_RMENU]     = Wl_Key_Alt;
+        key_table[VK_LMENU]     = Wl_Key_AltLeft;
+        key_table[VK_RMENU]     = Wl_Key_AltRight;
 
         key_table[VK_DIVIDE]   = Wl_Key_NumSlash;
         key_table[VK_MULTIPLY] = Wl_Key_NumStar;
@@ -99,11 +103,13 @@ internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
         key_table[VK_ADD]      = Wl_Key_NumPlus;
         key_table[VK_DECIMAL]  = Wl_Key_NumPeriod;
 
-        for (U32 i = 0; i < 10; i += 1){
+        for (U32 i = 0; i < 10; i += 1)
+        {
             key_table[VK_NUMPAD0 + i] = (Wl_Key)((U64)Wl_Key_Num0 + i);
         }
 
-        for (U64 i = 0xDF, j = 0; i < 0xFF; i += 1, j += 1){
+        for (U64 i = 0xDF, j = 0; i < 0xFF; i += 1, j += 1)
+        {
             key_table[i] = (Wl_Key)((U64)Wl_Key_Ex0 + j);
         }
     }
@@ -217,8 +223,7 @@ internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
     return result;
 }
 
-LRESULT CALLBACK
-wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     Wl_Event event = ZERO_STRUCT;
     LRESULT result = 0;
@@ -242,6 +247,14 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_SIZE:
         case WM_PAINT:
         {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            RECT rect = {20, 20, 200, 100};
+            HBRUSH brush = CreateSolidBrush(RGB(0, 255, 0)); 
+            FillRect(hdc, &rect, brush);
+            DeleteObject(brush);
+            EndPaint(hwnd, &ps);  // End painting [2]
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
         }break;
 
         case WM_CLOSE:
@@ -259,33 +272,39 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_MBUTTONDOWN:
         case WM_RBUTTONDOWN:
         {
-            if (release) {
-                event.type = Wl_EventType_Release;
-            } else {
-                event.type = Wl_EventType_Press;
-            }
-            switch (uMsg)
-            {
-                case WM_LBUTTONUP: case WM_LBUTTONDOWN:
-                {
-                    event.key = Wl_Key_LeftMouseButton;
-                }break;
-                case WM_MBUTTONUP: case WM_MBUTTONDOWN:
-                {
-                    event.key = Wl_Key_MiddleMouseButton;
-                }break;
-                case WM_RBUTTONUP: case WM_RBUTTONDOWN:
-                {
-                    event.key = Wl_Key_RightMouseButton;
-                }break;
-            }
-            event.pos.x = (F32)(I16)LOWORD(lParam);
-            event.pos.y = (F32)(I16)HIWORD(lParam);
-            if(release) {
-                ReleaseCapture();
-            } else {
-                SetCapture(hwnd);
-            }
+            // if (release) 
+            // {
+            //     event.type = Wl_EventType_Release;
+            // } 
+            // else 
+            // {
+            //     event.type = Wl_EventType_Press;
+            // }
+            // switch (uMsg)
+            // {
+            //     case WM_LBUTTONUP: case WM_LBUTTONDOWN:
+            //     {
+            //         event.key = Wl_Key_LeftMouseButton;
+            //     }break;
+            //     case WM_MBUTTONUP: case WM_MBUTTONDOWN:
+            //     {
+            //         event.key = Wl_Key_MiddleMouseButton;
+            //     }break;
+            //     case WM_RBUTTONUP: case WM_RBUTTONDOWN:
+            //     {
+            //         event.key = Wl_Key_RightMouseButton;
+            //     }break;
+            // }
+            // event.pos.x = (F32)(I16)LOWORD(lParam);
+            // event.pos.y = (F32)(I16)HIWORD(lParam);
+            // if(release) 
+            // {
+            //     ReleaseCapture();
+            // } 
+            // else 
+            // {
+            //     SetCapture(hwnd);
+            // }
         }break;
         case WM_MOUSEMOVE:
         {
@@ -295,15 +314,15 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_MOUSEWHEEL:
         {
-            S16 wheel_delta = HIWORD(wParam);
-            Wl_Event *event = os_w32_push_event(Wl_EventKind_Scroll, window);
-            POINT p;
-            p.x = (S32)(S16)LOWORD(lParam);
-            p.y = (S32)(S16)HIWORD(lParam);
-            ScreenToClient(window->hwnd, &p);
-            event->pos.x = (F32)p.x;
-            event->pos.y = (F32)p.y;
-            event->delta = v2f32(0.f, -(F32)wheel_delta);
+            // I16 wheel_delta = HIWORD(wParam);
+            // Wl_Event *event = os_w32_push_event(Wl_EventKind_Scroll, window);
+            // POINT p;
+            // p.x = (I32)(I16)LOWORD(lParam);
+            // p.y = (I32)(I16)HIWORD(lParam);
+            // ScreenToClient(window->hwnd, &p);
+            // event->pos.x = (F32)p.x;
+            // event->pos.y = (F32)p.y;
+            // event->delta = vec_2f32(0.f, -(F32)wheel_delta);
         }break;
         case WM_MOUSEHWHEEL:
         {
@@ -329,52 +348,52 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:
         case WM_KEYUP:
         {
-            I32 was_down = (lParam & bit31);
-            I32 is_down  = !(lParam & bit32);
-
-            I32 is_repeat = 0;
-            if(!is_down) {
-                release = 1;
-            } else if(was_down) {
-                is_repeat = 1;
-            }
-
-            I32 right_sided = 0;
-            if ((lParam & bit25) &&
-                (wParam == VK_CONTROL || wParam == VK_RCONTROL ||
-                 wParam == VK_MENU || wParam == VK_RMENU ||
-                 wParam == VK_SHIFT || wParam == VK_RSHIFT))
-            {
-                right_sided = 1;
-            }
-
-            if (release)
-            {
-                event.type = Wl_EventKind_Release;
-                event.type = Wl_EventKind_Press;
-            }
-            event->key = os_w32_os_key_from_vkey(wParam);
-            event->repeat_count = lParam & bitmask16;
-            event->is_repeat = is_repeat;
-            event->right_sided = right_sided;
-            if (event->key == Wl_Key_Alt   && event->modifiers & Wl_Modifier_Alt)
-            {
-                event->modifiers &= ~Wl_Modifier_Alt;
-            }
-            if(event->key == Wl_Key_Ctrl  && event->modifiers & Wl_Modifier_Ctrl)
-            {
-                event->modifiers &= ~Wl_Modifier_Ctrl;
-            }
-            if(event->key == Wl_Key_Shift && event->modifiers & Wl_Modifier_Shift)
-            {
-                event->modifiers &= ~Wl_Modifier_Shift;
-            }
+        //     I32 was_down = (lParam & bit31);
+        //     I32 is_down  = !(lParam & bit32);
+        //
+        //     I32 is_repeat = 0;
+        //     if(!is_down) {
+        //         release = 1;
+        //     } else if(was_down) {
+        //         is_repeat = 1;
+        //     }
+        //
+        //     I32 right_sided = 0;
+        //     if ((lParam & bit25) &&
+        //         (wParam == VK_CONTROL || wParam == VK_RCONTROL ||
+        //          wParam == VK_MENU || wParam == VK_RMENU ||
+        //          wParam == VK_SHIFT || wParam == VK_RSHIFT))
+        //     {
+        //         right_sided = 1;
+        //     }
+        //
+        //     if (release)
+        //     {
+        //         event.type = Wl_EventKind_Release;
+        //         event.type = Wl_EventKind_Press;
+        //     }
+        //     event.key = os_w32_os_key_from_vkey(wParam);
+        //     event.repeat_count = lParam & bitmask16;
+        //     event.is_repeat = is_repeat;
+        //     event.right_sided = right_sided;
+        //     if (event->key == Wl_Key_Alt   && event->modifiers & Wl_Modifier_Alt)
+        //     {
+        //         event->modifiers &= ~Wl_Modifier_Alt;
+        //     }
+        //     if(event->key == Wl_Key_Ctrl  && event->modifiers & Wl_Modifier_Ctrl)
+        //     {
+        //         event->modifiers &= ~Wl_Modifier_Ctrl;
+        //     }
+        //     if(event->key == Wl_Key_Shift && event->modifiers & Wl_Modifier_Shift)
+        //     {
+        //         event->modifiers &= ~Wl_Modifier_Shift;
+        //     }
         }break;
 
         case WM_SYSCHAR:
         {
             WORD vk_code = LOWORD(wParam);
-            if(vk_code == VK_SPACE)
+            if (vk_code == VK_SPACE)
             {
               result = DefWindowProcW(hwnd, uMsg, wParam, lParam);
             }
@@ -404,7 +423,6 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_DROPFILES:
         {
         }break;
-
             //- rjf: [custom border]
         case WM_NCPAINT:
         {
@@ -412,16 +430,12 @@ wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_DWMCOMPOSITIONCHANGED:
         {
         }break;
-<<<<<<< HEAD
-        case WM_WINDOWPOSCHANGED: {
-=======
         case WM_WINDOWPOSCHANGED:
         {
         }break;
         case WM_SETICON:
         case WM_SETTEXT:
         {
->>>>>>> 25ce088 (Updated windows layer)
         }break;
 
         case WM_NCACTIVATE:
@@ -450,7 +464,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.lpfnWndProc = wl_w32_window_proc;
     wc.hInstance = instance;
-    wc.lpszClassName = L"SimpleWindowClass";
+    wc.lpszClassName = L"graphical-window";
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hIcon = LoadIconW(NULL, MAKEINTRESOURCE(1));
     wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -463,18 +477,19 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     }
 
     Str16 title16 = str16_from_8(os_core_state.alloc, title);
-    // HWND hwnd = CreateWindowExW(
-    //     WS_EX_APPWINDOW,
-    //     TEXT("graphical-window"), L"Hello", //title16.str,
-    //     WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
-    //     CW_USEDEFAULT, CW_USEDEFAULT,
-    //     win_size.x, win_size.y,
-    //     0, 0,
-    //     instance, 0
-    // );
-    // ShowWindow(hwnd, SW_SHOW);
-    // UpdateWindow(hwnd);
-
+    HWND hwnd = CreateWindowExW(
+        WS_EX_APPWINDOW,
+        wc.lpszClassName, title16.str,
+        WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        win_size.x, win_size.y,
+        0, 0,
+        instance, 0
+    );
+    if (!hwnd) {
+        MessageBoxW(NULL, L"Faild to create window.", L"Error", MB_OK|MB_ICONERROR);
+        os_exit(1);
+    }
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 }
