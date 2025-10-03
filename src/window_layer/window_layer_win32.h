@@ -10,8 +10,16 @@
 typedef struct Wl_W32_State Wl_W32_State;
 struct Wl_W32_State
 {
+    HWND handle;
     HINSTANCE instance;
 };
+
+// Functions
+//=============================================================================
+
+internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey);
+internal WPARAM os_w32_vkey_from_os_key(Wl_Key key);
+internal LRESULT CALLBACK wl_w32_window_proc(HWND handle, UINT message, WPARAM w_param, LPARAM l_param);
 
 // Global Variables
 //=============================================================================

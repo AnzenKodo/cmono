@@ -1,6 +1,7 @@
 // Win32 Helper Functions
 //=============================================================================
 
+#include <stdio.h>
 internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
 {
     local_persist I32 first = 1;
@@ -223,131 +224,26 @@ internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
     return result;
 }
 
-LRESULT CALLBACK wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+internal LRESULT CALLBACK wl_w32_window_proc(HWND handle, UINT message, WPARAM w_param, LPARAM l_param)
 {
-    Wl_Event event = ZERO_STRUCT;
+    // Wl_Event event = ZERO_STRUCT;
     LRESULT result = 0;
-    bool release = 0;
+    // bool release = 0;
 
-    switch(uMsg)
+    switch(message)
     {
-        default:
-        {
-            result = DefWindowProcW(hwnd, uMsg, wParam, lParam);
-        }break;
-
-        case WM_ENTERSIZEMOVE:
-        {
-            event.type = Wl_EventType_WindowResize;
-        } break;
-        case WM_EXITSIZEMOVE:
-        {
-        }break;
-
-        case WM_SIZE:
-        case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            RECT rect = {20, 20, 200, 100};
-            HBRUSH brush = CreateSolidBrush(RGB(0, 255, 0)); 
-            FillRect(hdc, &rect, brush);
-            DeleteObject(brush);
-            EndPaint(hwnd, &ps);  // End painting [2]
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
-        }break;
-
-        case WM_CLOSE:
-        {
-            event.type = Wl_EventType_WindowClose;
-        }break;
-
-        case WM_LBUTTONUP:
-        case WM_MBUTTONUP:
-        case WM_RBUTTONUP:
-        {
-            release = 1;
-        } // fallthrough;
-        case WM_LBUTTONDOWN:
-        case WM_MBUTTONDOWN:
-        case WM_RBUTTONDOWN:
-        {
-            // if (release) 
-            // {
-            //     event.type = Wl_EventType_Release;
-            // } 
-            // else 
-            // {
-            //     event.type = Wl_EventType_Press;
-            // }
-            // switch (uMsg)
-            // {
-            //     case WM_LBUTTONUP: case WM_LBUTTONDOWN:
-            //     {
-            //         event.key = Wl_Key_LeftMouseButton;
-            //     }break;
-            //     case WM_MBUTTONUP: case WM_MBUTTONDOWN:
-            //     {
-            //         event.key = Wl_Key_MiddleMouseButton;
-            //     }break;
-            //     case WM_RBUTTONUP: case WM_RBUTTONDOWN:
-            //     {
-            //         event.key = Wl_Key_RightMouseButton;
-            //     }break;
-            // }
-            // event.pos.x = (F32)(I16)LOWORD(lParam);
-            // event.pos.y = (F32)(I16)HIWORD(lParam);
-            // if(release) 
-            // {
-            //     ReleaseCapture();
-            // } 
-            // else 
-            // {
-            //     SetCapture(hwnd);
-            // }
-        }break;
-        case WM_MOUSEMOVE:
-        {
-            event.pos.x = (F32)(I16)LOWORD(lParam);
-            event.pos.y = (F32)(I16)HIWORD(lParam);
-        }break;
-
-        case WM_MOUSEWHEEL:
-        {
-            // I16 wheel_delta = HIWORD(wParam);
-            // Wl_Event *event = os_w32_push_event(Wl_EventKind_Scroll, window);
-            // POINT p;
-            // p.x = (I32)(I16)LOWORD(lParam);
-            // p.y = (I32)(I16)HIWORD(lParam);
-            // ScreenToClient(window->hwnd, &p);
-            // event->pos.x = (F32)p.x;
-            // event->pos.y = (F32)p.y;
-            // event->delta = vec_2f32(0.f, -(F32)wheel_delta);
-        }break;
-        case WM_MOUSEHWHEEL:
-        {
-            I16 wheel_delta = HIWORD(wParam);
-            POINT p;
-            p.x = (I32)LOWORD(lParam);
-            p.y = (I32)HIWORD(lParam);
-            ScreenToClient(hwnd, &p);
-            event.pos.x = (F32)p.x;
-            event.pos.y = (F32)p.y;
-            event.delta = vec_2f32((F32)wheel_delta, 0.f);
-        }break;
-
+        // // Keyboard key presses/releases ==================================
         case WM_SYSKEYDOWN: case WM_SYSKEYUP:
         {
-            if(
-                wParam != VK_MENU &&
-                (wParam < VK_F1 || VK_F24 < wParam || wParam == VK_F4)
-            ) {
-              result = DefWindowProcW(hwnd, uMsg, wParam, lParam);
+            if (w_param != VK_MENU &&
+                (w_param < VK_F1 || VK_F24 < w_param || w_param == VK_F4))
+            {
+                result = DefWindowProcW(handle, message, w_param, l_param);
             }
-        } // fallthrough;
-        case WM_KEYDOWN:
-        case WM_KEYUP:
-        {
+        };
+        // case WM_KEYDOWN:
+        // case WM_KEYUP:
+        // {
         //     I32 was_down = (lParam & bit31);
         //     I32 is_down  = !(lParam & bit32);
         //
@@ -369,86 +265,186 @@ LRESULT CALLBACK wl_w32_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         //
         //     if (release)
         //     {
-        //         event.type = Wl_EventKind_Release;
-        //         event.type = Wl_EventKind_Press;
+        //         event.type = Wl_EventType_Release;
+        //         event.type = Wl_EventType_Press;
         //     }
         //     event.key = os_w32_os_key_from_vkey(wParam);
-        //     event.repeat_count = lParam & bitmask16;
-        //     event.is_repeat = is_repeat;
-        //     event.right_sided = right_sided;
-        //     if (event->key == Wl_Key_Alt   && event->modifiers & Wl_Modifier_Alt)
+        //     // event.repeat_count = lParam & bitmask16;
+        //     // event.is_repeat = is_repeat;
+        //     // event.right_sided = right_sided;
+        //     if (event.key == Wl_Key_Alt   && event.mod_key & Wl_ModKey_Alt)
         //     {
-        //         event->modifiers &= ~Wl_Modifier_Alt;
+        //         event.mod_key &= ~Wl_ModKey_Alt;
         //     }
-        //     if(event->key == Wl_Key_Ctrl  && event->modifiers & Wl_Modifier_Ctrl)
+        //     if(event.key == Wl_Key_Ctrl  && event.mod_key & Wl_ModKey_Ctrl)
         //     {
-        //         event->modifiers &= ~Wl_Modifier_Ctrl;
+        //         event.mod_key &= ~Wl_ModKey_Ctrl;
         //     }
-        //     if(event->key == Wl_Key_Shift && event->modifiers & Wl_Modifier_Shift)
+        //     if(event.key == Wl_Key_Shift && event.mod_key & Wl_ModKey_Shift)
         //     {
-        //         event->modifiers &= ~Wl_Modifier_Shift;
+        //         event.mod_key &= ~Wl_ModKey_Shift;
         //     }
-        }break;
-
-        case WM_SYSCHAR:
+        // } break;
+        //
+        // case WM_ENTERSIZEMOVE:
+        // {
+        //     event.type = Wl_EventType_WindowResize;
+        // } break;
+        // case WM_EXITSIZEMOVE:
+        // {
+        // }break;
+        //
+        // case WM_SIZE:
+        // case WM_PAINT:
+        // {
+        //     PAINTSTRUCT ps;
+        //     HDC hdc = BeginPaint(hwnd, &ps);
+        //     RECT rect = {20, 20, 200, 100};
+        //     HBRUSH brush = CreateSolidBrush(RGB(0, 255, 0));
+        //     FillRect(hdc, &rect, brush);
+        //     DeleteObject(brush);
+        //     EndPaint(hwnd, &ps);  // End painting [2]
+        //     return DefWindowProc(hwnd, message, wParam, lParam);
+        // }break;
+        //
+        // case WM_LBUTTONUP:
+        // case WM_MBUTTONUP:
+        // case WM_RBUTTONUP:
+        // {
+        //     release = 1;
+        // } // fallthrough;
+        // case WM_LBUTTONDOWN:
+        // case WM_MBUTTONDOWN:
+        // case WM_RBUTTONDOWN:
+        // {
+        //     // if (release)
+        //     // {
+        //     //     event.type = Wl_EventType_Release;
+        //     // }
+        //     // else
+        //     // {
+        //     //     event.type = Wl_EventType_Press;
+        //     // }
+        //     // switch (message)
+        //     // {
+        //     //     case WM_LBUTTONUP: case WM_LBUTTONDOWN:
+        //     //     {
+        //     //         event.key = Wl_Key_LeftMouseButton;
+        //     //     }break;
+        //     //     case WM_MBUTTONUP: case WM_MBUTTONDOWN:
+        //     //     {
+        //     //         event.key = Wl_Key_MiddleMouseButton;
+        //     //     }break;
+        //     //     case WM_RBUTTONUP: case WM_RBUTTONDOWN:
+        //     //     {
+        //     //         event.key = Wl_Key_RightMouseButton;
+        //     //     }break;
+        //     // }
+        //     // event.pos.x = (F32)(I16)LOWORD(lParam);
+        //     // event.pos.y = (F32)(I16)HIWORD(lParam);
+        //     // if(release)
+        //     // {
+        //     //     ReleaseCapture();
+        //     // }
+        //     // else
+        //     // {
+        //     //     SetCapture(hwnd);
+        //     // }
+        // }break;
+        // case WM_MOUSEMOVE:
+        // {
+        //     event.pos.x = (F32)(I16)LOWORD(lParam);
+        //     event.pos.y = (F32)(I16)HIWORD(lParam);
+        // }break;
+        //
+        // case WM_MOUSEWHEEL:
+        // {
+        //     // I16 wheel_delta = HIWORD(wParam);
+        //     // Wl_Event *event = os_w32_push_event(Wl_EventKind_Scroll, window);
+        //     // POINT p;
+        //     // p.x = (I32)(I16)LOWORD(lParam);
+        //     // p.y = (I32)(I16)HIWORD(lParam);
+        //     // ScreenToClient(window->hwnd, &p);
+        //     // event.pos.x = (F32)p.x;
+        //     // event.pos.y = (F32)p.y;
+        //     // event.delta = vec_2f32(0.f, -(F32)wheel_delta);
+        // }break;
+        // case WM_MOUSEHWHEEL:
+        // {
+        //     I16 wheel_delta = HIWORD(wParam);
+        //     POINT p;
+        //     p.x = (I32)LOWORD(lParam);
+        //     p.y = (I32)HIWORD(lParam);
+        //     ScreenToClient(hwnd, &p);
+        //     event.pos.x = (F32)p.x;
+        //     event.pos.y = (F32)p.y;
+        //     event.delta = vec_2f32((F32)wheel_delta, 0.f);
+        // }break;
+        //
+        // case WM_SYSCHAR:
+        // {
+        //     WORD vk_code = LOWORD(wParam);
+        //     if (vk_code == VK_SPACE)
+        //     {
+        //       result = DefWindowProcW(hwnd, message, wParam, lParam);
+        //     }
+        //     else
+        //     {
+        //       result = 0;
+        //     }
+        // }break;
+        //
+        // case WM_CHAR:
+        // {
+        // }break;
+        //
+        // case WM_KILLFOCUS:
+        // {
+        // }break;
+        //
+        // case WM_SETCURSOR:
+        // {
+        // }break;
+        //
+        // case WM_DPICHANGED:
+        // {
+        // }break;
+        //
+        //     //- rjf: [file drop]
+        // case WM_DROPFILES:
+        // {
+        // }break;
+        //     //- rjf: [custom border]
+        // case WM_NCPAINT:
+        // {
+        // }break;
+        // case WM_DWMCOMPOSITIONCHANGED:
+        // {
+        // }break;
+        // case WM_WINDOWPOSCHANGED:
+        // {
+        // }break;
+        // case WM_SETICON:
+        // case WM_SETTEXT:
+        // {
+        // }break;
+        //
+        // case WM_NCACTIVATE:
+        // {
+        // }break;
+        //
+        // case WM_NCCALCSIZE:
+        // {
+        // }break;
+        //
+        // case WM_NCHITTEST:
+        // {
+        // }break;
+        //
+        default:
         {
-            WORD vk_code = LOWORD(wParam);
-            if (vk_code == VK_SPACE)
-            {
-              result = DefWindowProcW(hwnd, uMsg, wParam, lParam);
-            }
-            else
-            {
-              result = 0;
-            }
-        }break;
-
-        case WM_CHAR:
-        {
-        }break;
-
-        case WM_KILLFOCUS:
-        {
-        }break;
-
-        case WM_SETCURSOR:
-        {
-        }break;
-
-        case WM_DPICHANGED:
-        {
-        }break;
-
-            //- rjf: [file drop]
-        case WM_DROPFILES:
-        {
-        }break;
-            //- rjf: [custom border]
-        case WM_NCPAINT:
-        {
-        }break;
-        case WM_DWMCOMPOSITIONCHANGED:
-        {
-        }break;
-        case WM_WINDOWPOSCHANGED:
-        {
-        }break;
-        case WM_SETICON:
-        case WM_SETTEXT:
-        {
-        }break;
-
-        case WM_NCACTIVATE:
-        {
-        }break;
-
-        case WM_NCCALCSIZE:
-        {
-        }break;
-
-        case WM_NCHITTEST:
-        {
-        }break;
+            result = DefWindowProcW(handle, message, w_param, l_param);
+        } break;
     }
     return result;
 }
@@ -477,7 +473,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     }
 
     Str16 title16 = str16_from_8(os_core_state.alloc, title);
-    HWND hwnd = CreateWindowExW(
+    wl_w32_state.handle = CreateWindowExW(
         WS_EX_APPWINDOW,
         wc.lpszClassName, title16.str,
         WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
@@ -486,12 +482,12 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         0, 0,
         instance, 0
     );
-    if (!hwnd) {
+    if (!wl_w32_state.handle) {
         MessageBoxW(NULL, L"Faild to create window.", L"Error", MB_OK|MB_ICONERROR);
         os_exit(1);
     }
-    ShowWindow(hwnd, SW_SHOW);
-    UpdateWindow(hwnd);
+    ShowWindow(wl_w32_state.handle, SW_SHOW);
+    UpdateWindow(wl_w32_state.handle);
 }
 
 internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
@@ -500,6 +496,7 @@ internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
 
 internal void wl_window_close(void)
 {
+  DestroyWindow(wl_w32_state.handle);
 }
 
 // Event Functions
@@ -508,5 +505,222 @@ internal void wl_window_close(void)
 internal Wl_Event wl_get_event(void)
 {
     Wl_Event event = ZERO_STRUCT;
+    bool release = 0;
+
+    MSG msg;
+    while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+    {
+        printf("Retrieved message hex: 0x%04X\n", msg.message);
+        switch(msg.message)
+        {
+            // Keyboard key presses/releases ==================================
+            case WM_SYSKEYDOWN: case WM_SYSKEYUP:
+            {
+            } // fallthrough;
+            case WM_KEYDOWN:
+            case WM_KEYUP:
+            {
+                I32 was_down = (msg.lParam & bit31);
+                I32 is_down  = !(msg.lParam & bit32);
+
+                I32 is_repeat = 0;
+                if(!is_down) {
+                    release = 1;
+                } else if(was_down) {
+                    is_repeat = 1;
+                }
+
+                I32 right_sided = 0;
+                if ((msg.lParam & bit25) &&
+                        (msg.wParam == VK_CONTROL || msg.wParam == VK_RCONTROL ||
+                         msg.wParam == VK_MENU || msg.wParam == VK_RMENU ||
+                         msg.wParam == VK_SHIFT || msg.wParam == VK_RSHIFT))
+                {
+                    right_sided = 1;
+                }
+                if (release)
+                {
+                    event.type = Wl_EventType_Release;
+                    event.type = Wl_EventType_Press;
+                }
+                event.key = os_w32_os_key_from_vkey(msg.wParam);
+                // event.repeat_count = msg.lParam & bitmask16;
+                // event.is_repeat = is_repeat;
+                // event.right_sided = right_sided;
+                if (event.key == Wl_Key_Alt   && event.mod_key & Wl_ModKey_Alt)
+                {
+                    event.mod_key &= ~Wl_ModKey_Alt;
+                }
+                if(event.key == Wl_Key_Ctrl  && event.mod_key & Wl_ModKey_Ctrl)
+                {
+                    event.mod_key &= ~Wl_ModKey_Ctrl;
+                }
+                if(event.key == Wl_Key_Shift && event.mod_key & Wl_ModKey_Shift)
+                {
+                    event.mod_key &= ~Wl_ModKey_Shift;
+                }
+            } break;
+
+            // Mouse button presses/releases ==================================
+            case WM_LBUTTONUP:
+            case WM_MBUTTONUP:
+            case WM_RBUTTONUP:
+            {
+                release = 1;
+            } // fallthrough;
+            case WM_LBUTTONDOWN:
+            case WM_MBUTTONDOWN:
+            case WM_RBUTTONDOWN:
+            {
+                if (release)
+                {
+                    event.type = Wl_EventType_Release;
+                }
+                else
+                {
+                    event.type = Wl_EventType_Press;
+                }
+                switch (msg.message)
+                {
+                    case WM_LBUTTONUP: case WM_LBUTTONDOWN:
+                    {
+                        event.key = Wl_Key_LeftMouseButton;
+                    }break;
+                    case WM_MBUTTONUP: case WM_MBUTTONDOWN:
+                    {
+                        event.key = Wl_Key_MiddleMouseButton;
+                    }break;
+                    case WM_RBUTTONUP: case WM_RBUTTONDOWN:
+                    {
+                        event.key = Wl_Key_RightMouseButton;
+                    }break;
+                }
+                event.pos.x = (F32)(I16)LOWORD(msg.lParam);
+                event.pos.y = (F32)(I16)HIWORD(msg.lParam);
+                if(release)
+                {
+                    ReleaseCapture();
+                }
+                else
+                {
+                    SetCapture(wl_w32_state.handle);
+                }
+            }break;
+
+            // Mouse Motion ===================================================
+            case WM_MOUSEMOVE:
+            {
+                event.pos.x = (F32)(I16)LOWORD(msg.lParam);
+                event.pos.y = (F32)(I16)HIWORD(msg.lParam);
+            }break;
+            case WM_MOUSEWHEEL:
+            {
+                I16 wheel_delta = HIWORD(msg.wParam);
+                POINT p;
+                p.x = (I32)(I16)LOWORD(msg.lParam);
+                p.y = (I32)(I16)HIWORD(msg.lParam);
+                ScreenToClient(wl_w32_state.handle, &p);
+                event.pos.x = (F32)p.x;
+                event.pos.y = (F32)p.y;
+                event.delta = vec_2f32(0.f, -(F32)wheel_delta);
+            }break;
+            case WM_MOUSEHWHEEL:
+            {
+                I16 wheel_delta = HIWORD(msg.wParam);
+                POINT p;
+                p.x = (I32)LOWORD(msg.lParam);
+                p.y = (I32)HIWORD(msg.lParam);
+                ScreenToClient(wl_w32_state.handle, &p);
+                event.pos.x = (F32)p.x;
+                event.pos.y = (F32)p.y;
+                event.delta = vec_2f32((F32)wheel_delta, 0.f);
+            }break;
+
+            // Window focus/unfocus ===========================================
+
+            // Window Resize ==================================================
+            case WM_ENTERSIZEMOVE:
+            {
+                event.type = Wl_EventType_WindowResize;
+            } break;
+            case WM_EXITSIZEMOVE:
+            {
+            }break;
+
+            // Window Close ===================================================
+            case WM_SYSCOMMAND:
+            {
+                switch (msg.wParam & 0xFFF0) {
+                    case SC_CLOSE: {
+                        event.type = Wl_EventType_WindowClose;
+                    } break;
+                }
+            }
+
+            case WM_SIZE:
+            case WM_PAINT:
+            {
+                // PAINTSTRUCT ps;
+                // HDC hdc = BeginPaint(hwndwl_w32_state.handle, &ps);
+                // RECT rect = {20, 20, 200, 100};
+                // HBRUSH brush = CreateSolidBrush(RGB(0, 255, 0));
+                // FillRect(hdc, &rect, brush);
+                // DeleteObject(brush);
+                // EndPaint(hwndwl_w32_state.handle, &ps);  // End painting [2]
+                // return DefWindowProc(hwndwl_w32_state.handle, msg, msg.wParam, msg.lParam);
+            }break;
+
+            case WM_SYSCHAR:
+            {
+            }break;
+
+            case WM_CHAR:
+            {
+            }break;
+
+            case WM_KILLFOCUS:
+            {
+            }break;
+
+            case WM_SETCURSOR:
+            {
+            }break;
+
+            case WM_DPICHANGED:
+            {
+            }break;
+
+                //- rjf: [file drop]
+            case WM_DROPFILES:
+            {
+            }break;
+                //- rjf: [custom border]
+            case WM_NCPAINT:
+            {
+            }break;
+            case WM_DWMCOMPOSITIONCHANGED:
+            {
+            }break;
+            case WM_WINDOWPOSCHANGED:
+            {
+            }break;
+            case WM_SETICON:
+            case WM_SETTEXT:
+            {
+            }break;
+
+            case WM_NCACTIVATE:
+            {
+            }break;
+
+            case WM_NCCALCSIZE:
+            {
+            }break;
+
+            case WM_NCHITTEST:
+            {
+            }break;
+        }
+    }
     return event;
 }

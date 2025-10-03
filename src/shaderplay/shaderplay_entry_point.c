@@ -27,10 +27,17 @@ entry_point(void)
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+    // MSG msg;
+    while (!wl_should_window_close()) {
+        wl_update_events();
+        if (wl_is_key_pressed(Wl_Key_Esc) ||
+            wl_is_event_happen(Wl_EventType_WindowClose))
+        {
+            wl_set_window_close();
+        }
+        //
+        // TranslateMessage(&msg);
+        // DispatchMessage(&msg);
     }
     // Str8List *args = os_args_get();
     // Str8Node *frag_filename = args->first->next;

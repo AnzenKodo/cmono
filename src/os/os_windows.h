@@ -30,6 +30,6 @@ internal void os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
 // Globals
 //=============================================================================
 
-global OS_W32_State os_w32_state = {0};
+global OS_W32_State os_w32_state = ZERO_STRUCT;
 
 #endif // OS_WINDOWS_H
