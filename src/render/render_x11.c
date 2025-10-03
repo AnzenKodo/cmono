@@ -1,5 +1,4 @@
-internal Draw_Buffer
-render_init(Alloc alloc)
+internal Draw_Buffer render_init(Alloc alloc)
 {
     I16 width = wl_get_display_width();
     I16 height = wl_get_display_height();
@@ -66,19 +65,17 @@ render_init(Alloc alloc)
     return draw_buffer;
 }
 
-internal void
-render_deinit(void)
+internal void render_deinit(void)
 {
     xcb_free_pixmap(wl_x11_state.conn, render_x11_state.pixmap);
     xcb_free_gc(wl_x11_state.conn, render_x11_state.gc);
 }
 
-internal void
-render_begin()
+internal void render_begin()
 {
 }
 
-void render_end()
+internal void render_end()
 {
     U32 width = wl_get_window_width();
     U32 height = wl_get_window_height();

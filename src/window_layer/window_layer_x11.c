@@ -1,8 +1,7 @@
 // Basic Window functions
 //=============================================================================
 
-internal void
-wl_window_open(Str8 title, Vec2I32 win_size)
+internal void wl_window_open(Str8 title, Vec2I32 win_size)
 {
     xcb_connection_t *connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(connection);
@@ -92,8 +91,7 @@ internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height) {
     );
 }
 
-internal void
-wl_window_close(void)
+internal void wl_window_close(void)
 {
     xcb_disconnect(wl_x11_state.connection);
 }
