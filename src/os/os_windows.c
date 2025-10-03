@@ -256,5 +256,6 @@ internal void os_sleep_millisec(U32 millisec)
 
 int main(int argc, char *argv[])
 {
+    os_w32_state.microsecond_resolution  = 1;
     os_entry_point(argc, argv);
 }
