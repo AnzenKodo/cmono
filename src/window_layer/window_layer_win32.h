@@ -12,6 +12,9 @@ struct Wl_W32_State
 {
     HWND handle;
     HINSTANCE instance;
+    bool window_close;
+    bool window_resize;
+    Wl_Event event;
 };
 
 // Functions

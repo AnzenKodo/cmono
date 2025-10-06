@@ -7,6 +7,8 @@
 #   include "render_x11.h"
 #elif RENDER_BACKEND == RENDER_BACKEND_OPENGL
 #   include "render_opengl.h"
+#elif RENDER_BACKEND == RENDER_BACKEND_WIN32
+#   include "render_win32.h"
 #else
 #   error no render layer for this platform
 #endif
