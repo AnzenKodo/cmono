@@ -4,14 +4,14 @@
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
 #include "../draw/draw_include.h"
-// #include "../render/render_include.h"
+#include "../render/render_include.h"
 #include "../shaderplay/shaderplay_include.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
 #include "../draw/draw_include.c"
-// #include "../render/render_include.c"
+#include "../render/render_include.c"
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
 
@@ -23,11 +23,10 @@ entry_point(void)
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
-    Str8Array *args = os_args_get();
+    Draw_Buffer draw_buffer = render_init(alloc);
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================
-    // MSG msg;
     while (!wl_should_window_close()) {
         wl_update_events();
         if (wl_is_key_pressed(Wl_Key_Esc) ||
@@ -35,9 +34,11 @@ entry_point(void)
         {
             wl_set_window_close();
         }
-        //
-        // TranslateMessage(&msg);
-        // DispatchMessage(&msg);
+        render_begin();
+        {
+            draw_fill(draw_buffer, DRAW_RED);
+        }
+        render_end();
     }
     // Str8List *args = os_args_get();
     // Str8Node *frag_filename = args->first->next;
