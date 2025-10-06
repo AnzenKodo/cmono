@@ -59,7 +59,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     xcb_map_window(connection, window);
     xcb_flush(connection);
 
-    // Get Size ===============================================================
+    // Get Display Size ===============================================================
     wl_state.display_size.x = screen->width_in_pixels;
     wl_state.display_size.y = screen->height_in_pixels;
     wl_state.win_size.x = win_size.x;

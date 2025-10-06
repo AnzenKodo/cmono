@@ -71,11 +71,11 @@ internal void render_deinit(void)
     xcb_free_gc(wl_x11_state.conn, render_x11_state.gc);
 }
 
-internal void render_begin()
+internal void render_begin(void)
 {
 }
 
-internal void render_end()
+internal void render_end(void)
 {
     U32 width = wl_get_window_width();
     U32 height = wl_get_window_height();
