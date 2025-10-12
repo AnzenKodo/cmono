@@ -306,8 +306,8 @@ global const U64 bit64 = (1ull<<63);
 #else
 #   define Assert(x) (void)(x)
 #endif
-#define InvalidPath        Assert(!"Invalid Path!")
-#define NotImplemented     Assert(!"Not Implemented!")
+#define InvalidCodePath Assert(!"Invalid Path!")
+#define NotImplemented  Assert(!"Not Implemented!")
 
 // Safe Casts
 //=============================================================================
