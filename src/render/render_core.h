@@ -4,10 +4,11 @@
 // Define Render Backends
 //=============================================================================
 
-#define RENDER_BACKEND_STUB     0
-#define RENDER_BACKEND_X11      1
-#define RENDER_BACKEND_OPENGL   2
-#define RENDER_BACKEND_WIN32    3
+#define RENDER_BACKEND_STUB           0
+#define RENDER_BACKEND_X11            1
+#define RENDER_BACKEND_OPENGL         2
+#define RENDER_BACKEND_WIN32          3
+#define RENDER_BACKEND_OPENGL_WIN32   4
 
 // Context detection for Render Backends
 //=============================================================================

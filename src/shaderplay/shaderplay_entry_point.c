@@ -1,4 +1,4 @@
-// #define RENDER_BACKEND RENDER_BACKEND_OPENGL
+#define RENDER_BACKEND RENDER_BACKEND_OPENGL_WIN32
 
 #include "../base/base_include.h"
 #include "../os/os_include.h"

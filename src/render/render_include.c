@@ -4,6 +4,8 @@
 #   include "render_opengl.c"
 #elif RENDER_BACKEND == RENDER_BACKEND_WIN32
 #   include "render_win32.c"
+#elif RENDER_BACKEND == RENDER_BACKEND_OPENGL_WIN32
+#   include "render_opengl_win32.c"
 #else
 #   error no render layer for this platform
 #endif

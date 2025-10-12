@@ -1,11 +1,11 @@
-#ifndef RENDER_X11_H
-#define RENDER_X11_H
+#ifndef RENDER_WIN32_H
+#define RENDER_WIN32_H
 
 // Types
 //=============================================================================
 
-typedef struct Render_W32_State Render_W32_State;
-struct Render_W32_State
+typedef struct Render_Win32_State Render_Win32_State;
+struct Render_Win32_State
 {
     HBITMAP bitmap;
     BITMAPINFO bitmap_info;
@@ -17,9 +17,9 @@ struct Render_W32_State
 // Global Variables
 //=============================================================================
 
-global Render_W32_State render_w32_state = ZERO_STRUCT;
+global Render_Win32_State render_win32_state = ZERO_STRUCT;
 
 // Functions
 //=============================================================================
 
-#endif // RENDER_X11_H
+#endif // RENDER_WIN32_H

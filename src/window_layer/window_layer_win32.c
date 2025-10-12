@@ -224,7 +224,7 @@ internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
 }
 
 #include <stdio.h>
-internal LRESULT CALLBACK wl_w32_window_proc(
+internal LRESULT CALLBACK wl_win32_window_proc(
     HWND handle, UINT message, WPARAM w_param, LPARAM l_param
 ) {
     LRESULT result = 0;
@@ -242,7 +242,7 @@ internal LRESULT CALLBACK wl_w32_window_proc(
         {
             wl_state.win_size.x = LOWORD(l_param);
             wl_state.win_size.y = HIWORD(l_param);
-            wl_w32_state.window_resize = true;
+            wl_win32_state.window_resize = true;
         } // fallthrough;
         case WM_PAINT:
         {
@@ -252,7 +252,7 @@ internal LRESULT CALLBACK wl_w32_window_proc(
         // Window Close =======================================================
         case WM_CLOSE:
         {
-            wl_w32_state.window_close = true;
+            wl_win32_state.window_close = true;
         } break;
 
         // // Window Resize ======================================================
@@ -355,7 +355,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     HINSTANCE instance = GetModuleHandleW(NULL);
     WNDCLASSEXW wc = ZERO_STRUCT;
     wc.cbSize = sizeof(WNDCLASSEXW);
-    wc.lpfnWndProc = wl_w32_window_proc;
+    wc.lpfnWndProc = wl_win32_window_proc;
     wc.hInstance = instance;
     wc.lpszClassName = L"graphical-window";
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -370,7 +370,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         os_exit(1);
     }
     Str16 title16 = str16_from_8(os_core_state.alloc, title);
-    wl_w32_state.handle = CreateWindowExW(
+    wl_win32_state.handle = CreateWindowExW(
         WS_EX_APPWINDOW,
         wc.lpszClassName, title16.str,
         WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
@@ -379,13 +379,13 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         0, 0,
         instance, 0
     );
-    if (!wl_w32_state.handle) 
+    if (!wl_win32_state.handle) 
     {
         MessageBoxW(NULL, L"Faild to create window.", L"Error", MB_OK|MB_ICONERROR);
         os_exit(1);
     }
-    ShowWindow(wl_w32_state.handle, SW_SHOW);
-    UpdateWindow(wl_w32_state.handle);
+    ShowWindow(wl_win32_state.handle, SW_SHOW);
+    UpdateWindow(wl_win32_state.handle);
 
     // Get Display Size ===============================================================
     wl_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
@@ -398,7 +398,7 @@ internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
 
 internal void wl_window_close(void)
 {
-    DestroyWindow(wl_w32_state.handle);
+    DestroyWindow(wl_win32_state.handle);
 }
 
 // Event Functions
@@ -418,13 +418,13 @@ internal Wl_Event wl_get_event(void)
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
-                if (wl_w32_state.window_close) {
+                if (wl_win32_state.window_close) {
                     event.type = Wl_EventType_WindowClose;
-                    wl_w32_state.window_close = false;
+                    wl_win32_state.window_close = false;
                 } 
-                if (wl_w32_state.window_resize) {
+                if (wl_win32_state.window_resize) {
                     event.type = Wl_EventType_WindowResize;
-                    wl_w32_state.window_resize = false;
+                    wl_win32_state.window_resize = false;
                 }
             } break;
 
@@ -525,7 +525,7 @@ internal Wl_Event wl_get_event(void)
                 }
                 else
                 {
-                    SetCapture(wl_w32_state.handle);
+                    SetCapture(wl_win32_state.handle);
                 }
             } break;
 
@@ -541,7 +541,7 @@ internal Wl_Event wl_get_event(void)
                 POINT p;
                 p.x = (I32)(I16)LOWORD(msg.lParam);
                 p.y = (I32)(I16)HIWORD(msg.lParam);
-                ScreenToClient(wl_w32_state.handle, &p);
+                ScreenToClient(wl_win32_state.handle, &p);
                 event.pos.x = (F32)p.x;
                 event.pos.y = (F32)p.y;
                 event.delta = vec_2f32(0.f, -(F32)wheel_delta);
@@ -552,7 +552,7 @@ internal Wl_Event wl_get_event(void)
                 POINT p;
                 p.x = (I32)LOWORD(msg.lParam);
                 p.y = (I32)HIWORD(msg.lParam);
-                ScreenToClient(wl_w32_state.handle, &p);
+                ScreenToClient(wl_win32_state.handle, &p);
                 event.pos.x = (F32)p.x;
                 event.pos.y = (F32)p.y;
                 event.delta = vec_2f32((F32)wheel_delta, 0.f);
@@ -566,3 +566,4 @@ internal Wl_Event wl_get_event(void)
     }
     return event;
 }
+
