@@ -63,15 +63,13 @@ internal void build_compile_cc(char *cmd)
     // Libs
     if (os == Context_Os_Windows) {
         build_cmd_append(cmd, " -Wl,/subsystem:windows -Wl,/ENTRY:mainCRTStartup");
-        build_cmd_append(cmd, " -lgdi32 -luser32");
-    }
-    if (build_use_mingw) {
-        build_cmd_append(cmd, " -lgdi32 -luser32");
     }
     if (os == Context_Os_Linux && !build_use_mingw)
     {
         // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
         build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+    } else {
+        build_cmd_append(cmd, " -lgdi32 -luser32 -lopengl32");
     }
 }
 
