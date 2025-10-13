@@ -1,3 +1,27 @@
+internal Draw_Buffer draw_init(I32 width, I32 height)
+{
+    Draw_Buffer draw_buffer     = ZERO_STRUCT;
+    draw_buffer.width           = wl_get_display_width();
+    draw_buffer.height          = wl_get_display_height();
+    draw_buffer.bytes_per_pixel = 4;
+    draw_buffer.pitch           = draw_buffer.width * draw_buffer.bytes_per_pixel;
+    U64 memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
+    draw_buffer.memory          = alloc_make(alloc, U8, memory_size);
+    return draw_buffer;
+}
+
+internal Draw_Buffer draw_init_display(void)
+{
+    Draw_Buffer draw_buffer     = ZERO_STRUCT;
+    draw_buffer.width           = wl_get_display_width();
+    draw_buffer.height          = wl_get_display_height();
+    draw_buffer.bytes_per_pixel = 4;
+    draw_buffer.pitch           = draw_buffer.width * draw_buffer.bytes_per_pixel;
+    U64 memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
+    draw_buffer.memory          = alloc_make(alloc, U8, memory_size);
+    return draw_buffer;
+}
+
 internal U32 draw_rgba_to_hex(const Draw_Rgba color)
 {
     U32 result = 0;
