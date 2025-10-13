@@ -1,11 +1,13 @@
-#if RENDER_BACKEND == RENDER_BACKEND_X11
-#   include "render_x11.c"
-#elif RENDER_BACKEND == RENDER_BACKEND_OPENGL
-#   include "render_opengl.c"
-#elif RENDER_BACKEND == RENDER_BACKEND_WIN32
-#   include "render_win32.c"
-#elif RENDER_BACKEND == RENDER_BACKEND_OPENGL_WIN32
-#   include "render_opengl_win32.c"
+#include "render_core.c"
+
+#if RENDER_BACKEND == RENDER_BACKEND_OPENGL
+#   if OS_LINUX
+#       include "render_opengl_linux.h"
+#   elif OS_WINDOWS
+#       include "render_opengl_win32.h"
+#   else
+#       error no OpenGL render layer for this platform
+#   endif
 #else
 #   error no render layer for this platform
 #endif
