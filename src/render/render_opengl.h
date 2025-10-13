@@ -1,8 +1,14 @@
 #ifndef RENDER_OPENGL_H
 #define RENDER_OPENGL_H
 
+// External Includes
+//=============================================================================
+
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
+
+// Types
+//=============================================================================
 
 typedef struct Render_Opengl_State Render_Opengl_State;
 struct Render_Opengl_State

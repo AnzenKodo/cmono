@@ -1,9 +1,6 @@
 #ifndef OS_LINUX_H
 #define OS_LINUX_H
 
-// Types
-//=============================================================================
-
 // External Includes
 //=============================================================================
 
@@ -14,4 +11,4 @@
 #include <stdlib.h>
 #include <time.h>
 
-#endif // STD_OS_LINUX_H
+#endif // OS_LINUX_H
