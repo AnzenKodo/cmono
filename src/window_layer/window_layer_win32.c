@@ -567,7 +567,8 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
-// Software Render ============================================================
+// Software Render 
+// ============================================================================
 
 internal void wl_render_init(void *render_buffer)
 {
