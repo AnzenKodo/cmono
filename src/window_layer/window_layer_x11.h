@@ -5,6 +5,7 @@
 //=============================================================================
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_image.h>
 
 // Types
 //=============================================================================
@@ -16,6 +17,12 @@ struct Wl_X11_State {
     xcb_window_t window;
     xcb_atom_t wm_delete_window;
     xcb_atom_t wm_icon;
+
+    // NOTE(aman.v): For software render
+    xcb_pixmap_t pixmap;
+    xcb_gcontext_t gc;
+    xcb_image_t *image;
+    void *render_buffer;
 };
 
 // Global Variables

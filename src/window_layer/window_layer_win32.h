@@ -15,6 +15,13 @@ struct Wl_Win32_State
     bool window_close;
     bool window_resize;
     Wl_Event event;
+
+    // NOTE(aman.v): For software render
+    HBITMAP bitmap;
+    BITMAPINFO bitmap_info;
+    HDC hdc;
+    PAINTSTRUCT paint;
+    void *render_buffer;
 };
 
 // Functions

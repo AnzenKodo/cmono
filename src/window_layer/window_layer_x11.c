@@ -359,3 +359,78 @@ internal Wl_Event wl_get_event(void)
     // free(xcb_event);
     return event;
 }
+
+// Software Render ============================================================
+
+internal void wl_render_init(void *render_buffer)
+{
+    wl_x11_state.render_buffer = render_buffer;
+
+    // Create pixmap format ===================================================
+    wl_x11_state.pixmap = xcb_generate_id(wl_x11_state.connection);
+    xcb_format_t *pixmap_format = xcb_setup_pixmap_formats(
+        xcb_get_setup(wl_x11_state.connection)
+    );
+    I32 pixmap_format_length = xcb_setup_pixmap_formats_length(
+        xcb_get_setup(wl_x11_state.connection)
+    );
+    for (int i = 0; i < pixmap_format_length; i++) {
+        if (
+            pixmap_format[i].depth==24 && pixmap_format[i].bits_per_pixel==32
+        ) {
+            pixmap_format += i;
+        }
+    }
+
+    // Create pixmap ==========================================================
+    xcb_create_pixmap(
+        wl_x11_state.connection, wl_x11_state.screen->root_depth,
+        wl_x11_state.pixmap, wl_x11_state.window,
+        wl_get_display_width(), wl_get_display_height()
+    );
+
+    // Create graphics context ================================================
+    wl_x11_state.gc = xcb_generate_id(wl_x11_state.connection);
+    uint32_t gc_mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
+    uint32_t gc_values[] = {
+        wl_x11_state.screen->white_pixel, wl_x11_state.screen->black_pixel
+    };
+    xcb_create_gc(
+        wl_x11_state.connection, wl_x11_state.gc, wl_x11_state.pixmap, gc_mask, gc_values
+    );
+
+    // Create image ================================================
+    wl_x11_state.image = xcb_image_create(
+        wl_get_display_width(), wl_get_display_height(), XCB_IMAGE_FORMAT_Z_PIXMAP,
+        pixmap_format->scanline_pad, pixmap_format->depth,
+        pixmap_format->bits_per_pixel, 0,
+        xcb_get_setup(wl_x11_state.connection)->image_byte_order,
+        XCB_IMAGE_ORDER_LSB_FIRST,
+        wl_win32_state.render_buffer, sizeof(*wl_win32_state.render_buffer), 
+        wl_win32_state.render_buffer
+    );
+    xcb_flush(wl_x11_state.connection);
+}
+
+internal void wl_render_deinit(void)
+{
+    xcb_free_pixmap(wl_x11_state.connection, wl_x11_state.pixmap);
+    xcb_free_gc(wl_x11_state.connection, wl_x11_state.gc);
+}
+
+internal void wl_render_begin(void)
+{
+}
+
+internal void wl_render_end(void)
+{
+    xcb_image_put(
+        wl_x11_state.connection, wl_x11_state.pixmap,
+        wl_x11_state.gc, wl_x11_state.image, 0, 0, 0
+    );
+    xcb_copy_area(
+        wl_x11_state.connection, wl_x11_state.pixmap, wl_x11_state.window,
+        wl_x11_state.gc, 0, 0, 0, 0, 
+        wl_get_window_width(), wl_get_window_height()
+    );
+}
