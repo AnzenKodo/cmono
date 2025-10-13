@@ -1,8 +1,7 @@
 // Helpers Functions
 //=============================================================================
 
-internal DateTime
-os_lnx_date_time_from_tm(struct tm in, U32 msec)
+internal DateTime os_lnx_date_time_from_tm(struct tm in, U32 msec)
 {
     DateTime dt = ZERO_STRUCT;
     dt.sec  = in.tm_sec;
@@ -15,8 +14,7 @@ os_lnx_date_time_from_tm(struct tm in, U32 msec)
     return dt;
 }
 
-internal DenseTime
-os_lnx_dense_time_from_timespec(struct timespec in)
+internal DenseTime os_lnx_dense_time_from_timespec(struct timespec in)
 {
     DenseTime result = 0;
     {
@@ -30,8 +28,7 @@ os_lnx_dense_time_from_timespec(struct timespec in)
     return result;
 }
 
-internal Os_FileProperties
-os_lnx_file_properties_from_stat(struct stat *s)
+internal Os_FileProperties os_lnx_file_properties_from_stat(struct stat *s)
 {
     Os_FileProperties props = ZERO_STRUCT;
     props.size     = s->st_size;
@@ -48,30 +45,26 @@ os_lnx_file_properties_from_stat(struct stat *s)
 // Memory Allocation
 //=============================================================================
 
-internal void *
-os_memory_create(U64 size)
+internal void *os_memory_create(U64 size)
 {
     void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(result == MAP_FAILED) { result = 0; }
     return result;
 }
 
-internal bool
-os_memory_commit(void *ptr, U64 size)
+internal bool os_memory_commit(void *ptr, U64 size)
 {
     mprotect(ptr, size, PROT_READ|PROT_WRITE);
     return true;
 }
 
-internal void
-os_memory_decommit(void *ptr, U64 size)
+internal void os_memory_decommit(void *ptr, U64 size)
 {
     madvise(ptr, size, MADV_DONTNEED);
     mprotect(ptr, size, PROT_NONE);
 }
 
-internal void
-os_memory_free(void *ptr, U64 size)
+internal void os_memory_free(void *ptr, U64 size)
 {
     munmap(ptr, size);
 }
@@ -79,8 +72,7 @@ os_memory_free(void *ptr, U64 size)
 // File System
 //=============================================================================
 
-internal Os_File
-os_file_open(Str8 path, Os_AccessFlags flags)
+internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
     I32 lnx_flags = 0;
     if(flags & OS_AccessFlag_Read && flags & OS_AccessFlag_Write)
@@ -107,14 +99,12 @@ os_file_open(Str8 path, Os_AccessFlags flags)
     return file;
 }
 
-internal void
-os_file_close(Os_File file)
+internal void os_file_close(Os_File file)
 {
     close(file);
 }
 
-internal U64
-os_file_read(Os_File file, Rng1U64 rng, void *out_data)
+internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
 {
     U64 total_num_bytes_to_read = dim_1u64(rng);
     U64 total_num_bytes_read = 0;
@@ -138,8 +128,7 @@ os_file_read(Os_File file, Rng1U64 rng, void *out_data)
     return total_num_bytes_read;
 }
 
-internal U64
-os_file_write(Os_File file, Rng1U64 rng, void *data)
+internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
 {
     U64 total_num_bytes_to_write = dim_1u64(rng);
     U64 total_num_bytes_written = 0;
@@ -163,8 +152,7 @@ os_file_write(Os_File file, Rng1U64 rng, void *data)
     return total_num_bytes_written;
 }
 
-internal Os_FileProperties
-os_file_properties(Os_File file)
+internal Os_FileProperties os_file_properties(Os_File file)
 {
     struct stat fd_stat = ZERO_STRUCT;
     int fstat_result = fstat(file, &fd_stat);
@@ -176,8 +164,7 @@ os_file_properties(Os_File file)
     return props;
 }
 
-internal bool
-os_dir_make(Str8 path)
+internal bool os_dir_make(Str8 path)
 {
     I32 result = mkdir((const char *)path.cstr, 0700);
     if (result == 0) {
@@ -190,8 +177,7 @@ os_dir_make(Str8 path)
 // Exit
 //=============================================================================
 
-internal void
-os_exit(I32 exit_code)
+internal void os_exit(I32 exit_code)
 {
     exit(exit_code);
 }
@@ -199,15 +185,13 @@ os_exit(I32 exit_code)
 // Time
 //=============================================================================
 
-internal U32
-os_now_unix(void)
+internal U32 os_now_unix(void)
 {
     time_t t = time(0);
     return (U32)t;
 }
 
-internal U64
-os_now_microsec(void)
+internal U64 os_now_microsec(void)
 {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
@@ -215,8 +199,7 @@ os_now_microsec(void)
     return result;
 }
 
-internal void
-os_sleep_microsec(U64 micosec)
+internal void os_sleep_microsec(U64 micosec)
 {
     struct timespec ts = {
         .tv_sec = micosec / Million(1),
@@ -225,8 +208,7 @@ os_sleep_microsec(U64 micosec)
     nanosleep(&ts, NULL);
 }
 
-internal void
-os_sleep_millisec(U32 millisec)
+internal void os_sleep_millisec(U32 millisec)
 {
     usleep(millisec*Thousand(1));
 }

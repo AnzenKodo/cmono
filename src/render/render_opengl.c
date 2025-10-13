@@ -1,5 +1,4 @@
-internal Draw_Buffer
-render_init(Alloc alloc)
+internal Draw_Buffer render_init(Alloc alloc)
 {
 
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -49,8 +48,7 @@ render_init(Alloc alloc)
     return draw_buffer;
 }
 
-internal void
-render_deinit(void)
+internal void render_deinit(void)
 {
     eglMakeCurrent(
         render_opengl_state.display,
@@ -61,13 +59,11 @@ render_deinit(void)
     eglTerminate(render_opengl_state.display);
 }
 
-internal void
-render_begin(void)
+internal void render_begin(void)
 {
 }
 
-internal void
-render_end(void)
+internal void render_end(void)
 {
     eglSwapBuffers(render_opengl_state.display, render_opengl_state.surface);
 }
