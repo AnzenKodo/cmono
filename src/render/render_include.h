@@ -3,11 +3,11 @@
 
 #include "render_core.h"
 
-#if RENDER_BACKEND == RENDER_BACKEND_OPENGL
+#if RENDER_BACKEND == RENDER_BACKEND_EGL
 #   if OS_LINUX
-#       include "render_opengl_linux.h"
+#       include "render_egl_linux.h"
 #   elif OS_WINDOWS
-#       include "render_opengl_win32.h"
+#       include "render_egl_win32.h"
 #   else
 #       error no OpenGL render layer for this platform
 #   endif

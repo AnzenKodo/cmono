@@ -1,5 +1,5 @@
-#ifndef RENDER_OPENGL_H
-#define RENDER_OPENGL_H
+#ifndef RENDER_EGL_LINUX_H
+#define RENDER_EGL_LINUX_H
 
 // External Includes
 //=============================================================================
@@ -23,4 +23,4 @@ struct Render_Opengl_State
 
 global Render_Opengl_State render_opengl_state = ZERO_STRUCT;
 
-#endif // RENDER_OPENGL_H
+#endif // RENDER_EGL_LINUX_H

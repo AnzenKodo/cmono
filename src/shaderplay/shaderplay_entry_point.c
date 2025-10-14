@@ -1,17 +1,17 @@
-#define RENDER_BACKEND RENDER_BACKEND_OPENGL_WIN32
+#define RENDER_BACKEND RENDER_BACKEND_EGL
 
 #include "../base/base_include.h"
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
 #include "../draw/draw.h"
-#include "../render/render_include.h"
+// #include "../render/render_include.h"
 #include "../shaderplay/shaderplay_include.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
 #include "../draw/draw.c"
-#include "../render/render_include.c"
+// #include "../render/render_include.c"
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
 
@@ -22,22 +22,21 @@ internal void entry_point(void)
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
-    Draw_Buffer draw_buffer = render_init(alloc);
+    // Draw_Buffer draw_buffer = render_init(alloc);
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================
     while (!wl_should_window_close()) {
         wl_update_events();
-        if (wl_is_key_pressed(Wl_Key_Esc) ||
-            wl_is_event_happen(Wl_EventType_WindowClose))
-        {
+        if (wl_is_event_happen(Wl_EventType_WindowClose) ||
+            (BUILD_DEBUG && wl_is_key_pressed(Wl_Key_Esc))) {
             wl_set_window_close();
         }
-        render_begin();
+        // render_begin();
         {
-            draw_fill(draw_buffer, DRAW_RED);
+            // draw_fill(draw_buffer, DRAW_RED);
         }
-        render_end();
+        // render_end();
     }
     // Str8Array *args = os_args_get();
     // Str8 *frag_filename = args.strings[1];

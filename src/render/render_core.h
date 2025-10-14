@@ -5,23 +5,23 @@
 //=============================================================================
 
 #define RENDER_BACKEND_STUB           0
-#define RENDER_BACKEND_OPENGL         1
+#define RENDER_BACKEND_EGL            1
 
 // Context detection for Render Backends
 //=============================================================================
 
 #ifndef RENDER_BACKEND
 #   if OS_LINUX
-#        define RENDER_BACKEND RENDER_BACKEND_OPENGL
+#        define RENDER_BACKEND RENDER_BACKEND_EGL
 #   elif OS_WINDOWS
-#        define RENDER_BACKEND RENDER_BACKEND_OPENGL
+#        define RENDER_BACKEND RENDER_BACKEND_EGL
 #   endif
 #endif
 
 // Functions
 //=============================================================================
 
-internal Draw_Buffer render_init(Alloc);
+internal void render_init(Alloc);
 internal void render_begin(void);
 internal void render_end(void);
 internal void render_deinit(void);
