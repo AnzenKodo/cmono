@@ -579,7 +579,6 @@ internal void wl_render_init(void *render_buffer)
     wl_win32_state.bitmap_info.bmiHeader.biCompression = BI_RGB;
     wl_win32_state.bitmap_info.bmiHeader.biWidth = wl_get_display_width();
     wl_win32_state.bitmap_info.bmiHeader.biHeight = -wl_get_display_height();
-    return draw_buffer;
 }
 
 internal void wl_render_deinit(void)
@@ -588,7 +587,7 @@ internal void wl_render_deinit(void)
 
 internal void wl_render_begin(void)
 {
-    wl_win32_state.hdc = BeginPaint(wl_w32_state.handle, &wl_win32_state.paint);
+    wl_win32_state.hdc = BeginPaint(wl_win32_state.handle, &wl_win32_state.paint);
 }
 
 internal void wl_render_end(void)
@@ -597,8 +596,8 @@ internal void wl_render_end(void)
         wl_win32_state.hdc, 
         0, 0, wl_get_display_width(), wl_get_display_height(),
         0, 0, wl_get_display_width(), wl_get_display_height(),
-        wl_win32_state.memory, &wl_win32_state.bitmap_info,
+        wl_win32_state.render_buffer, &wl_win32_state.bitmap_info,
         DIB_RGB_COLORS, SRCCOPY
     );
-    EndPaint(wl_w32_state.handle, &render_win32_state.paint);
+    EndPaint(wl_win32_state.handle, &wl_win32_state.paint);
 }
