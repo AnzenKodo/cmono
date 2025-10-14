@@ -61,8 +61,8 @@ struct Draw_Rect {
 // Functions
 // ============================================================================
 
-internal Draw_Buffer draw_init(I32 width, I32 height);
-internal Draw_Buffer draw_init_display(void);
+internal Draw_Buffer draw_init(Alloc alloc, I32 width, I32 height);
+internal Draw_Buffer draw_init_display(Alloc alloc);
 internal U32 draw_rgba_to_hex(const Draw_Rgba color);
 internal U32 draw_rgba_to_hex_argb(const Draw_Rgba color);
 internal void draw_fill(Draw_Buffer draw_buffer, Draw_Rgba color);
