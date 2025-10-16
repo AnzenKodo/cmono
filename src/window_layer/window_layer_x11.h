@@ -11,7 +11,8 @@
 //=============================================================================
 
 typedef struct Wl_X11_State Wl_X11_State;
-struct Wl_X11_State {
+struct Wl_X11_State 
+{
     xcb_connection_t *connection;
     xcb_screen_t *screen;
     xcb_window_t window;

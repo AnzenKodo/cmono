@@ -15,6 +15,8 @@
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
 
+#include <glad/egl.h>
+
 internal void entry_point(void)
 {
     // Program Init ===========================================================
