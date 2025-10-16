@@ -8,11 +8,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PROJECT_NAME    "Scuttle"
-#define PROJECT_VERSION "0.1"
-// #define BUILD_MAIN_FILE "src/scuttle/scuttle_entry_point.c"
-#define BUILD_MAIN_FILE "src/shaderplay/shaderplay_entry_point.c"
-#define BUILD_DIR       "build"
+
+typedef enum Build_Type
+{
+    Build_Type_Debug;
+    Build_Type_Test;
+    Build_Type_Profiler;
+} Build_Type;
+
+typedef struct Build_Info Build_Info;
+struct Build_Info
+{
+    Context_Os os;
+    String name;
+    String version;
+    String entry_point;
+    String dir;
+    bool mingw;
+    Build_Type type;
+} Build_Info;
+
+global Build_Info build_info = ZERO_STRUCT;
 
 const char *help_message = "build.c: C file that build's C projects.\n"
 "Options:\n"
@@ -26,51 +42,47 @@ const char *help_message = "build.c: C file that build's C projects.\n"
 "   help --help -h       Print help\n";
 
 
-global bool build_use_mingw = false;
 internal void build_cmd_append(char *cmd, char *src);
 internal void build_cmd_finish(char *cmd);
 internal void build_cmd_run(char *cmd);
 
-internal void build_compile_cc(char *cmd)
+internal void build_compile_cl(char *cmd)
 {
-    Context_Os os = context_of_os();
-    if (build_use_mingw) {
-        build_cmd_append(cmd, "x86_64-w64-mingw32-gcc ");
-    }
-    else
-    {
-        build_cmd_append(cmd, "cc ");
-    }
-    build_cmd_append(cmd, BUILD_MAIN_FILE);
-    if (os == Context_Os_Windows || build_use_mingw)
-    {
-        build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME".exe"); // Output
-    }
-    else
-    {
-        build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
-    }
-    build_cmd_append(cmd, " -ggdb -g3 -DBUILD_DEBUG");       // Debug
-    build_cmd_append(cmd, " -Wall -Wextra");                 // Warnings
-    // Security
-    if (!build_use_mingw)
-    {
-        build_cmd_append(cmd, " -fstack-protector");
-    }
+    build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME".exe"); // Output
+    build_cmd_append(cmd, " -Wl,/subsystem:windows -Wl,/ENTRY:mainCRTStartup");
+}
+
+internal void build_compile_mingw(char *cmd)
+{
+    build_cmd_append(cmd, "x86_64-w64-mingw32-gcc ");
+    build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME".exe"); // Output
+    build_cmd_append(cmd, " -ggdb -g3 -DBUILD_DEBUG");             // Debug
+    build_cmd_append(cmd, " -Wall -Wextra");                       // Warnings
     build_cmd_append(cmd, " -mshstk -fcf-protection=full");
     // Disable useless warnings in C
     build_cmd_append(cmd, "  -Wno-incompatible-pointer-types -Wno-override-init -Wno-implicit-fallthrough");
+    build_cmd_append(cmd, " -lgdi32 -luser32 -lopengl32");
+}
+
+internal void build_compile_cc(char *cmd)
+{
+    printf("Compiling:\n");
+    build_cmd_append(cmd, "cc ");
+    build_cmd_append(cmd, BUILD_MAIN_FILE);
+    build_cmd_append(cmd, " -o ./"BUILD_DIR"/"PROJECT_NAME); // Output
+    build_cmd_append(cmd, " -ggdb -g3 -DBUILD_DEBUG");       // Debug
+    build_cmd_append(cmd, " -Wall -Wextra");                 // Warnings
+    build_cmd_append(cmd, " -fstack-protector");
+    build_cmd_append(cmd, " -mshstk -fcf-protection=full");
+    // Disable useless warnings in C
+    build_cmd_append(cmd, "  -Wno-incompatible-pointer-types -Wno-override-init" 
+        " -Wno-implicit-fallthrough -Wno-unused-variable -Wno-unused-parameter" 
+        " -Wno-unused-function -Wno-unused-but-set-variable -Wno-missing-braces");
     // Libs
-    if (os == Context_Os_Windows) {
-        build_cmd_append(cmd, " -Wl,/subsystem:windows -Wl,/ENTRY:mainCRTStartup");
-    }
-    if (os == Context_Os_Linux && !build_use_mingw)
-    {
-        // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
-        build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
-    } else {
-        build_cmd_append(cmd, " -lgdi32 -luser32 -lopengl32");
-    }
+    // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
+    build_cmd_append(cmd, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+    build_cmd_append(cmd, " -lgdi32 -luser32 -lopengl32");
+    build_cmd_append(cmd, " -fsanitize=address");
 }
 
 internal void build_compile(char *cmd)
@@ -79,38 +91,64 @@ internal void build_compile(char *cmd)
     {
         printf("Created `"BUILD_DIR"` directory.\n");
     }
-    printf("Compiling:\n");
-    build_compile_cc(cmd);
-    // Disable useless warnings
-    build_cmd_append(cmd, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable -Wno-missing-braces");
-    // build_cmd_append(cmd, " -static");
     Context_Os os = context_of_os();
-    if (!build_use_mingw && os != Context_Os_Windows)
+    if (os == Os_Linux && !build_use_mingw)
     {
-        build_cmd_append(cmd, " -fsanitize=address");
+        build_compile_cc(cmd);
+    } 
+    else if (os == Os_Windows)
+    {
+        build_compile_cl(cmd);
+    } 
+    else if (build_use_mingw) 
+    {
+        build_compile_mingw(cmd);
+    }
+    else
+    {
+        printf("Error: OS build compile is not supported.");
     }
     build_cmd_finish(cmd);
 }
 
+internal void build_run_windows(char *cmd)
+{
+    build_cmd_append(cmd, BUILD_DIR"\\"PROJECT_NAME".exe");
+    build_cmd_append(cmd, " shaders\\shader.frag");
+}
+
+internal void build_run_wine(char *cmd)
+{
+    build_cmd_append(cmd, "WINEARCH=win64 wine ./"BUILD_DIR"/"PROJECT_NAME".exe");
+    build_cmd_append(cmd, " shaders/shader.frag");
+}
+
+internal void build_run_linux(char *cmd)
+{
+    build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
+    build_cmd_append(cmd, " shaders/shader.frag");
+}
+
 internal void build_run(char *cmd)
 {
+    printf("Running:\n");
     Context_Os os = context_of_os();
-    if (os == Context_Os_Windows)
+    if (os == Os_Linux && !build_use_mingw)
     {
-        build_cmd_append(cmd, BUILD_DIR"\\"PROJECT_NAME".exe");
-        build_cmd_append(cmd, " shaders\\shader.frag");
-    }
-    else if (build_use_mingw)
+        build_run_linux(cmd);
+    } 
+    else if (os == Os_Windows)
     {
-        build_cmd_append(cmd, "WINEARCH=win64 wine ./"BUILD_DIR"/"PROJECT_NAME".exe");
-        build_cmd_append(cmd, " shaders/shader.frag");
+        build_run_windows(cmd);
+    } 
+    else if (build_use_mingw) 
+    {
+        build_run_wine(cmd);
     }
     else
     {
-        build_cmd_append(cmd, "./"BUILD_DIR"/"PROJECT_NAME);
-        build_cmd_append(cmd, " shaders/shader.frag");
+        printf("Error: OS build run is not supported.");
     }
-    printf("Running:\n");
     build_cmd_finish(cmd);
 }
 
@@ -162,13 +200,15 @@ internal void build_profiler(char *cmd)
 char cmd[500] = "";
 internal void entry_point()
 {
+    build_info.name = str8("Scuttle");
+    build_info.version = "0.2";
+    build_info.entry_point = "src/shaderplay/shaderplay_entry_point.c";
+    build_info.dir = "build";
+
     bool should_print_help = false;
     bool should_print_version = false;
     bool should_program_build = false;
     bool should_program_run = false;
-    bool should_program_debug = false;
-    bool should_program_test = false;
-    bool should_program_profiler = false;
 
     Str8Array *args = os_args_get();
 
