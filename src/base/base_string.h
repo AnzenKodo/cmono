@@ -15,10 +15,11 @@
 
 // String Types ===============================================================
 
-typedef struct Str8 {
+typedef struct Str8 Str8;
+struct Str8 {
     U8 *cstr;
     U64 size;
-} Str8;
+};
 typedef struct Str16 Str16;
 struct Str16
 {

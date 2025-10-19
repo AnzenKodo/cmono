@@ -10,14 +10,14 @@ typedef struct {
     void *context;
 } Alloc;
 
-#define alloc_make(a, T, n) (cast(T *)((a).alloc((a).context, sizeof(T)*n, AlignOf(T))))
+#define alloc_make(a, T, n) (Cast(T *)((a).alloc((a).context, sizeof(T)*n, AlignOf(T))))
 #define alloc_free(a, p, n) ((a).free((a).context, p, sizeof(*p)*n))
 
 // Arena Allocator
 //====================================================================
 
 typedef struct {
-    void *buffer;
+    char *buffer;
     U64 size;
     U64 offset;
     U64 committed;

@@ -1,8 +1,8 @@
 internal Draw_Buffer draw_init(Alloc alloc, I32 width, I32 height)
 {
     Draw_Buffer draw_buffer     = ZERO_STRUCT;
-    draw_buffer.width           = wl_get_display_width();
-    draw_buffer.height          = wl_get_display_height();
+    draw_buffer.width           = width;
+    draw_buffer.height          = height;
     draw_buffer.bytes_per_pixel = 4;
     draw_buffer.pitch           = draw_buffer.width * draw_buffer.bytes_per_pixel;
     U64 memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
@@ -58,7 +58,7 @@ internal void draw_fill(Draw_Buffer draw_buffer, Draw_Rgba color)
     {
         for (F32 x = 0; x < draw_buffer.width; x++)
         {
-            U32 *pixel = (U32 *)draw_buffer.memory + cast(U32)(y * draw_buffer.width + x);
+            U32 *pixel = (U32 *)draw_buffer.memory + Cast(U32)(y * draw_buffer.width + x);
             *pixel++ = color_in_hex;
         }
     }

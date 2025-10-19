@@ -128,14 +128,14 @@ internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
         {
             initialized = 1;
             vkey_table[Wl_Key_Esc] = VK_ESCAPE;
-            for(Wl_Key key = Wl_Key_F1; key <= Wl_Key_F24; key = (Wl_Key)(key+1))
+            for(Wl_Key ikey = Wl_Key_F1; ikey <= Wl_Key_F24; ikey = (Wl_Key)(ikey+1))
             {
-                vkey_table[key] = VK_F1+(key-Wl_Key_F1);
+                vkey_table[ikey] = VK_F1+(ikey-Wl_Key_F1);
             }
             vkey_table[Wl_Key_Tick] = VK_OEM_3;
-            for(Wl_Key key = Wl_Key_0; key <= Wl_Key_9; key = (Wl_Key)(key+1))
+            for(Wl_Key ikey = Wl_Key_0; ikey <= Wl_Key_9; ikey = (Wl_Key)(ikey+1))
             {
-                vkey_table[key] = '0'+(key-Wl_Key_0);
+                vkey_table[ikey] = '0'+(ikey-Wl_Key_0);
             }
             vkey_table[Wl_Key_Minus]     = VK_OEM_MINUS;
             vkey_table[Wl_Key_Equal]     = VK_OEM_PLUS;
@@ -194,9 +194,9 @@ internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
             vkey_table[Wl_Key_Left]       = VK_LEFT;
             vkey_table[Wl_Key_Down]       = VK_DOWN;
             vkey_table[Wl_Key_Right]      = VK_RIGHT;
-            for(Wl_Key key = Wl_Key_Ex0; key <= Wl_Key_Ex29; key = (Wl_Key)(key+1))
+            for(Wl_Key ikey = Wl_Key_Ex0; ikey <= Wl_Key_Ex29; ikey = (Wl_Key)(ikey+1))
             {
-                vkey_table[key] = 0xDF + (key-Wl_Key_Ex0);
+                vkey_table[ikey] = 0xDF + (ikey-Wl_Key_Ex0);
             }
             vkey_table[Wl_Key_NumLock]   = VK_NUMLOCK;
             vkey_table[Wl_Key_NumSlash]  = VK_DIVIDE;
@@ -228,7 +228,7 @@ internal LRESULT CALLBACK wl_win32_window_proc(
     HWND handle, UINT message, WPARAM w_param, LPARAM l_param
 ) {
     LRESULT result = 0;
-    bool release = 0;
+    // bool release = 0;
 
     switch(message)
     {
@@ -359,7 +359,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     wc.hInstance = instance;
     wc.lpszClassName = L"graphical-window";
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hIcon = LoadIconW(NULL, MAKEINTRESOURCE(1));
+    // wc.hIcon = LoadIconW(NULL, MAKEINTRESOURCE(1));
     wc.style = CS_HREDRAW | CS_VREDRAW;
     if (!RegisterClassExW(&wc)) 
     {
@@ -394,6 +394,9 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
 
 internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
 {
+    Unused(icon_data);
+    Unused(width);
+    Unused(height);
 }
 
 internal void wl_window_close(void)

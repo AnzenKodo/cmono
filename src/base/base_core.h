@@ -248,9 +248,10 @@ global const U64 bit64 = (1ull<<63);
 // Misc. Macros
 //=============================================================================
 
-#define cast(Type)    (Type)
+#define Unused(var)   (void)var
+#define Cast(Type)    (Type)
 #define ArrayCount(a) (sizeof(a) / sizeof((a)[0]))
-#define Swap(T,a,b) do{T t__ = a; a = b; b = t__;}while(0)
+#define Swap(T,a,b)   do{T t__ = a; a = b; b = t__;}while(0)
 
 #define Min(A,B)     (((A)<(B))?(A):(B))
 #define Max(A,B)     (((A)>(B))?(A):(B))

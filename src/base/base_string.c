@@ -274,7 +274,7 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string)
 
 internal void str8_array_append(Str8Array *array, Str8 str)
 {
-    os_core_state.args.strings[os_core_state.args.length++] = str;
+    array->strings[array->length++] = str;
 }
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 {
@@ -329,7 +329,7 @@ internal Str8List str8_split(
                 break;
             }
         }
-        Str8 string = str8_range(first, ptr);
+        string = str8_range(first, ptr);
         if (keep_empties || string.size > 0)
         {
             str8_list_push(alloc, &list, string);
@@ -472,21 +472,21 @@ internal U32 utf8_encode(U8 *str, U32 codepoint)
         inc = 1;
     }
     else if (codepoint <= 0x7FF){
-        str[0] = (bitmask2 << 6) | ((codepoint >> 6) & bitmask5);
-        str[1] = bit8 | (codepoint & bitmask6);
+        str[0] = (U8)((bitmask2 << 6) | ((codepoint >> 6) & bitmask5));
+        str[1] = (U8)( bit8            | ( codepoint       & bitmask6));
         inc = 2;
     }
     else if (codepoint <= 0xFFFF){
-        str[0] = (bitmask3 << 5) | ((codepoint >> 12) & bitmask4);
-        str[1] = bit8 | ((codepoint >> 6) & bitmask6);
-        str[2] = bit8 | ( codepoint       & bitmask6);
+        str[0] = (U8)((bitmask3 << 5)  | ((codepoint >> 12) & bitmask4));
+        str[1] = (U8)( bit8            | ((codepoint >> 6)  & bitmask6));
+        str[2] = (U8)( bit8            | ( codepoint        & bitmask6));
         inc = 3;
     }
     else if (codepoint <= 0x10FFFF){
-        str[0] = (bitmask4 << 4) | ((codepoint >> 18) & bitmask3);
-        str[1] = bit8 | ((codepoint >> 12) & bitmask6);
-        str[2] = bit8 | ((codepoint >>  6) & bitmask6);
-        str[3] = bit8 | ( codepoint        & bitmask6);
+        str[0] = (U8)((bitmask4 << 4)  | ((codepoint >> 18) & bitmask3));
+        str[1] = (U8)( bit8            | ((codepoint >> 12) & bitmask6));
+        str[2] = (U8)( bit8            | ((codepoint >>  6) & bitmask6));
+        str[3] = (U8)( bit8            | ( codepoint        & bitmask6));
         inc = 4;
     }
     else{

@@ -84,7 +84,7 @@ internal void os_sleep_millisec(U32 millisec);
 
 // Command line arguments =====================================================
 
-internal Str8List *os_agrs_get();
+internal Str8List *os_agrs_get(void);
 
 // Program Entry Points =======================================================
 

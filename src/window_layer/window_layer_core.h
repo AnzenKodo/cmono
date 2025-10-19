@@ -206,7 +206,7 @@ struct Wl_State {
     Vec2I32 display_size;
     bool win_should_close;
     U64 frame_prev_time;
-    U64 frame_count;
+    U32 frame_count;
     U32 fps;
 };
 
@@ -225,7 +225,7 @@ internal bool wl_should_window_close(void);
 
 // Event Functions ============================================================
 
-internal void wl_update_events();
+internal void wl_update_events(void);
 internal Wl_Event wl_get_event(void);
 internal bool wl_is_key_pressed(Wl_Key key);
 

@@ -4,18 +4,16 @@
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
 #include "../draw/draw.h"
-// #include "../render/render_include.h"
+#include "../render/render_include.h"
 #include "../shaderplay/shaderplay_include.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
 #include "../draw/draw.c"
-// #include "../render/render_include.c"
+#include "../render/render_include.c"
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
-
-#include <glad/egl.h>
 
 internal void entry_point(void)
 {
@@ -23,8 +21,8 @@ internal void entry_point(void)
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
+    render_init(alloc);
     wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
-    // Draw_Buffer draw_buffer = render_init(alloc);
     // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
 
     // Load fragment shader file ==============================================

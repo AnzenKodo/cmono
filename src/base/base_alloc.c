@@ -6,7 +6,7 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
     void *result = 0;
     if (size)
     {
-        Arena *arena = cast(Arena *)context;
+        Arena *arena = Cast(Arena *)context;
 
         if (IsPow2(align))
         {
@@ -18,7 +18,7 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
             {
                 arena->committed += size;
                 arena->offset = offset + size;
-                result = cast(void *)arena->buffer + offset;
+                result = Cast(void *)(arena->buffer + offset);
             }
         }
     }
@@ -28,7 +28,7 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
 
 internal void alloc_arena_pop(void *context, void *buffer, U64 size)
 {
-    Arena *arena = cast(Arena *)context;
+    Arena *arena = Cast(Arena *)context;
     U64 offset = IntFromPtr(buffer) - IntFromPtr(arena->buffer);
     if (size <= offset) {
         arena->offset = offset;

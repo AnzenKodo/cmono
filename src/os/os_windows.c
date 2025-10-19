@@ -66,6 +66,7 @@ internal void os_memory_decommit(void *ptr, U64 size)
 
 internal void os_memory_free(void *ptr, U64 size)
 {
+    Unused(size);
     VirtualFree(ptr, 0, MEM_RELEASE);
 }
 
@@ -156,7 +157,7 @@ internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
     {
         void *bytes_src = (U8 *)data + src_off;
         U64 bytes_left = total_write_size - src_off;
-        DWORD write_size = Min(MB(1), bytes_left);
+        DWORD write_size = Cast(DWORD)Min(MB(1), bytes_left);
         DWORD bytes_written = 0;
         OVERLAPPED overlapped = {0};
         overlapped.Offset = (dst_off&0x00000000ffffffffull);

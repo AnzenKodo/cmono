@@ -70,7 +70,7 @@ date_time_from_unix_time(U64 unix_time)
 {
     DateTime date = {0};
     date.year     = 1970;
-    date.day      = 1 + (unix_time / 86400);
+    date.day      = (U16)(1 + (unix_time / 86400));
     date.sec      = (U32)unix_time % 60;
     date.min      = (U32)(unix_time / 60) % 60;
     date.hour     = (U32)(unix_time / 3600) % 24;
@@ -113,7 +113,7 @@ date_time_from_unix_time(U64 unix_time)
             {
                 goto exit;
             }
-            date.day -= c;
+            date.day -= (U16)c;
         }
         ++date.year;
     }
