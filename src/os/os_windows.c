@@ -106,7 +106,7 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
         security_attributes.bInheritHandle = 1;
     }
     HANDLE handle = CreateFileW(
-        (WCHAR *)path16.str, access_flags, share_mode, &security_attributes,
+        (WCHAR *)path16.cstr, access_flags, share_mode, &security_attributes,
         creation_disposition, FILE_ATTRIBUTE_NORMAL, 0
     );
     return (Os_File)handle;
@@ -199,10 +199,10 @@ internal bool os_dir_make(Str8 path)
     bool result = false;
     Str16 path16 = str16_from_8(os_core_state.alloc, path);
     WIN32_FILE_ATTRIBUTE_DATA attributes = {0};
-    GetFileAttributesExW((WCHAR*)path16.str, GetFileExInfoStandard, &attributes);
+    GetFileAttributesExW((WCHAR*)path16.cstr, GetFileExInfoStandard, &attributes);
     if(attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         result = true;
-    } else if(CreateDirectoryW((WCHAR*)path16.str, 0)) {
+    } else if(CreateDirectoryW((WCHAR*)path16.cstr, 0)) {
         result = true;
     }
     return(result);
@@ -254,9 +254,24 @@ internal void os_sleep_millisec(U32 millisec)
 
 // OS Entry Points
 //=============================================================================
-
-int main(int argc, char *argv[])
+int main(void)
 {
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+
+    int args_count;
+    LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
+    os_core_state.args = str8_array_reserve(alloc, args_count);
+    os_core_state.alloc = alloc;
+    for(int i = 0; i < args_count; i++)
+    {
+        Str16 str16 = str16_from_cstr(args[i]);
+        Str8 str = str8_from_16(alloc, str16);
+        str8_array_append(&os_core_state.args, str);
+    }
+
     os_w32_state.microsecond_resolution  = 1;
-    os_entry_point(argc, argv);
+
+    os_entry_point();
 }

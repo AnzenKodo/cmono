@@ -294,7 +294,7 @@ internal Str8Array str8_array_reserve(Alloc alloc, U64 size)
     Str8Array arr;
     arr.size = size;
     arr.length = 0;
-    arr.strings = alloc_make(alloc, Str8, arr.size);
+    arr.strings = alloc_make(alloc, Str8, size);
     return arr;
 }
 
@@ -472,7 +472,7 @@ internal U32 utf8_encode(U8 *str, U32 codepoint)
         inc = 1;
     }
     else if (codepoint <= 0x7FF){
-        str[0] = (U8)((bitmask2 << 6) | ((codepoint >> 6) & bitmask5));
+        str[0] = (U8)((bitmask2 << 6)  | ((codepoint >> 6) & bitmask5));
         str[1] = (U8)( bit8            | ( codepoint       & bitmask6));
         inc = 2;
     }
@@ -529,7 +529,7 @@ internal Str8 str8_from_16(Alloc alloc, Str16 in)
     {
         U64 cap = in.size*3;
         U8 *str = alloc_make(alloc, U8, cap + 1);
-        U16 *ptr = in.str;
+        U16 *ptr = in.cstr;
         U16 *opl = ptr + in.size;
         U64 size = 0;
         UnicodeDecode consume;
@@ -539,7 +539,7 @@ internal Str8 str8_from_16(Alloc alloc, Str16 in)
             size += utf8_encode(str + size, consume.codepoint);
         }
         str[size] = 0;
-        alloc_free(alloc, str, (cap - size));
+        // alloc_free(alloc, str, (cap - size));
         result = str8_init(str, size);
     }
     return result;
@@ -562,7 +562,7 @@ internal Str16 str16_from_8(Alloc alloc, Str8 in)
             size += utf16_encode(str + size, consume.codepoint);
         }
         str[size] = 0;
-        alloc_free(alloc, str, (cap - size)*2);
+        // alloc_free(alloc, str, (cap - size)*2);
         result = str16_init(str, size);
     }
     return result;
@@ -575,7 +575,7 @@ internal Str8 str8_from_32(Alloc alloc, Str32 in)
     {
         U64 cap = in.size*4;
         U8 *str = alloc_make(alloc, U8, cap + 1);
-        U32 *ptr = in.str;
+        U32 *ptr = in.cstr;
         U32 *opl = ptr + in.size;
         U64 size = 0;
         for(;ptr < opl; ptr += 1)

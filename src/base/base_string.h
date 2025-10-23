@@ -23,13 +23,13 @@ struct Str8 {
 typedef struct Str16 Str16;
 struct Str16
 {
-    U16 *str;
+    U16 *cstr;
     U64 size;
 };
 typedef struct Str32 Str32;
 struct Str32
 {
-    U32 *str;
+    U32 *cstr;
     U64 size;
 };
 

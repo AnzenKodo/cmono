@@ -372,7 +372,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     Str16 title16 = str16_from_8(os_core_state.alloc, title);
     wl_win32_state.handle = CreateWindowExW(
         WS_EX_APPWINDOW,
-        wc.lpszClassName, title16.str,
+        wc.lpszClassName, title16.cstr,
         WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
         win_size.x, win_size.y,
@@ -484,6 +484,8 @@ internal Wl_Event wl_get_event(void)
                 {
                     event.mod_key &= ~Wl_ModKey_Shift;
                 }
+                Unused(is_repeat);
+                Unused(right_sided);
             } break;
 
             // Mouse button presses/releases ======================================

@@ -17,8 +17,8 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
             if (offset + size < arena->size)
             {
                 arena->committed += size;
-                arena->offset = offset + size;
                 result = Cast(void *)(arena->buffer + offset);
+                arena->offset = offset + size;
             }
         }
     }
