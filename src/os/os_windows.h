@@ -5,6 +5,7 @@
 //=============================================================================
 
 #pragma comment(lib, "user32.lib")
+#pragma comment(lib, "shell32.lib")
 #include <winsock2.h>
 #include <mswsock.h>
 #include <windows.h>
