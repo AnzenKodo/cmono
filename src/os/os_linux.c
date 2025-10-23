@@ -218,5 +218,15 @@ internal void os_sleep_millisec(U32 millisec)
 
 int main(int argc, char *argv[])
 {
-    os_entry_point(argc, argv);
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+    os_core_state.args = str8_array_reserve(alloc, argc);
+    os_core_state.alloc = alloc;
+    for(int i = 0; i < argc; i++)
+    {
+        Str8 str = str8_from_cstr(argv[i]);
+        str8_array_append(&os_core_state.args, str);
+    }
+    os_entry_point();
 }

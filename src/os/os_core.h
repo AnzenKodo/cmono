@@ -88,6 +88,7 @@ internal Str8List *os_agrs_get(void);
 
 // Program Entry Points =======================================================
 
+internal void os_entry_point(void);
 internal void entry_point(void);
 
 // Global Variables

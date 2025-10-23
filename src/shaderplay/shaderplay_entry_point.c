@@ -1,5 +1,3 @@
-#define RENDER_BACKEND RENDER_BACKEND_EGL
-
 #include "../base/base_include.h"
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
@@ -15,46 +13,81 @@
 #include "../shaderplay/shaderplay_include.c"
 #include <stdio.h>
 
-internal void entry_point(void)
-{
-    // Program Init ===========================================================
-    U64 size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-    render_init(alloc);
-    wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
-    // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
+#define FRAGMENT_SHADER_PATH   "shaders/circles.frag"
 
-    // Load fragment shader file ==============================================
-    while (!wl_should_window_close()) {
-        wl_update_events();
-        if (wl_is_event_happen(Wl_EventType_WindowClose) ||
-            (BUILD_DEBUG && wl_is_key_pressed(Wl_Key_Esc))) {
-            wl_set_window_close();
-        }
-        // render_begin();
-        {
-            // draw_fill(draw_buffer, DRAW_RED);
-        }
-        // render_end();
-    }
-    // Str8Array *args = os_args_get();
-    // Str8 *frag_filename = args.strings[1];
-    // Os_File file = os_file_open(frag_filename, OS_AccessFlag_Read);
-    // Str8 fragmentShaderSource = os_file_read_str_full(file, alloc);
-
-    // Free Everything ========================================================
-    // os_file_close(file);
-    os_memory_free(buffer, size);
-    wl_window_close();
-}
-
-char *vertexShaderSource = "#version 300 es\n"
+char *vert_source = "#version 300 es\n"
 "precision highp float;\n"
 "in vec4 position;\n"
 "void main() {\n"
 "    gl_Position = position;\n"
 "}\n";
+
+internal void entry_point(void)
+{
+    // Program Init ===========================================================
+    wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+    // Draw_Buffer draw_buffer = draw_init_display(alloc);
+    render_init();
+    // wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
+
+    // Load fragment shader file ==============================================
+    Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read);
+    Str8 frag_source = os_file_read_str_full(frag_file, alloc);
+    U32 shader_id = render_opengl_shader_load(str8_from_cstr(vert_source), frag_source);
+    
+    GLint iTimeLocation = glGetUniformLocation(shader_id, "iTime");
+    GLint iResolutionLocation = glGetUniformLocation(shader_id, "iResolution");
+    glUniform2f(iResolutionLocation, 800.0f, 600.0f);
+
+    GLfloat vertices[] = {
+        -1.0f, -1.0f,
+         1.0f, -1.0f,
+        -1.0f,  1.0f,
+         1.0f,  1.0f
+    };
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLint positionAttrib = glGetAttribLocation(shader_id, "position");
+    glEnableVertexAttribArray(positionAttrib);
+    glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    U64 start = os_now_microsec();
+    while (!wl_should_window_close()) 
+    {
+        wl_set_fps(60);
+        wl_update_events();
+        if (wl_is_event_happen(Wl_EventType_WindowClose) ||
+            (BUILD_DEBUG && wl_is_key_pressed(Wl_Key_Esc))) 
+        {
+            wl_set_window_close();
+        }
+
+        U64 now = os_now_microsec();
+        float iTime = Cast(float)(now - start) / Million(1);
+        glUniform1f(iTimeLocation, iTime);
+
+        render_begin();
+        {
+            glClear(GL_COLOR_BUFFER_BIT);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+        render_end();
+    }
+
+    // Free Everything ========================================================
+    render_opengl_shader_unload(shader_id);
+    os_file_close(frag_file);
+    render_deinit();
+    os_memory_free(buffer, size);
+    wl_window_close();
+}
+
 
 // internal void entry_point(void)
 // {

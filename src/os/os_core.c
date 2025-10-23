@@ -32,19 +32,7 @@ internal Str8Array *os_args_get(void)
     return &os_core_state.args;
 }
 
-internal void os_entry_point(int argc, char *argv[])
+internal void os_entry_point(void)
 {
-    U64 size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-
-    os_core_state.args = str8_array_reserve(alloc, argc);
-    os_core_state.alloc = alloc;
-    for(int i = 0; i < argc; i += 1)
-    {
-        Str8 str = str8_from_cstr(argv[i]);
-        str8_array_append(&os_core_state.args, str);
-    }
-
     entry_point();
 }
