@@ -23,7 +23,7 @@
 typedef enum Build_Type
 {
     Build_Type_None,
-    Build_Type_Normal,
+    Build_Type_Dev,
     Build_Type_Debug,
     Build_Type_Profiler,
 } Build_Type;
@@ -63,15 +63,51 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...);
 internal void build_cmd_finish(Build_Info *info);
 internal void build_cmd_run(Build_Info *info);
 
+internal void build_cmd_append_output(Build_Info *info)
+{
+    if (info->os == Context_Os_Windows)
+    {
+        build_cmd_append(info, "%s\\%s_", info->dir.cstr, info->name.cstr);
+    }
+    else
+    {
+        build_cmd_append(info, "%s/%s_", info->dir.cstr, info->name.cstr);
+    }
+    switch (info->type)
+    {
+        case Build_Type_Dev:
+        {
+            build_cmd_append(info, "Dev");
+        }break;
+        case Build_Type_Debug:
+        {
+            build_cmd_append(info, "Debug");
+        }break;
+        case Build_Type_Profiler:
+        {
+            build_cmd_append(info, "Profiler");
+        }break;
+        default: 
+        {
+            build_cmd_append(info, "");
+        }
+    }
+    if (info->os == Context_Os_Windows)
+    {
+        build_cmd_append(info, ".exe");
+    }
+}
+
 // Compilers functions ========================================================
 
-internal void build_compile_cl(Build_Info *info)
+internal void build_compile_msvc(Build_Info *info)
 {
     build_cmd_append(info, "setup_x64.bat & cl.exe %s", info->entry_point.cstr);
     // Looks
     build_cmd_append(info, " -nologo -diagnostics:caret");
     // Output
-    build_cmd_append(info, " -Fo:%s\\ -Fe:%s/%s.exe", info->dir.cstr, info->dir.cstr, info->name.cstr);
+    build_cmd_append(info, " -Fo:%s\\ -Fe:", info->dir.cstr);
+    build_cmd_append_output(info);
     // Debug
     build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
     // Optimaization
@@ -88,47 +124,56 @@ internal void build_compile_cl(Build_Info *info)
         " -wd4310 -wd4146 -wd4245" // Cast conversion
         " -wd4201"                 // Nameless struct/union
         " -wd4820"                 // Struct padding
-        " -wd4061"                 // Enum switch enumeration
+        " -wd4061"                 // Enum switch enumeratio
+        " -wd4189"                 // Unused variables
     ); 
     // Security
     build_cmd_append(info, 
         " -Qspectre -wd5045"  // Spectre variant 1 vulnerability
         " -GS"                // Canary insertion
-        " -guard:cf"          // Control-flow protection
-        " -fsanitize=address" // AddressSanitizer
+        // " -guard:cf"          // Control-flow protection
+        // " -fsanitize=address" // AddressSanitizer
     );
 }
 
-internal void build_compile_mingw(Build_Info *info)
+internal void build_compile_gcc(Build_Info *info)
 {
-    build_cmd_append(info, "x86_64-w64-mingw32-gcc %s", info->entry_point.cstr);
-    // Ouput
-    build_cmd_append(info, " -o ./%s/%s.exe", info->dir.cstr, info->name.cstr);
-
-    build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");             // Debug
-    build_cmd_append(info, " -Wall -Wextra");                       // Warnings
-    build_cmd_append(info, " -mshstk -fcf-protection=full");
-    // Disable useless warnings in C
-    build_cmd_append(info, "  -Wno-incompatible-pointer-types -Wno-override-init -Wno-implicit-fallthrough");
-    build_cmd_append(info, " -lgdi32 -luser32 -lopengl32");
-}
-
-internal void build_compile_cc(Build_Info *info)
-{
-    build_cmd_append(info, "cc %s", info->entry_point.cstr);
-    // Output
-    build_cmd_append(info, " -o ./%s/%s", info->dir.cstr, info->name.cstr);
+    if (info->mingw)
+    {
+        build_cmd_append(info, "x86_64-w64-mingw32-gcc");
+    } 
+    else 
+    {
+        build_cmd_append(info, "gcc");
+    }
+    build_cmd_append(info, " %s", info->entry_point.cstr);
+    // Output =================================================================
+    build_cmd_append(info, " -o ");
+    build_cmd_append_output(info);
     // Debug
     build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
     // Warning
     build_cmd_append(info, " -Wall -Wextra");
     // Disable useless warnings in C
-    build_cmd_append(info, "  ");
-    // Security
-    build_cmd_append(info, " -fstack-protector -mshstk -fcf-protection=full -fsanitize=address");
-    // Libs
-    // NOTE(ak): to libs parameters `pkg-config --static --libs xcb`
-    build_cmd_append(info, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+    build_cmd_append(info, 
+        " -Wno-unknown-pragmas -Wno-missing-braces -Wno-unused-function"
+        " -Wno-unused-variable"
+    );
+    // Security ===============================================================
+    build_cmd_append(info, " -fstack-protector -mshstk -fcf-protection=full");
+    if (info->type != Build_Type_Debug)
+    {
+        // build_cmd_append(info, " -fsanitize=address");
+    }
+    // Libs ===================================================================
+    if (info->mingw || info->os == Context_Os_Windows)
+    {
+        build_cmd_append(info, " -lopengl32 -luser32 -lgdi32");
+    } 
+    else 
+    {
+        build_cmd_append(info, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+    }
 }
 
 // Build types functions ======================================================
@@ -140,19 +185,15 @@ internal void build_compile(Build_Info *info)
         printf("Created `%s` directory.\n", info->dir.cstr);
     }
     printf("Compiling:\n");
-    Context_Os os = context_of_os();
-    if (os == Context_Os_Linux && !info->mingw)
+    if (info->os == Context_Os_Linux)
     {
-        build_compile_cc(info);
+        build_compile_gcc(info);
     } 
-    else if (os == Context_Os_Windows)
+    else if (info->os == Context_Os_Windows)
     {
-        build_compile_cl(info);
+        build_compile_msvc(info);
+        // build_compile_gcc(info);
     } 
-    else if (info->mingw) 
-    {
-        build_compile_mingw(info);
-    }
     else
     {
         printf("Error: OS build compile is not supported.");
@@ -160,24 +201,10 @@ internal void build_compile(Build_Info *info)
     build_cmd_finish(info);
 }
 
-internal void build_debugger(Build_Info *info)
-{
-    if (os_dir_make(info->dir))
-    {
-        printf("Created `%s` directory.\n", info->dir.cstr);
-    }
-    printf("Compiling:\n");
-    build_compile_cc(info);
-    // Disable useless warnings
-    build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable -Wno-missing-braces");
-    // build_cmd_append(info, " -static");
-    build_cmd_finish(info);
-}
-
 internal void build_test(Build_Info *info)
 {
     printf("Compiling:\n");
-    build_compile_cc(info);
+    build_compile_gcc(info);
     build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(info);
     printf("Test Typos:\n");
@@ -194,7 +221,7 @@ internal void build_test(Build_Info *info)
 internal void build_profiler(Build_Info *info)
 {
     printf("Compiling:\n");
-    build_compile_cc(info);
+    build_compile_gcc(info);
     build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(info);
     printf("Profiler Recording:\n");
@@ -210,46 +237,22 @@ internal void build_profiler(Build_Info *info)
 
 // Build run functions ========================================================
 
-internal void build_run_windows(Build_Info *info)
-{
-    build_cmd_append(info, "%s\\%s.exe", info->dir.cstr, info->name.cstr);
-    build_cmd_append(info, " shaders\\shader.frag");
-}
-
-internal void build_run_wine(Build_Info *info)
-{
-    build_cmd_append(
-        info, "WINEARCH=win64 wine ./%s/%s.exe", 
-        info->dir.cstr, info->name.cstr
-    );
-    build_cmd_append(info, " shaders/shader.frag");
-}
-
-internal void build_run_linux(Build_Info *info)
-{
-    build_cmd_append(info, "%s/%s", info->dir.cstr, info->name.cstr);
-    build_cmd_append(info, " shaders/shader.frag");
-}
-
 internal void build_run(Build_Info *info)
 {
     printf("Running:\n");
-    Context_Os os = context_of_os();
-    if (os == Context_Os_Linux && !info->mingw)
+    if (info->mingw) 
     {
-        build_run_linux(info);
-    } 
-    else if (os == Context_Os_Windows)
-    {
-        build_run_windows(info);
-    } 
-    else if (info->mingw) 
-    {
-        build_run_wine(info);
+        build_cmd_append(info, "WINEARCH=win64 wine ");
     }
-    else
+    build_cmd_append_output(info);
+
+    if (info->os == Context_Os_Windows)
     {
-        printf("Error: OS build run is not supported.");
+        build_cmd_append(info, " shaders\\shader.frag");
+    }
+    else 
+    {
+        build_cmd_append(info, " shaders/shader.frag");
     }
     build_cmd_finish(info);
 }
@@ -261,6 +264,7 @@ internal void entry_point()
     info.version = str8("0.2");
     info.entry_point = str8("src/shaderplay/shaderplay_entry_point.c");
     info.dir = str8("build");
+    info.os = context_of_os();
 
     bool should_print_help = false;
     bool should_print_version = false;
@@ -288,11 +292,11 @@ internal void entry_point()
     }
     else if (str8_match(arg_str, str8("build"), 0))
     {
-        info.type = Build_Type_Normal;
+        info.type = Build_Type_Dev;
     }
     else if (str8_match(arg_str, str8("build-run"), 0))
     {
-        info.type = Build_Type_Normal;
+        info.type = Build_Type_Dev;
         build_run_program = true;
     }
     else if (str8_match(arg_str, str8("build-debugger"), 0))
@@ -311,11 +315,11 @@ internal void entry_point()
         should_print_help = true;
         should_print_version = true;
     }
-
     if (str8_match(args->strings[2], str8("mingw"), 0))
     {
         info.mingw = true;
     }
+
     if (!(should_print_help || should_print_version))
     {
         if (info.type != Build_Type_None)
@@ -344,7 +348,7 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
     {
         char buffer[BUILD_CMD_SIZE];    
         vsnprintf(buffer, sizeof(buffer), format, args);
-        strcat(info->cmd, buffer);
+        strcat(Cast(char *)info->cmd, buffer);
     }
     va_end(args);
 }
@@ -352,7 +356,7 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
 internal void build_cmd_run(Build_Info *info)
 {
     printf("%s\n\n", info->cmd);
-    int err = system(info->cmd);
+    int err = system((const char *)info->cmd);
     if (err)
     {
         fprintf(stderr, "\nError: %s\n", strerror(err));
