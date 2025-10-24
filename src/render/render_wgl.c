@@ -93,7 +93,7 @@ internal void render_begin(void)
 internal void render_end(void)
 {
     // glViewport(0, 0, wl_get_window_width(), wl_get_window_height());
-    //
+
     // glBindTexture(GL_TEXTURE_2D, render_wgl_state.tex_handle);
     // glTexImage2D(
     //     GL_TEXTURE_2D, 0, GL_RGBA8, 

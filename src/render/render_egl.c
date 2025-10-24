@@ -1,6 +1,5 @@
-internal Draw_Buffer render_init(Alloc alloc)
+internal void render_init(void)
 {
-
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglInitialize(display, NULL, NULL);
 
@@ -30,22 +29,6 @@ internal Draw_Buffer render_init(Alloc alloc)
     render_egl_state.display = display;
     render_egl_state.context = context;
     render_egl_state.surface = surface;
-
-    // Initialize Draw_Buffer =================================================
-    I16 width = wl_get_display_width();
-    I16 height = wl_get_display_height();
-    I32 bytes_per_pixel = 4;
-    U64 memory_size = (width * height) * bytes_per_pixel;
-    U8 *memory = alloc_make(alloc, U8, memory_size);
-
-    Draw_Buffer draw_buffer = ZERO_STRUCT;
-    draw_buffer.memory = memory;
-    draw_buffer.width = width;
-    draw_buffer.height = height;
-    draw_buffer.bytes_per_pixel = bytes_per_pixel;
-    draw_buffer.pitch = draw_buffer.width * draw_buffer.bytes_per_pixel;
-
-    return draw_buffer;
 }
 
 internal void render_deinit(void)

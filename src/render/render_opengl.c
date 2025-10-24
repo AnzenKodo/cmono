@@ -1,4 +1,4 @@
-internal U32 render_opengl_shader_compile(Str8 source, GLenum type, U32 program_id)
+internal U32 render_shader_compile(Str8 source, GLenum type, U32 program_id)
 {
     GLuint shader_id = glCreateShader(type);
     glShaderSource(shader_id, 1, (char **)&source.cstr, NULL);
@@ -15,11 +15,11 @@ internal U32 render_opengl_shader_compile(Str8 source, GLenum type, U32 program_
     return shader_id;
 }
 
-internal U32 render_opengl_shader_load(Str8 vert_source, Str8 frag_source)
+internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
 {
     U32 program_id = glCreateProgram();
-    U32 vert_id = render_opengl_shader_compile(vert_source, GL_VERTEX_SHADER, program_id);
-    U32 frag_id = render_opengl_shader_compile(frag_source, GL_FRAGMENT_SHADER, program_id);
+    U32 vert_id = render_shader_compile(vert_source, GL_VERTEX_SHADER, program_id);
+    U32 frag_id = render_shader_compile(frag_source, GL_FRAGMENT_SHADER, program_id);
     glLinkProgram(program_id);
     GLint status;
     glGetProgramiv(program_id, GL_LINK_STATUS, &status);
@@ -35,7 +35,7 @@ internal U32 render_opengl_shader_load(Str8 vert_source, Str8 frag_source)
     return program_id;
 }
 
-internal void render_opengl_shader_unload(U32 id)
+internal void render_shader_unload(U32 id)
 {
     glDeleteProgram(id);
 }
