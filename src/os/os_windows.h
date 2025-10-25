@@ -13,8 +13,8 @@
 // Types
 //=============================================================================
 
-typedef struct OS_W32_State OS_W32_State;
-struct OS_W32_State
+typedef struct OS_Win32_State OS_Win32_State;
+struct OS_Win32_State
 {
     U64 microsecond_resolution;
 };
@@ -32,6 +32,6 @@ internal void os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
 // Globals
 //=============================================================================
 
-global OS_W32_State os_w32_state = ZERO_STRUCT;
+global OS_Win32_State os_win32_state = ZERO_STRUCT;
 
 #endif // OS_WINDOWS_H

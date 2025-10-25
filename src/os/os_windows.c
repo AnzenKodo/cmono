@@ -123,7 +123,6 @@ internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
     Rng1U64 rng_clamped  = rng_1u64(Min(rng.min, size), Min(rng.max, size));
     U64 total_read_size = 0;
-
     // read loop
     {
         U64 to_read = dim_1u64(rng_clamped);
@@ -144,7 +143,6 @@ internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
                 }
         }
     }
-
     return total_read_size;
 }
 
@@ -233,7 +231,7 @@ internal U64 os_now_microsec(void)
     LARGE_INTEGER large_int_counter;
     if(QueryPerformanceCounter(&large_int_counter))
     {
-        result = (large_int_counter.QuadPart*Million(1))/os_w32_state.microsecond_resolution;
+        result = (large_int_counter.QuadPart*Million(1))/os_win32_state.microsecond_resolution;
     }
     return result;
 }
@@ -256,10 +254,11 @@ internal void os_sleep_millisec(U32 millisec)
 //=============================================================================
 int main(void)
 {
+    // Allocating core memory
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
-
+    // Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
     os_core_state.args = str8_array_reserve(alloc, args_count);
