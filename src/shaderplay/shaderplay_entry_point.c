@@ -35,30 +35,13 @@ internal void entry_point(void)
     Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read);
     Str8 frag_source = os_file_read_str_full(frag_file, alloc);
     U32 shader_id = render_shader_load(str8_from_cstr(vert_source), frag_source);
-     
+
     // Get uniform locations
-    GLint iTimeLocation = glGetUniformLocation(shader_id, "iTime");
-    GLint iResolutionLocation = glGetUniformLocation(shader_id, "iResolution");
+    U32 iTimeLocation = render_shader_get_value(shader_id, str8("iTime"));
+    U32 iResolutionLocation = render_shader_get_value(shader_id, str8("iResolution"));
 
     // Set resolution (fixed window size)
-    glUniform2f(iResolutionLocation, 800.0f, 600.0f);
-
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Sed
-    GLfloat vertices[] = {
-        -1.0f, -1.0f,
-         1.0f, -1.0f,
-        -1.0f,  1.0f,
-         1.0f,  1.0f
-    };
-
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    render_shader_set_value(iResolutionLocation, (float[2]){ (F32)wl_get_window_width(), (F32)wl_get_window_height() }, Render_Shader_Vec2);
 
     GLint positionAttrib = glGetAttribLocation(shader_id, "position");
     glEnableVertexAttribArray(positionAttrib);
@@ -77,12 +60,11 @@ internal void entry_point(void)
 
         U64 now = os_now_microsec();
         float iTime = Cast(float)(now - start) / Million(1);
-        glUniform1f(iTimeLocation, iTime);
+        render_shader_set_value(iTimeLocation, (float[1]){ iTime }, Render_Shader_Float);
 
         render_begin();
         {
             // glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }
         render_end();
@@ -90,9 +72,8 @@ internal void entry_point(void)
 
     // Free Everything ========================================================
     render_shader_unload(shader_id);
-    glDeleteBuffers(1, &vbo);
-    os_file_close(frag_file);
     render_deinit();
-    os_memory_free(buffer, size);
     wl_window_close();
+    os_file_close(frag_file);
+    os_memory_free(buffer, size);
 }

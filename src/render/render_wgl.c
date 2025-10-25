@@ -1,3 +1,5 @@
+// Helper functions =========================================================
+
 internal Void_Proc *render_opengl_load_procedure(char *name)
 {
     Void_Proc *p = (Void_Proc *)(void *)wglGetProcAddress(name);
@@ -8,11 +10,12 @@ internal Void_Proc *render_opengl_load_procedure(char *name)
     return p;
 }
 
-internal void render_init(void)
+// Internal functions =========================================================
+
+internal void render_opengl_init(void)
 {
     // Get device contex
-    render_wgl_state.hdc = GetDC(wl_win32_state.handle); 
-
+    render_wgl_state.hdc = GetDC(wl_win32_state.handle);
     // Build pixel format descriptor
     int pf = 0;
     {
@@ -27,35 +30,30 @@ internal void render_init(void)
         DescribePixelFormat(render_wgl_state.hdc, pf, sizeof(pfd), &pfd);
         SetPixelFormat(render_wgl_state.hdc, pf, &pfd);
     }
-    
     // Make bootstrap contex
-    HGLRC bootstrap_ctx = wglCreateContext(render_wgl_state.hdc);
-    wglMakeCurrent(render_wgl_state.hdc, bootstrap_ctx);
-
+    HGLRC bootstrap_contex = wglCreateContext(render_wgl_state.hdc);
+    wglMakeCurrent(render_wgl_state.hdc, bootstrap_contex);
     // Load extensions
-    wglChoosePixelFormatARB    = (FNWGLCHOOSEPIXELFORMATARBPROC*)(void*)render_opengl_load_procedure("wglChoosePixelFormatARB");
-    wglCreateContextAttribsARB = (FNWGLCREATECONTEXTATTRIBSARBPROC*)(void*)render_opengl_load_procedure("wglCreateContextAttribsARB");
-    wglSwapIntervalEXT         = (FNWGLSWAPINTERVALEXTPROC*)(void*)render_opengl_load_procedure("wglSwapIntervalEXT");
-
+    FNWGLCHOOSEPIXELFORMATARBPROC    *wglChoosePixelFormatARB    = (FNWGLCHOOSEPIXELFORMATARBPROC*)(void*)render_opengl_load_procedure("wglChoosePixelFormatARB");
+    FNWGLCREATECONTEXTATTRIBSARBPROC *wglCreateContextAttribsARB = (FNWGLCREATECONTEXTATTRIBSARBPROC*)(void*)render_opengl_load_procedure("wglCreateContextAttribsARB");
+    FNWGLSWAPINTERVALEXTPROC         *wglSwapIntervalEXT         = (FNWGLSWAPINTERVALEXTPROC*)(void*)render_opengl_load_procedure("wglSwapIntervalEXT");
     // Set up real pixel format
     {
         int pf_attribs_i[] =
         {
             WGL_DRAW_TO_WINDOW_ARB, 1,
             WGL_SUPPORT_OPENGL_ARB, 1,
-            WGL_DOUBLE_BUFFER_ARB, 1,
-            WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-            WGL_COLOR_BITS_ARB, 32,
-            WGL_DEPTH_BITS_ARB, 24,
-            WGL_STENCIL_BITS_ARB, 8,
+            WGL_DOUBLE_BUFFER_ARB,  1,
+            WGL_PIXEL_TYPE_ARB,     WGL_TYPE_RGBA_ARB,
+            WGL_COLOR_BITS_ARB,     32,
+            WGL_DEPTH_BITS_ARB,     24,
+            WGL_STENCIL_BITS_ARB,   8,
             0
         };
         UINT num_formats = 0;
         wglChoosePixelFormatARB(render_wgl_state.hdc, pf_attribs_i, 0, 1, &pf, &num_formats);
     }
-
     // Make real OpenGl contex
-    HGLRC real_ctx = 0;
     if(pf)
     {
         int context_attribs[] =
@@ -65,39 +63,34 @@ internal void render_init(void)
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             0
         };
-        real_ctx = wglCreateContextAttribsARB(render_wgl_state.hdc, bootstrap_ctx, context_attribs);
-        // r_ogl_w32_hglrc = real_ctx;
+        HGLRC real_contex = wglCreateContextAttribsARB(render_wgl_state.hdc, bootstrap_contex, context_attribs);
+        render_wgl_state.contex = real_contex;
     }
-
-    //- rjf: clean up bootstrap context
+    // Clean up bootstrap context
     wglMakeCurrent(render_wgl_state.hdc, 0);
-    wglDeleteContext(bootstrap_ctx);
-    wglMakeCurrent(render_wgl_state.hdc, real_ctx);
+    wglDeleteContext(bootstrap_contex);
+    wglMakeCurrent(render_wgl_state.hdc, render_wgl_state.contex);
     wglSwapIntervalEXT(1);
-
-#define X(name, r, p) name = (name##_FunctionType *)(void*)render_opengl_load_procedure(#name);
-    RenderOpenglXMacro
-#undef X
-    // glGenTextures(1, &render_wgl_state.tex_handle);
 }
 
-internal void render_deinit(void)
+internal void render_opengl_deinit(void)
 {
     ReleaseDC(wl_win32_state.handle, render_wgl_state.hdc);
+    wglDeleteContext(render_wgl_state.contex);
 }
 
-internal void render_begin(void)
+internal void render_opengl_begin(void)
 {
 }
 
-internal void render_end(void)
+internal void render_opengl_end(void)
 {
     // glViewport(0, 0, wl_get_window_width(), wl_get_window_height());
 
     // glBindTexture(GL_TEXTURE_2D, render_wgl_state.tex_handle);
     // glTexImage2D(
-    //     GL_TEXTURE_2D, 0, GL_RGBA8, 
-    //     wl_get_window_width(), wl_get_display_height(), 
+    //     GL_TEXTURE_2D, 0, GL_RGBA8,
+    //     wl_get_window_width(), wl_get_display_height(),
     //     0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, render_wgl_state.memory
     // );
     //

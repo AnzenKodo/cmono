@@ -4,7 +4,6 @@
 #include "render_core.h"
 
 #if RENDER_BACKEND == RENDER_BACKEND_OPENGL
-#       include "render_opengl.h"
 #   if OS_LINUX
 #       include "render_egl.h"
 #   elif OS_WINDOWS
@@ -12,6 +11,7 @@
 #   else
 #       error no OpenGL render layer for this platform
 #   endif
+#   include "render_opengl.h"
 #else
 #   error no render layer for this platform
 #endif
