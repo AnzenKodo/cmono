@@ -270,8 +270,15 @@ int main(void)
         Str8 str = str8_from_16(alloc, str16);
         str8_array_append(&os_core_state.args, str);
     }
-
-    os_w32_state.microsecond_resolution  = 1;
-
+    // NOTE(AnzenKodo): we need this to set now time.
+    {
+        os_win32_state.microsecond_resolution  = 1;
+        LARGE_INTEGER large_int_resolution;
+        if(QueryPerformanceFrequency(&large_int_resolution))
+        {
+            os_win32_state.microsecond_resolution = large_int_resolution.QuadPart;
+        }
+    }
+    // Go to default OS entry point
     os_entry_point();
 }
