@@ -111,7 +111,7 @@ internal void build_compile_msvc(Build_Info *info)
     // Debug
     build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
     // Lock C Version
-    build_cmd_append(info, " -std:c99");
+    build_cmd_append(info, " -std:c11");
     // Optimaization
     build_cmd_append(info,
         " -Od"
@@ -153,7 +153,7 @@ internal void build_compile_gcc(Build_Info *info)
     build_cmd_append(info, " -o ");
     build_cmd_append_output(info);
     // Lock C Version
-    build_cmd_append(info, " -std=c99");
+    build_cmd_append(info, " -std=gnu99");
     // Debug
     build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
     // Warning
