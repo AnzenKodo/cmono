@@ -110,6 +110,8 @@ internal void build_compile_msvc(Build_Info *info)
     build_cmd_append_output(info);
     // Debug
     build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
+    // Lock C Version
+    build_cmd_append(info, " -std:c99");
     // Optimaization
     build_cmd_append(info,
         " -Od"
@@ -131,7 +133,7 @@ internal void build_compile_msvc(Build_Info *info)
     build_cmd_append(info,
         " -Qspectre -wd5045"  // Spectre variant 1 vulnerability
         " -GS"                // Canary insertion
-        // " -guard:cf"          // Control-flow protection
+        " -guard:cf"          // Control-flow protection
         // " -fsanitize=address" // AddressSanitizer
     );
 }
@@ -150,27 +152,31 @@ internal void build_compile_gcc(Build_Info *info)
     // Output =================================================================
     build_cmd_append(info, " -o ");
     build_cmd_append_output(info);
+    // Lock C Version
+    build_cmd_append(info, " -std=c99");
     // Debug
     build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
     // Warning
     build_cmd_append(info, " -Wall -Wextra");
     // Disable useless warnings in C
-    build_cmd_append(info, 
-        " -Wno-unknown-pragmas -Wno-missing-braces -Wno-unused-function"
+    build_cmd_append(info,
+        " -Wno-unknown-pragmas"
+        " -Wno-missing-braces"
+        " -Wno-unused-function"
         " -Wno-unused-variable"
     );
     // Security ===============================================================
     build_cmd_append(info, " -fstack-protector -mshstk -fcf-protection=full");
-    if (info->type != Build_Type_Debug)
+    if (info->type != Build_Type_Debug && !info->mingw)
     {
-        // build_cmd_append(info, " -fsanitize=address");
+        build_cmd_append(info, " -fsanitize=address");
     }
     // Libs ===================================================================
     if (info->mingw || info->os == Context_Os_Windows)
     {
         build_cmd_append(info, " -lopengl32 -luser32 -lgdi32");
-    } 
-    else 
+    }
+    else
     {
         build_cmd_append(info, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
     }
