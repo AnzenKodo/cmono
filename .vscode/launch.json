@@ -15,7 +15,8 @@
             "program": "${workspaceFolder}/a.exe",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
-            "args": [ "build-run" ]
+            "args": [ "build-run" ],
+            "arguments": "build-run"
         },
         {
             "name": "Program Debug Windows",
