@@ -25,43 +25,19 @@ struct Render_Opengl_State
 // X Macro
 //=============================================================================
 
+#ifndef RenderOpenglXMacroWGL
+#   define RenderOpenglXMacroWGL
+#endif
+
 #define RenderOpenglXMacro \
-    X(glGenBuffers, void, (GLsizei n, GLuint *buffers))\
-    X(glBindBuffer, void, (GLenum target, GLuint buffer))\
-    X(glDeleteBuffers, void, (GLsizei n, GLuint *buffers))\
     X(glGenVertexArrays, void, (GLsizei n, GLuint *arrays))\
     X(glBindVertexArray, void, (GLuint array))\
-    X(glCreateProgram, GLuint, (void))\
-    X(glCreateShader, GLuint, (GLenum type))\
-    X(glShaderSource, void, (GLuint shader, GLsizei count, char **string, GLint *length))\
-    X(glCompileShader, void, (GLuint shader))\
-    X(glGetShaderiv, void, (GLuint shader, GLenum pname, GLint *params))\
-    X(glGetShaderInfoLog, void, (GLuint shader, GLsizei bufSize, GLsizei *length, char *infoLog))\
-    X(glGetProgramiv, void, (GLuint program, GLenum pname, GLint *params))\
-    X(glGetProgramInfoLog, void, (GLuint program, GLsizei bufSize, GLsizei *length, char *infoLog))\
-    X(glAttachShader, void, (GLuint program, GLuint shader))\
-    X(glLinkProgram, void, (GLuint program))\
-    X(glDeleteShader, void, (GLuint shader))\
-    X(glUseProgram, void, (GLuint program))\
-    X(glGetUniformLocation, GLint, (GLuint program, char *name))\
-    X(glGetAttribLocation, GLint, (GLuint program, char *name))\
-    X(glEnableVertexAttribArray, void, (GLuint index))\
-    X(glVertexAttribPointer, void, (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer))\
-    X(glBufferData, void, (GLenum target, ptrdiff_t size, void *data, GLenum usage))\
-    X(glDeleteProgram, void, (GLuint program))\
     X(glDeleteVertexArrays, void, (GLsizei n, const GLuint *arrays))\
-    X(glUniform1fv, void, (GLint location, GLsizei count, const GLfloat *value))\
-    X(glUniform2fv, void, (GLint location, GLsizei count, const GLfloat *value))\
-    X(glUniform3fv, void, (GLint location, GLsizei count, const GLfloat *value))\
-    X(glUniform4fv, void, (GLint location, GLsizei count, const GLfloat *value))\
-    X(glUniform1iv, void, (GLint location, GLsizei count, const GLint *value))\
-    X(glUniform2iv, void, (GLint location, GLsizei count, const GLint *value))\
-    X(glUniform3iv, void, (GLint location, GLsizei count, const GLint *value))\
-    X(glUniform4iv, void, (GLint location, GLsizei count, const GLint *value))\
     X(glUniform1uv, void, (GLint location, GLsizei count, const GLuint *value))\
     X(glUniform2uv, void, (GLint location, GLsizei count, const GLuint *value))\
     X(glUniform3uv, void, (GLint location, GLsizei count, const GLuint *value))\
     X(glUniform4uv, void, (GLint location, GLsizei count, const GLuint *value))\
+    RenderOpenglXMacroWGL
 
 #define X(name, r, p) typedef r name##_FunctionType p;
     RenderOpenglXMacro
