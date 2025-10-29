@@ -17,7 +17,7 @@ internal void render_init(void)
     eglChooseConfig(display, config_attrs, &config, 1, &num_configs);
 
     EGLSurface surface = eglCreateWindowSurface(
-        display, config, cast(EGLNativeWindowType)wl_x11_state.window, NULL
+        display, config, Cast(EGLNativeWindowType)wl_x11_state.window, NULL
     );
 
     EGLint ctx_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};

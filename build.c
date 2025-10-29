@@ -6,7 +6,7 @@
 #include "src/base/base_include.c"
 #include "src/os/os_include.c"
 
-// External Includes ========================================================== 
+// External Includes ==========================================================
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +41,7 @@ struct Build_Info
     U8 cmd[BUILD_CMD_SIZE];
 };
 
-// Globals 
+// Globals
 // ============================================================================
 
 
@@ -87,7 +87,7 @@ internal void build_cmd_append_output(Build_Info *info)
         {
             build_cmd_append(info, "Profiler");
         }break;
-        default: 
+        default:
         {
             build_cmd_append(info, "");
         }
@@ -111,24 +111,24 @@ internal void build_compile_msvc(Build_Info *info)
     // Debug
     build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
     // Optimaization
-    build_cmd_append(info, 
+    build_cmd_append(info,
         " -Od"
         " -Ob1 -wd4710" // Disable inline functions and it's warnings
     ); // Disable
     // Warnings
     build_cmd_append(info, " -W4 -Wall");
-    // Disbale uselss warnings 
-    build_cmd_append(info, 
-        " -wd4668"                 // For macros magic 
+    // Disbale uselss warnings
+    build_cmd_append(info,
+        " -wd4668"                 // For macros magic
         " -wd4464"                 // Warning about '..' in path
         " -wd4310 -wd4146 -wd4245" // Cast conversion
         " -wd4201"                 // Nameless struct/union
         " -wd4820"                 // Struct padding
         " -wd4061"                 // Enum switch enumeratio
         " -wd4189"                 // Unused variables
-    ); 
+    );
     // Security
-    build_cmd_append(info, 
+    build_cmd_append(info,
         " -Qspectre -wd5045"  // Spectre variant 1 vulnerability
         " -GS"                // Canary insertion
         // " -guard:cf"          // Control-flow protection
@@ -141,8 +141,8 @@ internal void build_compile_gcc(Build_Info *info)
     if (info->mingw)
     {
         build_cmd_append(info, "x86_64-w64-mingw32-gcc");
-    } 
-    else 
+    }
+    else
     {
         build_cmd_append(info, "gcc");
     }
@@ -188,12 +188,12 @@ internal void build_compile(Build_Info *info)
     if (info->os == Context_Os_Linux)
     {
         build_compile_gcc(info);
-    } 
+    }
     else if (info->os == Context_Os_Windows)
     {
         build_compile_msvc(info);
         // build_compile_gcc(info);
-    } 
+    }
     else
     {
         printf("Error: OS build compile is not supported.");
@@ -240,7 +240,7 @@ internal void build_profiler(Build_Info *info)
 internal void build_run(Build_Info *info)
 {
     printf("Running:\n");
-    if (info->mingw) 
+    if (info->mingw)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");
     }
@@ -250,7 +250,7 @@ internal void build_run(Build_Info *info)
     {
         build_cmd_append(info, " shaders\\shader.frag");
     }
-    else 
+    else
     {
         build_cmd_append(info, " shaders/shader.frag");
     }
@@ -302,7 +302,7 @@ internal void entry_point()
     else if (str8_match(arg_str, str8("build-debugger"), 0))
     {
         info.type = Build_Type_Debug;
-    } 
+    }
     else if (str8_match(arg_str, str8("run"), 0))
     {
         build_run_program = true;
@@ -325,7 +325,7 @@ internal void entry_point()
         if (info.type != Build_Type_None)
         {
             build_compile(&info);
-        }  
+        }
         if (build_run_program)
         {
             build_run(&info);
@@ -346,7 +346,7 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
     va_list args;
     va_start(args, format);
     {
-        char buffer[BUILD_CMD_SIZE];    
+        char buffer[BUILD_CMD_SIZE];
         vsnprintf(buffer, sizeof(buffer), format, args);
         strcat(Cast(char *)info->cmd, buffer);
     }

@@ -112,18 +112,18 @@ internal Wl_Event wl_get_event(void)
             case XCB_KEY_PRESS:
             case XCB_KEY_RELEASE:
             {
-                xcb_key_release_event_t *key_event = cast(xcb_key_release_event_t *)xcb_event;
+                xcb_key_release_event_t *key_event = Cast(xcb_key_release_event_t *)xcb_event;
 
                 // Determine mod_key
-                Wl_ModKey mod_key = cast(Wl_ModKey)0;
+                Wl_ModKey mod_key = Cast(Wl_ModKey)0;
                 if(key_event->state & XCB_MOD_MASK_SHIFT)   {
-                    mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Shift);
+                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Shift);
                 }
                 if(key_event->state & XCB_MOD_MASK_CONTROL) {
-                    mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
+                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
                 }
                 if(key_event->state & XCB_MOD_MASK_1) {
-                    mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
+                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
 
                 // Assign keys
@@ -276,18 +276,18 @@ internal Wl_Event wl_get_event(void)
             case XCB_BUTTON_PRESS:
             case XCB_BUTTON_RELEASE:
             {
-                xcb_button_release_event_t *button_event = cast(xcb_button_release_event_t *)xcb_event;
+                xcb_button_release_event_t *button_event = Cast(xcb_button_release_event_t *)xcb_event;
 
                 // Determine mod_key
-                Wl_ModKey mod_key = cast(Wl_ModKey)0;
+                Wl_ModKey mod_key = Cast(Wl_ModKey)0;
                 if(button_event->state & XCB_MOD_MASK_SHIFT)   {
-                    mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Shift);
+                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Shift);
                 }
                 if(button_event->state & XCB_MOD_MASK_CONTROL) {
-                    mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
+                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
                 }
                 if(button_event->state & XCB_MOD_MASK_1) {
-                    mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
+                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
 
                 // Assign button
@@ -314,7 +314,7 @@ internal Wl_Event wl_get_event(void)
             // Mouse Motion ===================================================
     		case XCB_MOTION_NOTIFY:
     		{
-                xcb_button_release_event_t *motion_event = cast(xcb_button_release_event_t *)xcb_event;
+                xcb_button_release_event_t *motion_event = Cast(xcb_button_release_event_t *)xcb_event;
 
                 // Add to Event Variable
                 event.type = Wl_EventType_MouseMove;
@@ -332,7 +332,7 @@ internal Wl_Event wl_get_event(void)
             // Client messages ================================================
             case XCB_CLIENT_MESSAGE:
             {
-                xcb_client_message_event_t *message = cast(xcb_client_message_event_t *)xcb_event;
+                xcb_client_message_event_t *message = Cast(xcb_client_message_event_t *)xcb_event;
                 if (message->data.data32[0] == wl_x11_state.wm_delete_window)
                 {
                     event.type = Wl_EventType_WindowClose;
@@ -342,7 +342,7 @@ internal Wl_Event wl_get_event(void)
             // Window Resize ==================================================
             case XCB_CONFIGURE_NOTIFY:
             {
-                xcb_configure_notify_event_t *resize_event = cast(xcb_configure_notify_event_t *)xcb_event;
+                xcb_configure_notify_event_t *resize_event = Cast(xcb_configure_notify_event_t *)xcb_event;
 
                 // Add to Event Variable
                 wl_state.win_size.x = resize_event->width;
