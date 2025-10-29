@@ -440,7 +440,7 @@ internal Wl_Event wl_get_event(void)
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
                 }
-            } // fallthrough;
+            } /* fallthrough */
             case WM_KEYDOWN:
             case WM_KEYUP:
             {
@@ -494,7 +494,7 @@ internal Wl_Event wl_get_event(void)
             case WM_RBUTTONUP:
             {
                 release = 1;
-            } // fallthrough;
+            } /* fallthrough */
             case WM_LBUTTONDOWN:
             case WM_MBUTTONDOWN:
             case WM_RBUTTONDOWN:

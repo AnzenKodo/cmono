@@ -406,8 +406,8 @@ internal void wl_render_init(void *render_buffer)
         pixmap_format->bits_per_pixel, 0,
         xcb_get_setup(wl_x11_state.connection)->image_byte_order,
         XCB_IMAGE_ORDER_LSB_FIRST,
-        wl_win32_state.render_buffer, sizeof(*wl_win32_state.render_buffer), 
-        wl_win32_state.render_buffer
+        wl_x11_state.render_buffer, sizeof(*wl_x11_state.render_buffer), 
+        wl_x11_state.render_buffer
     );
     xcb_flush(wl_x11_state.connection);
 }

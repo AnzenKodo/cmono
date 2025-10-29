@@ -1,4 +1,14 @@
-internal void render_init(void)
+// Helper functions
+// ============================================================================
+
+internal Void_Proc *render_opengl_load_procedure(char *name)
+{
+}
+
+// Internal functions
+// ============================================================================
+
+internal void render_opengl_init(void)
 {
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglInitialize(display, NULL, NULL);
@@ -31,7 +41,7 @@ internal void render_init(void)
     render_egl_state.surface = surface;
 }
 
-internal void render_deinit(void)
+internal void render_opengl_deinit(void)
 {
     eglMakeCurrent(
         render_egl_state.display,
@@ -42,11 +52,11 @@ internal void render_deinit(void)
     eglTerminate(render_egl_state.display);
 }
 
-internal void render_begin(void)
+internal void render_opengl_begin(void)
 {
 }
 
-internal void render_end(void)
+internal void render_opengl_end(void)
 {
     eglSwapBuffers(render_egl_state.display, render_egl_state.surface);
 }
