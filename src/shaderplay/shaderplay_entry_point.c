@@ -24,6 +24,11 @@ char *vert_source = "#version 330\n"
 
 internal void entry_point(void)
 {
+    fmt_printf("Hello");
+}
+
+internal void entry_point2(void)
+{
     // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
     U64 size = MB(10);

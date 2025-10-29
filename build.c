@@ -188,9 +188,9 @@ internal void build_compile(Build_Info *info)
 {
     if (os_dir_make(info->dir))
     {
-        printf("Created `%s` directory.\n", info->dir.cstr);
+        fmt_printf("Created `%s` directory.\n", info->dir.cstr);
     }
-    printf("Compiling:\n");
+    fmt_printf("Compiling:\n");
     if (info->os == Context_Os_Linux)
     {
         build_compile_gcc(info);
@@ -202,21 +202,21 @@ internal void build_compile(Build_Info *info)
     }
     else
     {
-        printf("Error: OS build compile is not supported.");
+        fmt_printf("Error: OS build compile is not supported.");
     }
     build_cmd_finish(info);
 }
 
 internal void build_test(Build_Info *info)
 {
-    printf("Compiling:\n");
+    fmt_printf("Compiling:\n");
     build_compile_gcc(info);
     build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(info);
-    printf("Test Typos:\n");
+    fmt_printf("Test Typos:\n");
     build_cmd_append(info, "typos");
     build_cmd_finish(info);
-    printf("Test Memory Leaks:\n");
+    fmt_printf("Test Memory Leaks:\n");
     build_cmd_append(info, "valgrind ");
     build_cmd_append(info, " --leak-check=full --track-origins=yes ");
     build_cmd_append(info, " ./%s/%s", info->dir.cstr, info->name.cstr); // Output
@@ -226,17 +226,17 @@ internal void build_test(Build_Info *info)
 
 internal void build_profiler(Build_Info *info)
 {
-    printf("Compiling:\n");
+    fmt_printf("Compiling:\n");
     build_compile_gcc(info);
     build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
     build_cmd_finish(info);
-    printf("Profiler Recording:\n");
+    fmt_printf("Profiler Recording:\n");
     build_cmd_append(
         info, "perf record -o ./%s/perf.data -g ./%s/%s",
         info->dir.cstr, info->dir.cstr, info->name.cstr
     );
     build_cmd_finish(info);
-    printf("Profiler Report:\n");
+    fmt_printf("Profiler Report:\n");
     build_cmd_append(info, "perf report -i ./%s/perf.data", info->dir.cstr);
     build_cmd_finish(info);
 }
@@ -245,7 +245,7 @@ internal void build_profiler(Build_Info *info)
 
 internal void build_run(Build_Info *info)
 {
-    printf("Running:\n");
+    fmt_printf("Running:\n");
     if (info->mingw)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");

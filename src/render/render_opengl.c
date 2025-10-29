@@ -13,7 +13,7 @@ internal U32 render_opengl_shader_compile(Str8 source, GLenum type, U32 program_
     {
         char log[512];
         glGetShaderInfoLog(shader_id, 512, NULL, log);
-        printf("Shader program linking failed: %s", log);
+        fmt_printf("Shader program linking failed: %s", log);
     }
     glAttachShader(program_id, shader_id);
     return shader_id;
@@ -74,7 +74,7 @@ internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
     {
         char log[512];
         glGetProgramInfoLog(program_id, 512, NULL, log);
-        printf("Shader program linking failed: %s", log);
+        fmt_printf("Shader program linking failed: %s", log);
     }
     glUseProgram(program_id);
     glDeleteShader(vert_id);
