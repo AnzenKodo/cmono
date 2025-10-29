@@ -3,6 +3,12 @@
 
 internal Void_Proc *render_opengl_load_procedure(char *name)
 {
+    Void_Proc *p = (Void_Proc *)(void *)eglGetProcAddress(name);
+    if(p == (Void_Proc*)1 || p == (Void_Proc*)2 || p == (Void_Proc*)3 || p == (Void_Proc*)-1)
+    {
+        p = 0;
+    }
+    return p;
 }
 
 // Internal functions
