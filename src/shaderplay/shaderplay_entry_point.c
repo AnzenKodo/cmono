@@ -24,7 +24,9 @@ char *vert_source = "#version 330\n"
 
 internal void entry_point(void)
 {
-    fmt_printf("Hello");
+    fmt_fprintfln(OS_STDOUT, "Hello=====================%d", 324);
+    fmt_fprintf(OS_STDOUT, "Hello=====================%d\n", 324);
+    fmt_print("Hello=====================");
 }
 
 internal void entry_point2(void)
