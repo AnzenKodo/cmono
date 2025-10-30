@@ -13,4 +13,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+// Defines
+//=============================================================================
+
+#define OS_STDIN  STDIN_FILENO
+#define OS_STDOUT STDOUT_FILENO
+#define OS_STDERR STDERR_FILENO
+
 #endif // OS_LINUX_H

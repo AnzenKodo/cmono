@@ -19,6 +19,13 @@ struct OS_Win32_State
     U64 microsecond_resolution;
 };
 
+// Defines
+//=============================================================================
+
+#define OS_STDIN  (Os_File)GetStdHandle(STD_INPUT_HANDLE)
+#define OS_STDOUT (Os_File)GetStdHandle(STD_OUTPUT_HANDLE)
+#define OS_STDERR (Os_File)GetStdHandle(STD_ERROR_HANDLE)
+
 // Functions
 //=============================================================================
 

@@ -132,21 +132,28 @@ internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
 {
     U64 total_num_bytes_to_write = dim_1u64(rng);
     U64 total_num_bytes_written = 0;
-    U64 total_num_bytes_left_to_write = total_num_bytes_to_write;
-    for(;total_num_bytes_left_to_write > 0;)
+    if (file == OS_STDOUT || file == OS_STDIN || file == OS_STDERR)
     {
-        int write_result = pwrite(
-            file, (U8 *)data + total_num_bytes_written,
-            total_num_bytes_left_to_write, rng.min + total_num_bytes_written
-        );
-        if(write_result >= 0)
+        total_num_bytes_written = write(file, data, total_num_bytes_to_write);
+    }
+    else
+    {
+        U64 total_num_bytes_left_to_write = total_num_bytes_to_write;
+        for(;total_num_bytes_left_to_write > 0;)
         {
-            total_num_bytes_written += write_result;
-            total_num_bytes_left_to_write -= write_result;
-        }
-        else if(errno != EINTR)
-        {
-            break;
+            int write_result = pwrite(
+                file, (U8 *)data + total_num_bytes_written,
+                total_num_bytes_left_to_write, rng.min + total_num_bytes_written
+            );
+            if(write_result >= 0)
+            {
+                total_num_bytes_written += write_result;
+                total_num_bytes_left_to_write -= write_result;
+            }
+            else if(errno != EINTR)
+            {
+                break;
+            }
         }
     }
     return total_num_bytes_written;
