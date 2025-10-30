@@ -166,10 +166,10 @@ internal void build_compile_gcc(Build_Info *info)
         " -Wno-unused-variable"
     );
     // Security ===============================================================
-    build_cmd_append(info, " -fstack-protector -mshstk -fcf-protection=full");
+    build_cmd_append(info, " -mshstk -fcf-protection=full");
     if (info->type != Build_Type_Debug && !info->mingw)
     {
-        build_cmd_append(info, " -fsanitize=address");
+        build_cmd_append(info, " -fstack-protector -fsanitize=address");
     }
     // Libs ===================================================================
     if (info->mingw || info->os == Context_Os_Windows)
