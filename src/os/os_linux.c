@@ -1,7 +1,7 @@
-// Helpers Functions
+// Helpers functions
 //=============================================================================
 
-internal DateTime os_lnx_date_time_from_tm(struct tm in, U32 msec)
+internal DateTime _os_linux_date_time_from_tm(struct tm in, U32 msec)
 {
     DateTime dt = ZERO_STRUCT;
     dt.sec  = in.tm_sec;
@@ -14,13 +14,13 @@ internal DateTime os_lnx_date_time_from_tm(struct tm in, U32 msec)
     return dt;
 }
 
-internal DenseTime os_lnx_dense_time_from_timespec(struct timespec in)
+internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in)
 {
     DenseTime result = 0;
     {
         struct tm tm_time = ZERO_STRUCT;
         gmtime_r(&in.tv_sec, &tm_time);
-        DateTime date_time = os_lnx_date_time_from_tm(
+        DateTime date_time = _os_linux_date_time_from_tm(
             tm_time, in.tv_nsec/Million(1)
         );
         result = dense_time_from_date_time(date_time);
@@ -28,12 +28,12 @@ internal DenseTime os_lnx_dense_time_from_timespec(struct timespec in)
     return result;
 }
 
-internal Os_FileProperties os_lnx_file_properties_from_stat(struct stat *s)
+internal Os_FileProperties _os_linux_file_properties_from_stat(struct stat *s)
 {
     Os_FileProperties props = ZERO_STRUCT;
     props.size     = s->st_size;
-    props.created  = os_lnx_dense_time_from_timespec(s->st_ctim);
-    props.modified = os_lnx_dense_time_from_timespec(s->st_mtim);
+    props.created  = _os_linux_dense_time_from_timespec(s->st_ctim);
+    props.modified = _os_linux_dense_time_from_timespec(s->st_mtim);
     if(s->st_mode & S_IFDIR)
     {
         props.flags |= FilePropertyFlag_IsFolder;
@@ -166,7 +166,7 @@ internal Os_FileProperties os_file_properties(Os_File file)
     Os_FileProperties props = ZERO_STRUCT;
     if(fstat_result != -1)
     {
-        props = os_lnx_file_properties_from_stat(&fd_stat);
+        props = _os_linux_file_properties_from_stat(&fd_stat);
     }
     return props;
 }
@@ -228,12 +228,12 @@ int main(int argc, char *argv[])
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
-    os_core_state.args = str8_array_reserve(alloc, argc);
-    os_core_state.alloc = alloc;
+    _os_core_state.args = str8_array_reserve(alloc, argc);
+    _os_core_state.alloc = alloc;
     for(int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);
-        str8_array_append(&os_core_state.args, str);
+        str8_array_append(&_os_core_state.args, str);
     }
     os_entry_point();
 }

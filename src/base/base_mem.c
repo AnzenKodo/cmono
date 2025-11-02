@@ -1,5 +1,4 @@
-internal inline bool
-mem_match(void const *s1, void const *s2, I64 size)
+internal inline bool mem_match(void const *s1, void const *s2, I64 size)
 {
     bool result = false;
     U8 const *s1p8 = Cast(U8 const *)s1;
@@ -19,8 +18,7 @@ mem_match(void const *s1, void const *s2, I64 size)
     return result;
 }
 
-internal inline void
-*mem_copy(void *dest, void const *source, I64 n)
+internal inline void *mem_copy(void *dest, void const *source, I64 n)
 {
 #if COMPILER_MSVC
     if (dest == NULL) {
@@ -172,8 +170,7 @@ internal inline void
     return dest;
 }
 
-internal inline void
-*mem_move(void *dest, void const *source, I64 n)
+internal inline void *mem_move(void *dest, void const *source, I64 n)
 {
     U8 *d = Cast(U8 *)dest;
     U8 const *s = Cast(U8 const *)source;
@@ -217,8 +214,7 @@ internal inline void
     return dest;
 }
 
-internal inline void
-*mem_set(void *dest, U8 c, I64 n)
+internal inline void *mem_set(void *dest, U8 c, I64 n)
 {
     U8 *s = Cast(U8 *)dest;
     I64 k;
@@ -271,8 +267,7 @@ internal inline void
     return dest;
 }
 
-internal I32
-mem_is_zero(void *ptr, U64 size){
+internal I32 mem_is_zero(void *ptr, U64 size){
   I32 result = 1;
 
   // break down size

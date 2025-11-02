@@ -1,7 +1,7 @@
 // Helpers Functions
 //=============================================================================
 
-internal U32 os_w32_unix_time_from_file_time(FILETIME file_time)
+internal U32 _os_win32_unix_time_from_file_time(FILETIME file_time)
 {
     U64 win32_time = ((U64)file_time.dwHighDateTime << 32) | file_time.dwLowDateTime;
     U64 unix_time64 = ((win32_time - 0x19DB1DED53E8000ULL) / 10000000);
@@ -12,9 +12,7 @@ internal U32 os_w32_unix_time_from_file_time(FILETIME file_time)
     return unix_time32;
 }
 
-internal FilePropertyFlags os_w32_file_property_flags_from_dwFileAttributes(
-    DWORD dwFileAttributes
-) {
+internal FilePropertyFlags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes) {
     FilePropertyFlags flags = 0;
     if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
@@ -23,16 +21,7 @@ internal FilePropertyFlags os_w32_file_property_flags_from_dwFileAttributes(
     return flags;
 }
 
-internal void os_w32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
-{
-    SYSTEMTIME systime = {0};
-    FileTimeToSystemTime(in, &systime);
-    DateTime date_time = {0};
-    os_w32_date_time_from_system_time(&date_time, &systime);
-    *out = dense_time_from_date_time(date_time);
-}
-
-internal void os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in)
+internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in)
 {
     out->year    = in->wYear;
     out->mon     = in->wMonth - 1;
@@ -42,6 +31,15 @@ internal void os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in)
         out->min     = in->wMinute;
         out->sec     = in->wSecond;
     out->msec    = in->wMilliseconds;
+}
+
+internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
+{
+    SYSTEMTIME systime = {0};
+    FileTimeToSystemTime(in, &systime);
+    DateTime date_time = {0};
+    os_win32_date_time_from_system_time(&date_time, &systime);
+    *out = dense_time_from_date_time(date_time);
 }
 
 // Memory Allocation
@@ -75,7 +73,7 @@ internal void os_memory_free(void *ptr, U64 size)
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
-    Str16 path16 = str16_from_8(os_core_state.alloc, path);
+    Str16 path16 = str16_from_8(_os_core_state.alloc, path);
     DWORD access_flags = 0;
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
@@ -185,9 +183,9 @@ internal Os_FileProperties os_file_properties(Os_File file)
         U32 size_lo = info.nFileSizeLow;
         U32 size_hi = info.nFileSizeHigh;
         props.size  = (U64)size_lo | (((U64)size_hi)<<32);
-        os_w32_dense_time_from_file_time(&props.modified, &info.ftLastWriteTime);
-        os_w32_dense_time_from_file_time(&props.created, &info.ftCreationTime);
-        props.flags = os_w32_file_property_flags_from_dwFileAttributes(info.dwFileAttributes);
+        os_win32_dense_time_from_file_time(&props.modified, &info.ftLastWriteTime);
+        os_win32_dense_time_from_file_time(&props.created, &info.ftCreationTime);
+        props.flags = os_win32_file_property_flags_from_dwFileAttributes(info.dwFileAttributes);
     }
     return props;
 }
@@ -195,7 +193,7 @@ internal Os_FileProperties os_file_properties(Os_File file)
 internal bool os_dir_make(Str8 path)
 {
     bool result = false;
-    Str16 path16 = str16_from_8(os_core_state.alloc, path);
+    Str16 path16 = str16_from_8(_os_core_state.alloc, path);
     WIN32_FILE_ATTRIBUTE_DATA attributes = {0};
     GetFileAttributesExW((WCHAR*)path16.cstr, GetFileExInfoStandard, &attributes);
     if(attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -221,7 +219,7 @@ internal U32 os_now_unix(void)
 {
     FILETIME file_time;
     GetSystemTimeAsFileTime(&file_time);
-    U32 unix_time = os_w32_unix_time_from_file_time(file_time);
+    U32 unix_time = os_win32_unix_time_from_file_time(file_time);
     return unix_time;
 }
 
@@ -231,7 +229,7 @@ internal U64 os_now_microsec(void)
     LARGE_INTEGER large_int_counter;
     if(QueryPerformanceCounter(&large_int_counter))
     {
-        result = (large_int_counter.QuadPart*Million(1))/os_win32_state.microsecond_resolution;
+        result = (large_int_counter.QuadPart*Million(1))/_os_win32_state.microsecond_resolution;
     }
     return result;
 }
@@ -252,6 +250,7 @@ internal void os_sleep_millisec(U32 millisec)
 
 // OS Entry Points
 //=============================================================================
+
 int main(void)
 {
     // Allocating core memory
@@ -261,21 +260,21 @@ int main(void)
     // Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
-    os_core_state.args = str8_array_reserve(alloc, args_count);
-    os_core_state.alloc = alloc;
+    _os_core_state.args = str8_array_reserve(alloc, args_count);
+    _os_core_state.alloc = alloc;
     for(int i = 0; i < args_count; i++)
     {
         Str16 str16 = str16_from_cstr(args[i]);
         Str8 str = str8_from_16(alloc, str16);
-        str8_array_append(&os_core_state.args, str);
+        str8_array_append(&_os_core_state.args, str);
     }
     // NOTE(AnzenKodo): we need this to set now time.
     {
-        os_win32_state.microsecond_resolution  = 1;
+        _os_win32_state.microsecond_resolution  = 1;
         LARGE_INTEGER large_int_resolution;
         if(QueryPerformanceFrequency(&large_int_resolution))
         {
-            os_win32_state.microsecond_resolution = large_int_resolution.QuadPart;
+            _os_win32_state.microsecond_resolution = large_int_resolution.QuadPart;
         }
     }
     // Go to default OS entry point

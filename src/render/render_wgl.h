@@ -68,8 +68,8 @@ typedef BOOL WINAPI FNWGLSWAPINTERVALEXTPROC(int interval);
 // Types
 //=============================================================================
 
-typedef struct Render_Wgl_State Render_Wgl_State;
-struct Render_Wgl_State
+typedef struct _Render_Wgl_State _Render_Wgl_State;
+struct _Render_Wgl_State
 {
     HDC hdc;
     HGLRC contex;
@@ -78,7 +78,7 @@ struct Render_Wgl_State
 // Global Variables
 //=============================================================================
 
-global Render_Wgl_State render_wgl_state = ZERO_STRUCT;
+global _Render_Wgl_State _render_wgl_state = ZERO_STRUCT;
 
 // Functions
 //=============================================================================

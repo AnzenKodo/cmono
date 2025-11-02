@@ -29,7 +29,7 @@ internal Str8 os_file_read_str_full(Os_File file, Alloc alloc)
 
 internal Str8Array *os_args_get(void)
 {
-    return &os_core_state.args;
+    return &_os_core_state.args;
 }
 
 internal void os_entry_point(void)

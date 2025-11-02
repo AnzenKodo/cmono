@@ -1,4 +1,4 @@
-// Arena Allocator
+// Alloc_Arena Allocator
 //====================================================================
 
 internal void *alloc_arena_push(void *context, U64 size, U64 align)
@@ -6,7 +6,7 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
     void *result = 0;
     if (size)
     {
-        Arena *arena = Cast(Arena *)context;
+        Alloc_Arena *arena = Cast(Alloc_Arena *)context;
 
         if (IsPow2(align))
         {
@@ -28,7 +28,7 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
 
 internal void alloc_arena_pop(void *context, void *buffer, U64 size)
 {
-    Arena *arena = Cast(Arena *)context;
+    Alloc_Arena *arena = Cast(Alloc_Arena *)context;
     U64 offset = IntFromPtr(buffer) - IntFromPtr(arena->buffer);
     if (size <= offset) {
         arena->offset = offset;
@@ -38,7 +38,7 @@ internal void alloc_arena_pop(void *context, void *buffer, U64 size)
 
 internal void alloc_arena_reset(void *context)
 {
-    Arena *a = context;
+    Alloc_Arena *a = context;
     a->offset = 0;
     a->committed = 0;
 }

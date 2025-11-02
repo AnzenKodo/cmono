@@ -14,6 +14,6 @@ struct Os_Stub_State {
 // Global Variables
 //=============================================================================
 
-global Os_Stub_State wl_stub_state = ZERO_STRUCT;
+global Os_Stub_State _wl_stub_state = ZERO_STRUCT;
 
 #endif // OS_STUB_H

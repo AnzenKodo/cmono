@@ -1,7 +1,7 @@
-// Helper functions
+// OpenGL Helper functions
 //=============================================================================
 
-internal U32 render_opengl_shader_compile(Str8 source, GLenum type, U32 program_id)
+internal U32 _render_opengl_shader_compile(Str8 source, GLenum type, U32 program_id)
 {
     GLuint shader_id = glCreateShader(type);
 #if OS_WINDOWS
@@ -27,14 +27,14 @@ internal U32 render_opengl_shader_compile(Str8 source, GLenum type, U32 program_
 
 internal void render_init(void)
 {
-    render_opengl_init();
+    _render_opengl_init();
 
-#define X(name, r, p) name = (name##_FunctionType *)(void*)render_opengl_load_procedure(#name);
+#define X(name, r, p) name = (name##_FunctionType *)(void*)_render_opengl_load_procedure(#name);
     RenderOpenglXMacro
 #undef X
 
-    glGenVertexArrays(1, &render_opengl_state.vertex_arrays);
-    glBindVertexArray(render_opengl_state.vertex_arrays);
+    glGenVertexArrays(1, &_render_opengl_state.vertex_arrays);
+    glBindVertexArray(_render_opengl_state.vertex_arrays);
 
     GLfloat vertices[] = {
         -1.0f, -1.0f,
@@ -42,34 +42,34 @@ internal void render_init(void)
         -1.0f,  1.0f,
          1.0f,  1.0f
     };
-    render_opengl_state.array_buffer_size = sizeof(vertices);
-    glGenBuffers(1, &render_opengl_state.array_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, render_opengl_state.array_buffer);
-    glBufferData(GL_ARRAY_BUFFER, render_opengl_state.array_buffer_size, vertices, GL_STATIC_DRAW);
+    _render_opengl_state.array_buffer_size = sizeof(vertices);
+    glGenBuffers(1, &_render_opengl_state.array_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.array_buffer);
+    glBufferData(GL_ARRAY_BUFFER, _render_opengl_state.array_buffer_size, vertices, GL_STATIC_DRAW);
 }
 
 internal void render_deinit(void)
 {
-    render_opengl_deinit();
-    glDeleteVertexArrays(sizeof(&render_opengl_state.vertex_arrays), &render_opengl_state.vertex_arrays);
-    glDeleteBuffers(render_opengl_state.array_buffer_size, &render_opengl_state.array_buffer);
+    _render_opengl_deinit();
+    glDeleteVertexArrays(sizeof(&_render_opengl_state.vertex_arrays), &_render_opengl_state.vertex_arrays);
+    glDeleteBuffers(_render_opengl_state.array_buffer_size, &_render_opengl_state.array_buffer);
 }
 
 internal void render_begin(void)
 {
-    render_opengl_begin();
+    _render_opengl_begin();
 }
 
 internal void render_end(void)
 {
-    render_opengl_end();
+    _render_opengl_end();
 }
 
 internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
 {
     U32 program_id = glCreateProgram();
-    U32 vert_id = render_opengl_shader_compile(vert_source, GL_VERTEX_SHADER, program_id);
-    U32 frag_id = render_opengl_shader_compile(frag_source, GL_FRAGMENT_SHADER, program_id);
+    U32 vert_id = _render_opengl_shader_compile(vert_source, GL_VERTEX_SHADER, program_id);
+    U32 frag_id = _render_opengl_shader_compile(frag_source, GL_FRAGMENT_SHADER, program_id);
     glLinkProgram(program_id);
     GLint status;
     glGetProgramiv(program_id, GL_LINK_STATUS, &status);
@@ -95,9 +95,8 @@ internal U32 render_shader_get_value(U32 shader_id, Str8 name)
     return glGetUniformLocation(shader_id, (char *)name.cstr);
 }
 
-internal void render_shader_set_value_vec(
-    U32 value_index, const void *value, Render_Shader type, I32 count
-) {
+internal void render_shader_set_value_vec(U32 value_index, const void *value, Render_Shader type, I32 count)
+{
     switch (type)
     {
         case Render_Shader_Float:  glUniform1fv(value_index, count, (F32 *)value); break;
@@ -114,8 +113,7 @@ internal void render_shader_set_value_vec(
         case Render_Shader_Uivec4: glUniform4uv(value_index, count, (U32 *)value); break;
     };
 }
-internal void render_shader_set_value(
-    U32 value_index, const void *value, Render_Shader type
-) {
+internal void render_shader_set_value(U32 value_index, const void *value, Render_Shader type)
+{
     render_shader_set_value_vec(value_index, value, type, 1);
 }

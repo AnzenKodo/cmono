@@ -1,7 +1,7 @@
-// Win32 Helper Functions
+// Helper functions
 //=============================================================================
 
-internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
+internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
 {
     local_persist I32 first = 1;
     local_persist Wl_Key key_table[256];
@@ -118,7 +118,7 @@ internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey)
     return key;
 }
 
-internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
+internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key)
 {
     WPARAM result = 0;
     {
@@ -223,10 +223,8 @@ internal WPARAM os_w32_vkey_from_os_key(Wl_Key key)
     return result;
 }
 
-#include <stdio.h>
-internal LRESULT CALLBACK wl_win32_window_proc(
-    HWND handle, UINT message, WPARAM w_param, LPARAM l_param
-) {
+internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARAM w_param, LPARAM l_param)
+{
     LRESULT result = 0;
     // bool release = 0;
 
@@ -240,9 +238,9 @@ internal LRESULT CALLBACK wl_win32_window_proc(
         // Window Size ========================================================
         case WM_SIZE:
         {
-            wl_state.win_size.x = LOWORD(l_param);
-            wl_state.win_size.y = HIWORD(l_param);
-            wl_win32_state.window_resize = true;
+            _wl_state.win_size.x = LOWORD(l_param);
+            _wl_state.win_size.y = HIWORD(l_param);
+            _wl_win32_state.window_resize = true;
         } // fallthrough;
         case WM_PAINT:
         {
@@ -252,7 +250,7 @@ internal LRESULT CALLBACK wl_win32_window_proc(
         // Window Close =======================================================
         case WM_CLOSE:
         {
-            wl_win32_state.window_close = true;
+            _wl_win32_state.window_close = true;
         } break;
 
         // // Window Resize ======================================================
@@ -355,13 +353,13 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     HINSTANCE instance = GetModuleHandleW(NULL);
     WNDCLASSEXW wc = ZERO_STRUCT;
     wc.cbSize = sizeof(WNDCLASSEXW);
-    wc.lpfnWndProc = wl_win32_window_proc;
+    wc.lpfnWndProc = _wl_win32_window_proc;
     wc.hInstance = instance;
     wc.lpszClassName = L"graphical-window";
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     // wc.hIcon = LoadIconW(NULL, MAKEINTRESOURCE(1));
     wc.style = CS_HREDRAW | CS_VREDRAW;
-    if (!RegisterClassExW(&wc)) 
+    if (!RegisterClassExW(&wc))
     {
         MessageBoxW(
             NULL, L"Failed to register window class!", L"Error",
@@ -370,7 +368,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         os_exit(1);
     }
     Str16 title16 = str16_from_8(os_core_state.alloc, title);
-    wl_win32_state.handle = CreateWindowExW(
+    _wl_win32_state.handle = CreateWindowExW(
         WS_EX_APPWINDOW,
         wc.lpszClassName, title16.cstr,
         WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
@@ -379,17 +377,17 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         0, 0,
         instance, 0
     );
-    if (!wl_win32_state.handle) 
+    if (!_wl_win32_state.handle)
     {
         MessageBoxW(NULL, L"Faild to create window.", L"Error", MB_OK|MB_ICONERROR);
         os_exit(1);
     }
-    ShowWindow(wl_win32_state.handle, SW_SHOW);
-    UpdateWindow(wl_win32_state.handle);
+    ShowWindow(_wl_win32_state.handle, SW_SHOW);
+    UpdateWindow(_wl_win32_state.handle);
 
     // Get Display Size ===============================================================
-    wl_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
-    wl_state.display_size.y = GetSystemMetrics(SM_CYSCREEN);
+    _wl_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
+    _wl_state.display_size.y = GetSystemMetrics(SM_CYSCREEN);
 }
 
 internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
@@ -401,7 +399,7 @@ internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
 
 internal void wl_window_close(void)
 {
-    DestroyWindow(wl_win32_state.handle);
+    DestroyWindow(_wl_win32_state.handle);
 }
 
 // Event Functions
@@ -421,20 +419,20 @@ internal Wl_Event wl_get_event(void)
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
-                if (wl_win32_state.window_close) {
+                if (_wl_win32_state.window_close) {
                     event.type = Wl_EventType_WindowClose;
-                    wl_win32_state.window_close = false;
-                } 
-                if (wl_win32_state.window_resize) {
+                    _wl_win32_state.window_close = false;
+                }
+                if (_wl_win32_state.window_resize) {
                     event.type = Wl_EventType_WindowResize;
-                    wl_win32_state.window_resize = false;
+                    _wl_win32_state.window_resize = false;
                 }
             } break;
 
             // Keyboard key presses/releases ======================================
             case WM_SYSKEYDOWN: case WM_SYSKEYUP:
             {
-                if (msg.wParam != VK_MENU && 
+                if (msg.wParam != VK_MENU &&
                    (msg.wParam < VK_F1 || VK_F24 < msg.wParam || msg.wParam == VK_F4))
                 {
                     TranslateMessage(&msg);
@@ -468,7 +466,7 @@ internal Wl_Event wl_get_event(void)
                 } else {
                     event.type = Wl_EventType_Press;
                 }
-                event.key = os_w32_os_key_from_vkey(msg.wParam);
+                event.key = _os_win32_os_key_from_vkey(msg.wParam);
                 // event.repeat_count = msg.lParam & bitmask16;
                 // event.is_repeat = is_repeat;
                 // event.right_sided = right_sided;
@@ -530,7 +528,7 @@ internal Wl_Event wl_get_event(void)
                 }
                 else
                 {
-                    SetCapture(wl_win32_state.handle);
+                    SetCapture(_wl_win32_state.handle);
                 }
             } break;
 
@@ -546,7 +544,7 @@ internal Wl_Event wl_get_event(void)
                 POINT p;
                 p.x = (I32)(I16)LOWORD(msg.lParam);
                 p.y = (I32)(I16)HIWORD(msg.lParam);
-                ScreenToClient(wl_win32_state.handle, &p);
+                ScreenToClient(_wl_win32_state.handle, &p);
                 event.pos.x = (F32)p.x;
                 event.pos.y = (F32)p.y;
                 event.delta = vec_2f32(0.f, -(F32)wheel_delta);
@@ -557,7 +555,7 @@ internal Wl_Event wl_get_event(void)
                 POINT p;
                 p.x = (I32)LOWORD(msg.lParam);
                 p.y = (I32)HIWORD(msg.lParam);
-                ScreenToClient(wl_win32_state.handle, &p);
+                ScreenToClient(_wl_win32_state.handle, &p);
                 event.pos.x = (F32)p.x;
                 event.pos.y = (F32)p.y;
                 event.delta = vec_2f32((F32)wheel_delta, 0.f);
@@ -572,18 +570,18 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
-// Software Render 
+// Software Render
 // ============================================================================
 
 internal void wl_render_init(void *render_buffer)
 {
-    wl_win32_state.render_buffer = render_buffer;
-    wl_win32_state.bitmap_info.bmiHeader.biSize = sizeof(wl_win32_state.bitmap_info.bmiHeader);
-    wl_win32_state.bitmap_info.bmiHeader.biPlanes = 1;
-    wl_win32_state.bitmap_info.bmiHeader.biBitCount = 32;
-    wl_win32_state.bitmap_info.bmiHeader.biCompression = BI_RGB;
-    wl_win32_state.bitmap_info.bmiHeader.biWidth = wl_get_display_width();
-    wl_win32_state.bitmap_info.bmiHeader.biHeight = -wl_get_display_height();
+    _wl_win32_state.render_buffer = render_buffer;
+    _wl_win32_state.bitmap_info.bmiHeader.biSize = sizeof(_wl_win32_state.bitmap_info.bmiHeader);
+    _wl_win32_state.bitmap_info.bmiHeader.biPlanes = 1;
+    _wl_win32_state.bitmap_info.bmiHeader.biBitCount = 32;
+    _wl_win32_state.bitmap_info.bmiHeader.biCompression = BI_RGB;
+    _wl_win32_state.bitmap_info.bmiHeader.biWidth = wl_get_display_width();
+    _wl_win32_state.bitmap_info.bmiHeader.biHeight = -wl_get_display_height();
 }
 
 internal void wl_render_deinit(void)
@@ -592,17 +590,17 @@ internal void wl_render_deinit(void)
 
 internal void wl_render_begin(void)
 {
-    wl_win32_state.hdc = BeginPaint(wl_win32_state.handle, &wl_win32_state.paint);
+    _wl_win32_state.hdc = BeginPaint(_wl_win32_state.handle, &_wl_win32_state.paint);
 }
 
 internal void wl_render_end(void)
 {
     StretchDIBits(
-        wl_win32_state.hdc, 
+        _wl_win32_state.hdc,
         0, 0, wl_get_display_width(), wl_get_display_height(),
         0, 0, wl_get_display_width(), wl_get_display_height(),
-        wl_win32_state.render_buffer, &wl_win32_state.bitmap_info,
+        _wl_win32_state.render_buffer, &_wl_win32_state.bitmap_info,
         DIB_RGB_COLORS, SRCCOPY
     );
-    EndPaint(wl_win32_state.handle, &wl_win32_state.paint);
+    EndPaint(_wl_win32_state.handle, &_wl_win32_state.paint);
 }

@@ -4,8 +4,8 @@
 // Types
 //=============================================================================
 
-typedef struct Render_Opengl_State Render_Opengl_State;
-struct Render_Opengl_State
+typedef struct _Render_Opengl_State _Render_Opengl_State;
+struct _Render_Opengl_State
 {
     GLuint vertex_arrays;
     GLuint array_buffer;
@@ -49,19 +49,21 @@ struct Render_Opengl_State
 // Functions
 //=============================================================================
 
-// Internal functions =========================================================
-internal void render_opengl_init(void);
-internal void render_opengl_deinit(void);
-internal void render_opengl_begin(void);
-internal void render_opengl_end(void);
+// OpenGL helper functions ====================================================
 
-// Helper functions ===========================================================
-internal Void_Proc *render_opengl_load_procedure(char *name);
-internal U32 render_opengl_shader_compile(Str8 source, GLenum type, U32 program_id);
+internal Void_Proc *_render_opengl_load_procedure(char *name);
+internal U32 _render_opengl_shader_compile(Str8 source, GLenum type, U32 program_id);
 
-// Global Variables
+// Internal OpneGL functions ==================================================
+
+internal void _render_opengl_init(void);
+internal void _render_opengl_deinit(void);
+internal void _render_opengl_begin(void);
+internal void _render_opengl_end(void);
+
+// Global variables
 //=============================================================================
 
-global Render_Opengl_State render_opengl_state = ZERO_STRUCT;
+global _Render_Opengl_State _render_opengl_state = ZERO_STRUCT;
 
 #endif // RENDER_OPENGL_H

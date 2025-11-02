@@ -1,7 +1,7 @@
-// Helper functions
+// OpenGL helper functions
 // ============================================================================
 
-internal Void_Proc *render_opengl_load_procedure(char *name)
+internal Void_Proc *_render_opengl_load_procedure(char *name)
 {
     Void_Proc *p = (Void_Proc *)(void *)eglGetProcAddress(name);
     if(p == (Void_Proc*)1 || p == (Void_Proc*)2 || p == (Void_Proc*)3 || p == (Void_Proc*)-1)
@@ -11,10 +11,10 @@ internal Void_Proc *render_opengl_load_procedure(char *name)
     return p;
 }
 
-// Internal functions
+// Internal OpenGL functions
 // ============================================================================
 
-internal void render_opengl_init(void)
+internal void _render_opengl_init(void)
 {
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglInitialize(display, NULL, NULL);
@@ -33,7 +33,7 @@ internal void render_opengl_init(void)
     eglChooseConfig(display, config_attrs, &config, 1, &num_configs);
 
     EGLSurface surface = eglCreateWindowSurface(
-        display, config, Cast(EGLNativeWindowType)wl_x11_state.window, NULL
+        display, config, Cast(EGLNativeWindowType)_wl_x11_state.window, NULL
     );
 
     EGLint ctx_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
@@ -42,27 +42,27 @@ internal void render_opengl_init(void)
     eglMakeCurrent(display, surface, surface, context);
 
     // Initialize States ======================================================
-    render_egl_state.display = display;
-    render_egl_state.context = context;
-    render_egl_state.surface = surface;
+    _render_egl_state.display = display;
+    _render_egl_state.context = context;
+    _render_egl_state.surface = surface;
 }
 
-internal void render_opengl_deinit(void)
+internal void _render_opengl_deinit(void)
 {
     eglMakeCurrent(
-        render_egl_state.display,
+        _render_egl_state.display,
         EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT
     );
-    eglDestroyContext(render_egl_state.display, render_egl_state.context);
-    eglDestroySurface(render_egl_state.display, render_egl_state.surface);
-    eglTerminate(render_egl_state.display);
+    eglDestroyContext(_render_egl_state.display, _render_egl_state.context);
+    eglDestroySurface(_render_egl_state.display, _render_egl_state.surface);
+    eglTerminate(_render_egl_state.display);
 }
 
-internal void render_opengl_begin(void)
+internal void _render_opengl_begin(void)
 {
 }
 
-internal void render_opengl_end(void)
+internal void _render_opengl_end(void)
 {
-    eglSwapBuffers(render_egl_state.display, render_egl_state.surface);
+    eglSwapBuffers(_render_egl_state.display, _render_egl_state.surface);
 }

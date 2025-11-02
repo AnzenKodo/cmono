@@ -199,8 +199,8 @@ struct Wl_Event {
     Vec2F32 delta;
 };
 
-typedef struct Wl_State Wl_State;
-struct Wl_State {
+typedef struct _Wl_Core_State _Wl_Core_State;
+struct _Wl_Core_State {
     Wl_Event event;
     Vec2I32 win_size;
     Vec2I32 display_size;
@@ -213,43 +213,43 @@ struct Wl_State {
 // Functions
 // ============================================================================
 
-// Basic Window functions =====================================================
+// Basic window functions =====================================================
 
 internal void wl_window_open(Str8 title, Vec2I32 win_size);
 internal void wl_window_close(void);
 
-// Window Close Functions =====================================================
+// Window close functions =====================================================
 
 internal void wl_set_window_close(void);
 internal bool wl_should_window_close(void);
 
-// Event Functions ============================================================
+// Event functions ============================================================
 
 internal void wl_update_events(void);
 internal Wl_Event wl_get_event(void);
 internal bool wl_is_key_pressed(Wl_Key key);
 
-// Get Window Information =====================================================
+// Get window information =====================================================
 
 internal U32 wl_get_display_width(void);
 internal U32 wl_get_display_height(void);
 internal U32 wl_get_window_width(void);
 internal U32 wl_get_window_height(void);
 
-// Window Icon ================================================================
+// Window icon ================================================================
 
 internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height);
 
-// Software Render ============================================================
+// Software render ============================================================
 
 internal void wl_render_init(void *render_buffer);
 internal void wl_render_deinit(void);
 internal void wl_render_begin(void);
 internal void wl_render_end(void);
 
-// Global Variables
+// Global variables
 //=============================================================================
 
-global Wl_State wl_state = ZERO_STRUCT;
+global _Wl_Core_State _wl_core_state = ZERO_STRUCT;
 
 #endif // WINDOW_LAYER_CORE_H

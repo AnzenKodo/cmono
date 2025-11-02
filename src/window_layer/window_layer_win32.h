@@ -4,8 +4,8 @@
 // Types
 //=============================================================================
 
-typedef struct Wl_Win32_State Wl_Win32_State;
-struct Wl_Win32_State
+typedef struct _Wl_Win32_State _Wl_Win32_State;
+struct _Wl_Win32_State
 {
     HWND handle;
     HINSTANCE instance;
@@ -24,13 +24,15 @@ struct Wl_Win32_State
 // Functions
 //=============================================================================
 
-internal Wl_Key os_w32_os_key_from_vkey(WPARAM vkey);
-internal WPARAM os_w32_vkey_from_os_key(Wl_Key key);
-internal LRESULT CALLBACK wl_w32_window_proc(HWND handle, UINT message, WPARAM w_param, LPARAM l_param);
+// Helper Functions ===========================================================
 
-// Global Variables
+internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey);
+internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key);
+internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARAM w_param, LPARAM l_param);
+
+// Global variables
 //=============================================================================
 
-global Wl_Win32_State wl_win32_state = ZERO_STRUCT;
+global _Wl_Win32_State _wl_win32_state = ZERO_STRUCT;
 
 #endif // WINDOW_LAYER_W32_H

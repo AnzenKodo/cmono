@@ -10,8 +10,8 @@
 // Types
 //=============================================================================
 
-typedef struct Wl_X11_State Wl_X11_State;
-struct Wl_X11_State 
+typedef struct _Wl_X11_State _Wl_X11_State;
+struct _Wl_X11_State
 {
     xcb_connection_t *connection;
     xcb_screen_t *screen;
@@ -26,9 +26,9 @@ struct Wl_X11_State
     void *render_buffer;
 };
 
-// Global Variables
+// Global variables
 //=============================================================================
 
-global Wl_X11_State wl_x11_state = ZERO_STRUCT;
+global _Wl_X11_State _wl_x11_state = ZERO_STRUCT;
 
 #endif // WINDOW_LAYER_XCB_H

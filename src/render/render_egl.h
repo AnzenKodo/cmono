@@ -10,8 +10,8 @@
 // Types
 //=============================================================================
 
-typedef struct Render_Egl_State Render_Egl_State;
-struct Render_Egl_State
+typedef struct _Render_Egl_State _Render_Egl_State;
+struct _Render_Egl_State
 {
     EGLDisplay display;
     EGLContext context;
@@ -21,6 +21,6 @@ struct Render_Egl_State
 // Global Variables
 //=============================================================================
 
-global Render_Egl_State render_egl_state = ZERO_STRUCT;
+global _Render_Egl_State _render_egl_state = ZERO_STRUCT;
 
 #endif // RENDER_EGL_H
