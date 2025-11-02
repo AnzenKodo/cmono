@@ -8,7 +8,6 @@
 
 // External Includes ==========================================================
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -190,7 +189,7 @@ internal void build_compile(Build_Info *info)
     {
         fmt_printf("Created `%s` directory.\n", info->dir.cstr);
     }
-    fmt_printf("Compiling:\n");
+    fmt_println("# Compile --------------------------------------------------------------------#\n");
     if (info->os == Context_Os_Linux)
     {
         build_compile_gcc(info);
@@ -245,7 +244,7 @@ internal void build_profiler(Build_Info *info)
 
 internal void build_run(Build_Info *info)
 {
-    fmt_printf("Running:\n");
+    fmt_println("# Running --------------------------------------------------------------------#\n");
     if (info->mingw)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");
@@ -260,6 +259,7 @@ internal void build_run(Build_Info *info)
     {
         build_cmd_append(info, " shaders/shader.frag");
     }
+
     build_cmd_finish(info);
 }
 
@@ -317,7 +317,7 @@ internal void entry_point()
     }
     else
     {
-        fprintf(stderr, "Error: wrong option provided `%s`.\n\n", arg_str.cstr);
+        fmt_eprintf("Error: wrong option provided `%s`.\n\n", arg_str.cstr);
         should_print_help = true;
         should_print_version = true;
     }
@@ -325,7 +325,9 @@ internal void entry_point()
     {
         info.mingw = true;
     }
-
+    fmt_println("#=============================================================================#");
+    fmt_println("# Build Output                                                                #");
+    fmt_println("#=============================================================================#\n");
     if (!(should_print_help || should_print_version))
     {
         if (info.type != Build_Type_None)
@@ -339,11 +341,11 @@ internal void entry_point()
     }
     if (should_print_help)
     {
-        printf("%s", help_message);
+        fmt_printf("%s", help_message);
     }
     if (should_print_version)
     {
-        printf("Version: %s", info.dir.cstr);
+        fmt_printf("Version: %s", info.dir.cstr);
     }
 }
 
@@ -353,7 +355,7 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
     va_start(args, format);
     {
         char buffer[BUILD_CMD_SIZE];
-        vsnprintf(buffer, sizeof(buffer), format, args);
+        fmt_vsnprintf(buffer, sizeof(buffer), format, args);
         strcat(Cast(char *)info->cmd, buffer);
     }
     va_end(args);
@@ -361,11 +363,11 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
 
 internal void build_cmd_run(Build_Info *info)
 {
-    printf("%s\n\n", info->cmd);
+    fmt_printf("Command: %s\n\n", info->cmd);
     int err = system((const char *)info->cmd);
     if (err)
     {
-        fprintf(stderr, "\nError: %s\n", strerror(err));
+        fmt_eprintf("\nError: %s\n", strerror(err));
         os_exit(err);
     }
 }
