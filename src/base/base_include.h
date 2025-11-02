@@ -7,4 +7,5 @@
 #include "base_string.h"
 typedef U64 Os_File;
 #include "base_fmt.h"
+#include "base_log.h"
 // #include "base_cmd.h"
