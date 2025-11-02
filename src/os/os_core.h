@@ -43,11 +43,13 @@ enum
     OS_AccessFlag_Inherited   = (1<<6),
 };
 
-// State ======================================================================
-typedef struct Os_Core_State Os_Core_State;
-struct Os_Core_State {
+// Private OS State ===========================================================
+
+typedef struct _Os_Core_State _Os_Core_State;
+struct _Os_Core_State {
     Str8Array args;
     Alloc alloc;
+    Log_Config log_config;
 };
 
 // Functions
@@ -94,6 +96,6 @@ internal void entry_point(void);
 // Global Variables
 //=============================================================================
 
-global Os_Core_State os_core_state = ZERO_STRUCT;
+global _Os_Core_State _os_core_state = ZERO_STRUCT;
 
 #endif // OS_CORE_H
