@@ -13,8 +13,8 @@
 // Types
 //=============================================================================
 
-typedef struct OS_Win32_State OS_Win32_State;
-struct OS_Win32_State
+typedef struct _OS_Win32_State _OS_Win32_State;
+struct _OS_Win32_State
 {
     U64 microsecond_resolution;
 };
@@ -29,16 +29,16 @@ struct OS_Win32_State
 // Functions
 //=============================================================================
 
-// Helpers Functions ==========================================================
+// Helpers functions ==========================================================
 
-internal U32 os_w32_unix_time_from_file_time(FILETIME file_time);
-internal FilePropertyFlags os_w32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes);
-internal void os_w32_dense_time_from_file_time(DenseTime *out, FILETIME *in);
-internal void os_w32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
+internal U32 _os_win32_unix_time_from_file_time(FILETIME file_time);
+internal FilePropertyFlags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes);
+internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in);
+internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
 
-// Globals
+// Global Variables
 //=============================================================================
 
-global OS_Win32_State os_win32_state = ZERO_STRUCT;
+global _OS_Win32_State _os_win32_state = ZERO_STRUCT;
 
 #endif // OS_WINDOWS_H
