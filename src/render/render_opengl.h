@@ -52,7 +52,7 @@ struct _Render_Opengl_State
 // OpenGL helper functions ====================================================
 
 internal Void_Proc *_render_opengl_load_procedure(char *name);
-internal U32 _render_opengl_shader_compile(char **source, GLenum type, U32 program_id);
+internal U32 _render_opengl_shader_compile(char **source, U32 source_num, GLenum type, U32 program_id);
 
 // Internal OpneGL functions ==================================================
 

@@ -1,10 +1,10 @@
 // OpenGL Helper functions
 //=============================================================================
 
-internal U32 _render_opengl_shader_compile(char **source, GLenum type, U32 program_id)
+internal U32 _render_opengl_shader_compile(char **source, U32 source_num, GLenum type, U32 program_id)
 {
     GLuint shader_id = glCreateShader(type);
-    glShaderSource(shader_id, 2, source, NULL);
+    glShaderSource(shader_id, source_num, source, NULL);
     glCompileShader(shader_id);
     GLint status;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);
@@ -61,19 +61,11 @@ internal void render_end(void)
     _render_opengl_end();
 }
 
-internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
+internal U32 render_shader_load_multi(char **vert_sources, U32 vert_source_num, char **frag_sources, U32 frag_source_num)
 {
     U32 program_id = glCreateProgram();
-    char* vert_sources[] = {
-        shader_source_header,
-        (char *)vert_source.cstr
-    };
-    char* frag_sources[] = {
-        shader_source_header,
-        (char *)frag_source.cstr
-    };
-    U32 vert_id = _render_opengl_shader_compile(vert_sources, GL_VERTEX_SHADER, program_id);
-    U32 frag_id = _render_opengl_shader_compile(frag_sources, GL_FRAGMENT_SHADER, program_id);
+    U32 vert_id = _render_opengl_shader_compile(vert_sources, vert_source_num, GL_VERTEX_SHADER, program_id);
+    U32 frag_id = _render_opengl_shader_compile(frag_sources, frag_source_num, GL_FRAGMENT_SHADER, program_id);
     glLinkProgram(program_id);
     GLint status;
     glGetProgramiv(program_id, GL_LINK_STATUS, &status);
@@ -87,6 +79,19 @@ internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
     glDeleteShader(vert_id);
     glDeleteShader(frag_id);
     return program_id;
+}
+
+internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
+{
+    char* vert_sources[] = {
+        shader_source_header,
+        (char *)vert_source.cstr
+    };
+    char* frag_sources[] = {
+        shader_source_header,
+        (char *)frag_source.cstr
+    };
+    return render_shader_load_multi(vert_sources, 2, frag_sources, 2);
 }
 
 internal void render_shader_unload(U32 id)
