@@ -1,14 +1,10 @@
 // OpenGL Helper functions
 //=============================================================================
 
-internal U32 _render_opengl_shader_compile(Str8 source, GLenum type, U32 program_id)
+internal U32 _render_opengl_shader_compile(char **source, GLenum type, U32 program_id)
 {
     GLuint shader_id = glCreateShader(type);
-#if OS_WINDOWS
-    glShaderSource(shader_id, 1, (char **)&source.cstr, NULL);
-#elif OS_LINUX
-    glShaderSource(shader_id, 1, (const GLchar * const *)&source.cstr, NULL);
-#endif
+    glShaderSource(shader_id, 2, source, NULL);
     glCompileShader(shader_id);
     GLint status;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);
@@ -68,8 +64,16 @@ internal void render_end(void)
 internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
 {
     U32 program_id = glCreateProgram();
-    U32 vert_id = _render_opengl_shader_compile(vert_source, GL_VERTEX_SHADER, program_id);
-    U32 frag_id = _render_opengl_shader_compile(frag_source, GL_FRAGMENT_SHADER, program_id);
+    char* vert_sources[] = {
+        shader_source_header,
+        (char *)vert_source.cstr
+    };
+    char* frag_sources[] = {
+        shader_source_header,
+        (char *)frag_source.cstr
+    };
+    U32 vert_id = _render_opengl_shader_compile(vert_sources, GL_VERTEX_SHADER, program_id);
+    U32 frag_id = _render_opengl_shader_compile(frag_sources, GL_FRAGMENT_SHADER, program_id);
     glLinkProgram(program_id);
     GLint status;
     glGetProgramiv(program_id, GL_LINK_STATUS, &status);

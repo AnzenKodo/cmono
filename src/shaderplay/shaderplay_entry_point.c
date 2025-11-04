@@ -15,21 +15,12 @@
 
 #define FRAGMENT_SHADER_PATH   "shaders/circles.frag"
 
-char *vert_source = "#version 330\n"
-// "precision highp float;\n"
-"in vec4 position;\n"
+char *vert_source = "in vec4 position;\n"
 "void main() {\n"
 "    gl_Position = position;\n"
 "}\n";
 
 internal void entry_point(void)
-{
-    fmt_fprintfln(OS_STDOUT, "Hello=====================%d", 324);
-    fmt_fprintf(OS_STDOUT, "Hello=====================%d\n", 324);
-    fmt_print("Hello=====================");
-}
-
-internal void entry_point2(void)
 {
     // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
@@ -43,12 +34,22 @@ internal void entry_point2(void)
     Str8 frag_source = os_file_read_str_full(frag_file, alloc);
     U32 shader_id = render_shader_load(str8_from_cstr(vert_source), frag_source);
 
-    // Get uniform locations
-    U32 iTimeLocation = render_shader_get_value(shader_id, str8("iTime"));
-    U32 iResolutionLocation = render_shader_get_value(shader_id, str8("iResolution"));
+    U32 i_time               = render_shader_get_value(shader_id, str8("iTime"));
+    U32 i_resolution         = render_shader_get_value(shader_id, str8("iResolution"));
+    U32 i_time_delta         = render_shader_get_value(shader_id, str8("iTimeDelta"));
+    U32 i_frame              = render_shader_get_value(shader_id, str8("iFrame"));
+    U32 i_channel_time       = render_shader_get_value(shader_id, str8("iChannelTime"));
+    U32 i_mouse              = render_shader_get_value(shader_id, str8("iMouse"));
+    U32 i_date               = render_shader_get_value(shader_id, str8("iDate"));
+    U32 i_samplerate         = render_shader_get_value(shader_id, str8("iSampleRate"));
+    U32 i_channel_resolution = render_shader_get_value(shader_id, str8("iChannelResolution"));
+    U32 i_channel_0          = render_shader_get_value(shader_id, str8("iChannel0"));
+    U32 i_channel_1          = render_shader_get_value(shader_id, str8("iChannel1"));
+    U32 i_channel_2          = render_shader_get_value(shader_id, str8("iChannel2"));
+    U32 i_channel_3          = render_shader_get_value(shader_id, str8("iChannel3"));
 
     // Set resolution (fixed window size)
-    render_shader_set_value(iResolutionLocation, (float[2]){ (F32)wl_get_window_width(), (F32)wl_get_window_height() }, Render_Shader_Vec2);
+    render_shader_set_value(i_resolution, (float[2]){ (F32)wl_get_window_width(), (F32)wl_get_window_height() }, Render_Shader_Vec2);
 
     GLint positionAttrib = glGetAttribLocation(shader_id, "position");
     glEnableVertexAttribArray(positionAttrib);
@@ -67,7 +68,7 @@ internal void entry_point2(void)
 
         U64 now = os_now_microsec();
         float iTime = Cast(float)(now - start) / Million(1);
-        render_shader_set_value(iTimeLocation, (float[1]){ iTime }, Render_Shader_Float);
+        render_shader_set_value(i_time, (float[1]){ iTime }, Render_Shader_Float);
 
         render_begin();
         {

@@ -1,9 +1,28 @@
-#version 330
-// #version 300 es
-// precision highp float;
-uniform vec2 iResolution;
-uniform float iTime;
 out vec4 fragColor;
+
+uniform float iTime;
+uniform vec2  iResolution;
+uniform float iTimeDelta;
+uniform float iFrame;
+uniform float iChannelTime[4];
+uniform vec4  iMouse;
+uniform vec4  iDate;
+uniform float iSampleRate;
+uniform vec3  iChannelResolution[4];
+uniform float iChannel0;
+uniform float iChannel1;
+uniform float iChannel2;
+uniform float iChannel3;
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord);
+vec2 mainSound(float time);
+void mainVR(out vec4 fragColor, in vec2 fragCoord, in vec3 fragRayOri, in vec3 fragRayDir);
+void main()
+{
+    mainImage(fragColor, gl_FragCoord.xy);
+    // mainSound(time);
+    // mainVR(fragColor, gl_FragCoord.xy, in vec3 fragRayOri, in vec3 fragRayDir);
+}
 
 vec2 march(vec3 pos, vec3 dir);
 vec3 camera(vec2 uv);
@@ -26,14 +45,16 @@ vec3 h;
 #define PI 3.14159
 #define TAU PI*2.0
 
-vec2 modA(vec2 p, float count) {
+vec2 modA(vec2 p, float count)
+{
     float an = TAU/count;
     float a = atan(p.y,p.x)+an*0.5;
     a = mod(a, an)-an*0.5;
     return vec2(cos(a),sin(a))*length(p);
 }
 
-float scene(vec3 p) {
+float scene(vec3 p)
+{
     float var;
     float mind = 1e5;
     vec3 op = p;
@@ -65,7 +86,8 @@ float scene(vec3 p) {
     return mind;
 }
 
-vec2 march(vec3 pos, vec3 dir) {
+vec2 march(vec3 pos, vec3 dir)
+{
     vec2 dist = vec2(0.0, 0.0);
     vec3 p = vec3(0.0, 0.0, 0.0);
     vec2 s = vec2(0.0, 0.0);
@@ -82,7 +104,8 @@ vec2 march(vec3 pos, vec3 dir) {
     return s;
 }
 
-float mylength(vec2 p) {
+float mylength(vec2 p)
+{
     p = p*p*p*p;
     p = p*p;
     float ret = (p.x+p.y);
@@ -90,18 +113,21 @@ float mylength(vec2 p) {
     return ret;
 }
 
-void rotate(inout vec2 v, float angle) {
+void rotate(inout vec2 v, float angle)
+{
     v = vec2(cos(angle)*v.x+sin(angle)*v.y,-sin(angle)*v.x+cos(angle)*v.y);
 }
 
-vec2 rot(vec2 p, vec2 ang) {
+vec2 rot(vec2 p, vec2 ang)
+{
     float c = cos(ang.x);
     float s = sin(ang.y);
     mat2 m = mat2(c, -s, s, c);
     return (p * m);
 }
 
-vec3 camera(vec2 uv) {
+vec3 camera(vec2 uv)
+{
     float fov = 1.0;
     vec3 forw = vec3(0.0, 0.0, -1.0);
     vec3 right = vec3(1.0, 0.0, 0.0);
@@ -109,7 +135,8 @@ vec3 camera(vec2 uv) {
     return normalize((uv.x) * right + (uv.y) * up + fov * forw);
 }
 
-void mainImage(out vec4 c_out, in vec2 f) {
+void mainImage(out vec4 c_out, in vec2 f)
+{
     t = iTime*0.125;
     vec3 col = vec3(0.0, 0.0, 0.0);
     vec2 R = iResolution.xy;
@@ -129,8 +156,4 @@ void mainImage(out vec4 c_out, in vec2 f) {
     col += h*0.005125;
     #endif
     c_out = vec4(col, 1.0);
-}
-
-void main() {
-    mainImage(fragColor, gl_FragCoord.xy);
 }

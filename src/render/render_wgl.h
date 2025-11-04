@@ -79,6 +79,7 @@ struct _Render_Wgl_State
 //=============================================================================
 
 global _Render_Wgl_State _render_wgl_state = ZERO_STRUCT;
+global char* shader_source_header = "#version 330\n";
 
 // Functions
 //=============================================================================
