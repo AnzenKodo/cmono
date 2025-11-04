@@ -38,7 +38,7 @@ internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
     SYSTEMTIME systime = {0};
     FileTimeToSystemTime(in, &systime);
     DateTime date_time = {0};
-    os_win32_date_time_from_system_time(&date_time, &systime);
+    _os_win32_date_time_from_system_time(&date_time, &systime);
     *out = dense_time_from_date_time(date_time);
 }
 
@@ -183,9 +183,9 @@ internal Os_FileProperties os_file_properties(Os_File file)
         U32 size_lo = info.nFileSizeLow;
         U32 size_hi = info.nFileSizeHigh;
         props.size  = (U64)size_lo | (((U64)size_hi)<<32);
-        os_win32_dense_time_from_file_time(&props.modified, &info.ftLastWriteTime);
-        os_win32_dense_time_from_file_time(&props.created, &info.ftCreationTime);
-        props.flags = os_win32_file_property_flags_from_dwFileAttributes(info.dwFileAttributes);
+        _os_win32_dense_time_from_file_time(&props.modified, &info.ftLastWriteTime);
+        _os_win32_dense_time_from_file_time(&props.created, &info.ftCreationTime);
+        props.flags = _os_win32_file_property_flags_from_dwFileAttributes(info.dwFileAttributes);
     }
     return props;
 }
@@ -219,7 +219,7 @@ internal U32 os_now_unix(void)
 {
     FILETIME file_time;
     GetSystemTimeAsFileTime(&file_time);
-    U32 unix_time = os_win32_unix_time_from_file_time(file_time);
+    U32 unix_time = _os_win32_unix_time_from_file_time(file_time);
     return unix_time;
 }
 

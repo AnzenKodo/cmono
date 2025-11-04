@@ -17,7 +17,7 @@ internal Void_Proc *_render_opengl_load_procedure(char *name)
 internal void _render_opengl_init(void)
 {
     // Get device contex
-    _render_wgl_state.hdc = GetDC(wl_win32_state.handle);
+    _render_wgl_state.hdc = GetDC(_wl_win32_state.handle);
     // Build pixel format descriptor
     int pf = 0;
     {
@@ -36,9 +36,9 @@ internal void _render_opengl_init(void)
     HGLRC bootstrap_contex = wglCreateContext(_render_wgl_state.hdc);
     wglMakeCurrent(_render_wgl_state.hdc, bootstrap_contex);
     // Load extensions
-    FNWGLCHOOSEPIXELFORMATARBPROC    *wglChoosePixelFormatARB    = (FNWGLCHOOSEPIXELFORMATARBPROC*)(void*)render_opengl_load_procedure("wglChoosePixelFormatARB");
-    FNWGLCREATECONTEXTATTRIBSARBPROC *wglCreateContextAttribsARB = (FNWGLCREATECONTEXTATTRIBSARBPROC*)(void*)render_opengl_load_procedure("wglCreateContextAttribsARB");
-    FNWGLSWAPINTERVALEXTPROC         *wglSwapIntervalEXT         = (FNWGLSWAPINTERVALEXTPROC*)(void*)render_opengl_load_procedure("wglSwapIntervalEXT");
+    FNWGLCHOOSEPIXELFORMATARBPROC    *wglChoosePixelFormatARB    = (FNWGLCHOOSEPIXELFORMATARBPROC*)(void*)_render_opengl_load_procedure("wglChoosePixelFormatARB");
+    FNWGLCREATECONTEXTATTRIBSARBPROC *wglCreateContextAttribsARB = (FNWGLCREATECONTEXTATTRIBSARBPROC*)(void*)_render_opengl_load_procedure("wglCreateContextAttribsARB");
+    FNWGLSWAPINTERVALEXTPROC         *wglSwapIntervalEXT         = (FNWGLSWAPINTERVALEXTPROC*)(void*)_render_opengl_load_procedure("wglSwapIntervalEXT");
     // Set up real pixel format
     {
         int pf_attribs_i[] =
@@ -77,7 +77,7 @@ internal void _render_opengl_init(void)
 
 internal void _render_opengl_deinit(void)
 {
-    ReleaseDC(wl_win32_state.handle, _render_wgl_state.hdc);
+    ReleaseDC(_wl_win32_state.handle, _render_wgl_state.hdc);
     wglDeleteContext(_render_wgl_state.contex);
 }
 

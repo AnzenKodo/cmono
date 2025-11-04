@@ -238,8 +238,8 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         // Window Size ========================================================
         case WM_SIZE:
         {
-            _wl_state.win_size.x = LOWORD(l_param);
-            _wl_state.win_size.y = HIWORD(l_param);
+            _wl_core_state.win_size.x = LOWORD(l_param);
+            _wl_core_state.win_size.y = HIWORD(l_param);
             _wl_win32_state.window_resize = true;
         } // fallthrough;
         case WM_PAINT:
@@ -367,7 +367,7 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
         );
         os_exit(1);
     }
-    Str16 title16 = str16_from_8(os_core_state.alloc, title);
+    Str16 title16 = str16_from_8(_os_core_state.alloc, title);
     _wl_win32_state.handle = CreateWindowExW(
         WS_EX_APPWINDOW,
         wc.lpszClassName, title16.cstr,
@@ -386,8 +386,8 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     UpdateWindow(_wl_win32_state.handle);
 
     // Get Display Size ===============================================================
-    _wl_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
-    _wl_state.display_size.y = GetSystemMetrics(SM_CYSCREEN);
+    _wl_core_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
+    _wl_core_state.display_size.y = GetSystemMetrics(SM_CYSCREEN);
 }
 
 internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
