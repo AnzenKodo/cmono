@@ -4,7 +4,7 @@
 internal U32 _render_opengl_shader_compile(char **source, U32 source_num, GLenum type, U32 program_id)
 {
     GLuint shader_id = glCreateShader(type);
-    glShaderSource(shader_id, source_num, source, NULL);
+    glShaderSource(shader_id, source_num, (const char * const*)source, NULL);
     glCompileShader(shader_id);
     GLint status;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);

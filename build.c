@@ -163,6 +163,7 @@ internal void build_compile_gcc(Build_Info *info)
         " -Wno-missing-braces"
         " -Wno-unused-function"
         " -Wno-unused-variable"
+        " -Wno-unused-but-set-variable"
     );
     // Security ===============================================================
     build_cmd_append(info, " -mshstk -fcf-protection=full");
@@ -250,7 +251,6 @@ internal void build_run(Build_Info *info)
         build_cmd_append(info, "WINEARCH=win64 wine ");
     }
     build_cmd_append_output(info);
-
     if (info->os == Context_Os_Windows)
     {
         build_cmd_append(info, " shaders\\shader.frag");
@@ -259,7 +259,6 @@ internal void build_run(Build_Info *info)
     {
         build_cmd_append(info, " shaders/shader.frag");
     }
-
     build_cmd_finish(info);
 }
 
