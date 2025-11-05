@@ -32,7 +32,36 @@ internal void entry_point(void)
     // Load fragment shader file ==============================================
     Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read);
     Str8 frag_source = os_file_read_str_full(frag_file, alloc);
-    U32 shader_id = render_shader_load(str8_from_cstr(vert_source), frag_source);
+
+    char* vert_sources[] = {
+        shader_source_header,
+        vert_source,
+    };
+    char* frag_sources[] = {
+        shader_source_header,
+        "out vec4 fragColor;\n"
+        "uniform float iTime;\n"
+        "uniform vec2  iResolution;\n"
+        "uniform float iTimeDelta;\n"
+        "uniform float iFrame;\n"
+        "uniform float iChannelTime[4];\n"
+        "uniform vec4  iMouse;\n"
+        "uniform vec4  iDate;\n"
+        "uniform float iSampleRate;\n"
+        "uniform vec3  iChannelResolution[4];\n"
+        "uniform float iChannel0;\n"
+        "uniform float iChannel1;\n"
+        "uniform float iChannel2;\n"
+        "uniform float iChannel3;\n"
+        "void mainImage(out vec4 fragColor, in vec2 fragCoord);\n"
+        "void main() {\n"
+        "   mainImage(fragColor, gl_FragCoord.xy);\n"
+            // "mainSound(time);\n"
+            // "mainVR(fragColor, gl_FragCoord.xy, in vec3 fragRayOri, in vec3 fragRayDir);\n"
+        "}\n",
+        (char *)frag_source.cstr
+    };
+    U32 shader_id = render_shader_load_multi(vert_sources, 2, frag_sources, 3);
 
     U32 i_time               = render_shader_get_value(shader_id, str8("iTime"));
     U32 i_resolution         = render_shader_get_value(shader_id, str8("iResolution"));

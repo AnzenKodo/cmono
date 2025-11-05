@@ -1,29 +1,3 @@
-out vec4 fragColor;
-
-uniform float iTime;
-uniform vec2  iResolution;
-uniform float iTimeDelta;
-uniform float iFrame;
-uniform float iChannelTime[4];
-uniform vec4  iMouse;
-uniform vec4  iDate;
-uniform float iSampleRate;
-uniform vec3  iChannelResolution[4];
-uniform float iChannel0;
-uniform float iChannel1;
-uniform float iChannel2;
-uniform float iChannel3;
-
-void mainImage(out vec4 fragColor, in vec2 fragCoord);
-vec2 mainSound(float time);
-void mainVR(out vec4 fragColor, in vec2 fragCoord, in vec3 fragRayOri, in vec3 fragRayDir);
-void main()
-{
-    mainImage(fragColor, gl_FragCoord.xy);
-    // mainSound(time);
-    // mainVR(fragColor, gl_FragCoord.xy, in vec3 fragRayOri, in vec3 fragRayDir);
-}
-
 vec2 march(vec3 pos, vec3 dir);
 vec3 camera(vec2 uv);
 void rotate(inout vec2 v, float angle);
