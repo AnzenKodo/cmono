@@ -84,6 +84,13 @@ Context_Compiler;
 #   define ZERO_STRUCT {0}
 #endif
 
+#if COMPILER_CLANG || COMPILER_GCC
+#   define FILE_NAME __FILE_NAME__
+#else
+#   define FILE_NAME __FILE__
+#endif
+#define LINE_NUMBER __LINE__
+
 // Constants
 //=============================================================================
 
