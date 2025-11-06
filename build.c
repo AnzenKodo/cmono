@@ -25,6 +25,7 @@ typedef enum Build_Type
     Build_Type_Dev,
     Build_Type_Debug,
     Build_Type_Profiler,
+    Build_Type_Release,
 } Build_Type;
 
 typedef struct Build_Info Build_Info;
@@ -38,6 +39,7 @@ struct Build_Info
     bool mingw;
     Build_Type type;
     U8 cmd[BUILD_CMD_SIZE];
+    Log_Config log_config;
 };
 
 // Globals
@@ -53,7 +55,8 @@ global const char *help_message = "build.c: C file that build's C projects.\n"
 "   test                 Test project (Requires: valgrid, typos)\n"
 "   profile              Runs Profiler (Requires: perf)\n"
 "   version --version -v Print project version\n"
-"   help --help -h       Print help\n";
+"   help --help -h       Print help\n"
+"   --nocolor            Turn off color output\n";
 
 // Functions
 // ============================================================================
@@ -61,35 +64,21 @@ global const char *help_message = "build.c: C file that build's C projects.\n"
 internal void build_cmd_append(Build_Info *info, const char *format, ...);
 internal void build_cmd_finish(Build_Info *info);
 internal void build_cmd_run(Build_Info *info);
+internal char *build_type_to_str8(Build_Info *info);
 
 internal void build_cmd_append_output(Build_Info *info)
 {
     if (info->os == Context_Os_Windows)
     {
-        build_cmd_append(info, "%s\\%s_", info->dir.cstr, info->name.cstr);
+        build_cmd_append(info, "%s\\%s", info->dir.cstr, info->name.cstr);
     }
     else
     {
-        build_cmd_append(info, "%s/%s_", info->dir.cstr, info->name.cstr);
+        build_cmd_append(info, "%s/%s", info->dir.cstr, info->name.cstr);
     }
-    switch (info->type)
+    if (info->type != Build_Type_Release)
     {
-        case Build_Type_Dev:
-        {
-            build_cmd_append(info, "Dev");
-        }break;
-        case Build_Type_Debug:
-        {
-            build_cmd_append(info, "Debug");
-        }break;
-        case Build_Type_Profiler:
-        {
-            build_cmd_append(info, "Profiler");
-        }break;
-        default:
-        {
-            build_cmd_append(info, "");
-        }
+        build_cmd_append(info, "_%s", build_type_to_str8(info));
     }
     if (info->os == Context_Os_Windows)
     {
@@ -108,14 +97,24 @@ internal void build_compile_msvc(Build_Info *info)
     build_cmd_append(info, " -Fo:%s\\ -Fe:", info->dir.cstr);
     build_cmd_append_output(info);
     // Debug
-    build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
+    if (info->type != Build_Type_Release)
+    {
+        build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
+    }
     // Lock C Version
     build_cmd_append(info, " -std:c11");
     // Optimaization
-    build_cmd_append(info,
-        " -Od"
-        " -Ob1 -wd4710" // Disable inline functions and it's warnings
-    ); // Disable
+    if (info->type == Build_Type_Release)
+    {
+        build_cmd_append(info, " -Ox -wd4711"); // Enable
+    }
+    else
+    {
+        build_cmd_append(info,
+            " -Od"
+            " -Ob1 -wd4710" // Disable inline functions and it's warnings
+        ); // Disable
+    }
     // Warnings
     build_cmd_append(info, " -W4 -Wall");
     // Disbale uselss warnings
@@ -125,16 +124,18 @@ internal void build_compile_msvc(Build_Info *info)
         " -wd4310 -wd4146 -wd4245" // Cast conversion
         " -wd4201"                 // Nameless struct/union
         " -wd4820"                 // Struct padding
-        " -wd4061"                 // Enum switch enumeratio
-        " -wd4189"                 // Unused variables
+        " -wd4061"                 // Enum switch enumeration
     );
     // Security
     build_cmd_append(info,
         " -Qspectre -wd5045"  // Spectre variant 1 vulnerability
         " -GS"                // Canary insertion
         " -guard:cf"          // Control-flow protection
-        // " -fsanitize=address" // AddressSanitizer
     );
+    if (info->type != Build_Type_Debug || info->type != Build_Type_Release)
+    {
+        // build_cmd_append(info, " -fsanitize=address"); // AddressSanitizer
+    }
 }
 
 internal void build_compile_gcc(Build_Info *info)
@@ -153,8 +154,24 @@ internal void build_compile_gcc(Build_Info *info)
     build_cmd_append_output(info);
     // Lock C Version
     build_cmd_append(info, " -std=gnu99");
+    // Optimaization
+    if (info->type == Build_Type_Release)
+    {
+        build_cmd_append(info, " -O3"); // Enable
+    }
+    if (info->type == Build_Type_Debug)
+    {
+        build_cmd_append(info, " -Og"); // Enable Debug friendly optimaization
+    }
+    else
+    {
+        build_cmd_append(info, " -O0");
+    }
     // Debug
-    build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
+    if (info->type != Build_Type_Release)
+    {
+        build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
+    }
     // Warning
     build_cmd_append(info, " -Wall -Wextra");
     // Disable useless warnings in C
@@ -162,8 +179,6 @@ internal void build_compile_gcc(Build_Info *info)
         " -Wno-unknown-pragmas"
         " -Wno-missing-braces"
         " -Wno-unused-function"
-        " -Wno-unused-variable"
-        " -Wno-unused-but-set-variable"
     );
     // Security ===============================================================
     build_cmd_append(info, " -mshstk -fcf-protection=full");
@@ -190,7 +205,7 @@ internal void build_compile(Build_Info *info)
     {
         fmt_printf("Created `%s` directory.\n", info->dir.cstr);
     }
-    fmt_println("# Compile --------------------------------------------------------------------#\n");
+    fmt_println("# Compile --------------------------------------------------------------------#");
     if (info->os == Context_Os_Linux)
     {
         build_compile_gcc(info);
@@ -245,7 +260,7 @@ internal void build_profiler(Build_Info *info)
 
 internal void build_run(Build_Info *info)
 {
-    fmt_println("# Running --------------------------------------------------------------------#\n");
+    fmt_println("# Running --------------------------------------------------------------------#");
     if (info->mingw)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");
@@ -270,6 +285,7 @@ internal void entry_point()
     info.entry_point = str8("src/shaderplay/shaderplay_entry_point.c");
     info.dir = str8("build");
     info.os = context_of_os();
+    info.log_config = log_init();
 
     bool should_print_help = false;
     bool should_print_version = false;
@@ -277,46 +293,67 @@ internal void entry_point()
 
     Str8Array *args = os_args_get();
 
-    if (args->length == 1)
+    if (args->length >= 2)
     {
-        should_print_help = true;
-    }
-
-    Str8 arg_str = args->strings[1];
-    if (str8_match(arg_str, str8("help"), 0) || str8_match(arg_str,
-        str8("--help"), 0) || str8_match(arg_str, str8("-h"), 0))
-    {
-        should_print_help = true;
-        should_print_version = true;
-    }
-    else if (str8_match(arg_str, str8("version"), 0) ||
-        str8_match(arg_str, str8("--version"), 0) ||
-        str8_match(arg_str, str8("-v"), 0))
-    {
-        should_print_version = true;
-    }
-    else if (str8_match(arg_str, str8("build"), 0))
-    {
-        info.type = Build_Type_Dev;
-    }
-    else if (str8_match(arg_str, str8("build-run"), 0))
-    {
-        info.type = Build_Type_Dev;
-        build_run_program = true;
-    }
-    else if (str8_match(arg_str, str8("build-debugger"), 0))
-    {
-        info.type = Build_Type_Debug;
-    }
-    else if (str8_match(arg_str, str8("run"), 0))
-    {
-        build_run_program = true;
-    } else if(str8_match(arg_str, str8("profile"), 0)) {
-        info.type = Build_Type_Profiler;
-    }
-    else
-    {
-        fmt_eprintf("Error: wrong option provided `%s`.\n\n", arg_str.cstr);
+        Str8 arg1 = args->strings[1];
+        Str8 arg2 = ZERO_STRUCT;
+        if (args->length == 3)
+        {
+            arg2 = args->strings[2];
+        }
+        if (str8_match(arg1, str8("help"), 0) || str8_match(arg1,
+            str8("--help"), 0) || str8_match(arg1, str8("-h"), 0))
+        {
+            should_print_help = true;
+            should_print_version = true;
+        }
+        else if (str8_match(arg1, str8("version"), 0) ||
+            str8_match(arg1, str8("--version"), 0) ||
+            str8_match(arg1, str8("-v"), 0))
+        {
+            should_print_version = true;
+        }
+        else if (str8_match(arg1, str8("build"), 0))
+        {
+            if (str8_match(arg2, str8("release"), 0))
+            {
+                info.type = Build_Type_Release;
+            }
+            else
+            {
+                info.type = Build_Type_Dev;
+            }
+        }
+        else if (str8_match(arg1, str8("build-run"), 0))
+        {
+            if (str8_match(arg2, str8("release"), 0))
+            {
+                info.type = Build_Type_Release;
+            }
+            else
+            {
+                info.type = Build_Type_Dev;
+            }
+            build_run_program = true;
+        }
+        else if (str8_match(arg1, str8("build-debugger"), 0))
+        {
+            info.type = Build_Type_Debug;
+        }
+        else if (str8_match(arg1, str8("run"), 0))
+        {
+            build_run_program = true;
+        } else if(str8_match(arg1, str8("profile"), 0)) {
+            info.type = Build_Type_Profiler;
+        }
+        else
+        {
+            fmt_eprintf("Error: wrong option provided `%s`.\n\n", arg1.cstr);
+            should_print_help = true;
+            should_print_version = true;
+            os_exit(1);
+        }
+    } else {
         should_print_help = true;
         should_print_version = true;
     }
@@ -324,11 +361,16 @@ internal void entry_point()
     {
         info.mingw = true;
     }
-    fmt_println("#=============================================================================#");
-    fmt_println("# Build Output                                                                #");
-    fmt_println("#=============================================================================#\n");
+    for (U32 i = 0; i < args->length; i++)
+    {
+        if (str8_match(args->strings[i], str8("--nocolor"), 0)) {
+            info.log_config.color_log = false;
+        }
+    }
     if (!(should_print_help || should_print_version))
     {
+        fmt_println("# Build Output ===============================================================#");
+        fmt_printfln("Build Type: %s", build_type_to_str8(&info));
         if (info.type != Build_Type_None)
         {
             build_compile(&info);
@@ -344,7 +386,7 @@ internal void entry_point()
     }
     if (should_print_version)
     {
-        fmt_printf("Version: %s", info.dir.cstr);
+        fmt_printfln("Version: %s", info.version.cstr);
     }
 }
 
@@ -362,7 +404,7 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
 
 internal void build_cmd_run(Build_Info *info)
 {
-    fmt_printf("Command: %s\n\n", info->cmd);
+    fmt_printf("Command: %s\n", info->cmd);
     int err = system((const char *)info->cmd);
     if (err)
     {
@@ -375,4 +417,37 @@ internal void build_cmd_finish(Build_Info *info)
 {
     build_cmd_run(info);
     mem_set(info->cmd, 0, cstr8_length(Cast(U8 *)info->cmd));
+}
+
+internal char *build_type_to_str8(Build_Info *info)
+{
+    char *type_string;
+    switch (info->type)
+    {
+        case Build_Type_Dev:
+        {
+            type_string = "Dev";
+        }
+        break;
+        case Build_Type_Debug:
+        {
+            type_string = "Debug";
+        }
+        break;
+        case Build_Type_Profiler:
+        {
+            type_string = "Profiler";
+        }
+        break;
+        case Build_Type_Release:
+        {
+            type_string = "Release";
+        }
+        break;
+        default:
+        {
+            type_string = "";
+        }
+    }
+    return type_string;
 }
