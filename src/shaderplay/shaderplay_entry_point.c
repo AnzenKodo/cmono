@@ -58,7 +58,7 @@ internal void entry_point(void)
     U64 start = os_now_microsec();
     while (!wl_should_window_close())
     {
-        Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read);
+        Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read|OS_AccessFlag_ShareWrite);
         Os_FileProperties prop = os_file_properties(frag_file);
         if (prop.modified && prop.modified != old_modified)
         {
@@ -116,7 +116,6 @@ internal void entry_point(void)
     }
 
     // Free Everything ========================================================
-    render_shader_unload(shader_id);
     render_deinit();
     wl_window_close();
     // os_file_close(frag_file);
