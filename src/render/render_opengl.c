@@ -12,7 +12,7 @@ internal U32 _render_opengl_shader_compile(char **source, U32 source_num, GLenum
     {
         char log[512];
         glGetShaderInfoLog(shader_id, 512, NULL, log);
-        fmt_printf("Shader program linking failed: %s", log);
+        LogErrorLine(_os_core_state.log_config, "Shader program compile failed.");
     }
     glAttachShader(program_id, shader_id);
     return shader_id;
@@ -73,7 +73,7 @@ internal U32 render_shader_load_multi(char **vert_sources, U32 vert_source_num, 
     {
         char log[512];
         glGetProgramInfoLog(program_id, 512, NULL, log);
-        fmt_printf("Shader program linking failed: %s", log);
+        LogErrorLine(_os_core_state.log_config, "%s", log);
     }
     glUseProgram(program_id);
     glDeleteShader(vert_id);
