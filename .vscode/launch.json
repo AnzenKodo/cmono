@@ -2,15 +2,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Program Debug",
+            "name": "Debug Program",
             "request": "launch",
             "program": "${workspaceFolder}/build/Scuttle_Debug",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
-            "preLaunchTask": "Program Build"
+            "preLaunchTask": "Build Program"
         },
         {
-            "name": "File Debug",
+            "name": "Debug File",
             "request": "launch",
             "program": "${workspaceFolder}/a.exe",
             "cwd": "${workspaceFolder}",
@@ -19,12 +19,21 @@
             "arguments": "build-run"
         },
         {
-            "name": "Program Debug Windows",
+            "name": "Debug Program Windows",
             "request": "launch",
             "program": "${workspaceFolder}/build/Scuttle_Debug.exe",
             "cwd": "${workspaceFolder}",
             "type": "cppvsdbg",
-            "preLaunchTask": "Program Build Windows"
+            "preLaunchTask": "Build Program Windows"
+        },
+        {
+            "name": "Debug File Windows",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/build.exe",
+            "cwd": "${workspaceFolder}",
+            "type": "cppvsdbg",
+            "args": [ "build-run" ],
+            "arguments": "build-run"
         },
     ]
 }

@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Program Build",
+            "label": "Build Program",
             "type": "shell",
             "command": "cc build.c && ./a.out build-debugger",
             "problemMatcher": {
@@ -22,7 +22,7 @@
             }
         },
         {
-            "label": "Program Build Windows",
+            "label": "Build Program Windows",
             "type": "shell",
             "command": "cc build.c && a.exe build-debugger",
             "options": {
@@ -51,7 +51,7 @@
             }
         },
         {
-            "label": "Build file",
+            "label": "Build File",
             "type": "shell",
             "command": "cc -ggdb -g3 build.c",
             "problemMatcher": {
