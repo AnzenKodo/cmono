@@ -53,16 +53,14 @@ internal void entry_point(void)
     render_init();
 
     U32 shader_id, i_time, i_resolution, i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
-    DenseTime old_modified;
-
-    Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read);
-    Os_FileProperties prop = os_file_properties(frag_file);
+    DenseTime old_modified = 0;
 
     U64 start = os_now_microsec();
     while (!wl_should_window_close())
     {
-        prop = os_file_properties(frag_file);
-        if (prop.modified != old_modified)
+        Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read);
+        Os_FileProperties prop = os_file_properties(frag_file);
+        if (prop.modified && prop.modified != old_modified)
         {
             old_modified = prop.modified;
             Str8 frag_source = os_file_read_str_full(frag_file, alloc);
@@ -121,6 +119,6 @@ internal void entry_point(void)
     render_shader_unload(shader_id);
     render_deinit();
     wl_window_close();
-    os_file_close(frag_file);
+    // os_file_close(frag_file);
     os_memory_free(buffer, size);
 }
