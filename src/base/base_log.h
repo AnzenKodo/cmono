@@ -39,7 +39,7 @@ internal void log_error(Log_Config config, const char *format, ...);
         level_color = _log_get_level_color(level); \
         line_info_color = ANSI_FG_CYAN; \
     } \
-    fmt_fprintf(config.file, "%s%s"ANSI_RESET"%s[%s:%d] "ANSI_RESET, level_color, level_string, line_info_color, __FILE_NAME__, __LINE__); \
+    fmt_fprintf(config.file, "%s%s"ANSI_RESET"%s[%s:%d] "ANSI_RESET, level_color, level_string, line_info_color, FILE_NAME, LINE_NUMBER); \
     fmt_fprintfln(config.file, format, ##__VA_ARGS__); \
 } while(0)
 #define LogInfoLine(config, format, ...) do { \

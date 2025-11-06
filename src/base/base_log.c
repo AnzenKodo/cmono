@@ -61,7 +61,7 @@ internal void log_printf(Log_Config config, Log_Level level, const char *format,
         char *level_color = "";
         if (config.color_log)
         {
-            char *level_color = _log_get_level_color(level);
+            level_color = _log_get_level_color(level);
         }
         if (config.print_level_prefix)
         {
