@@ -74,28 +74,47 @@ internal void os_memory_free(void *ptr, U64 size)
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
-    I32 lnx_flags = 0;
+    I32 access_flags = 0;
     if(flags & OS_AccessFlag_Read && flags & OS_AccessFlag_Write)
     {
-        lnx_flags = O_RDWR;
+        access_flags = O_RDWR;
     }
     else if(flags & OS_AccessFlag_Write)
     {
-        lnx_flags = O_WRONLY|O_TRUNC;
+        access_flags = O_WRONLY|O_TRUNC;
     }
     else if(flags & OS_AccessFlag_Read)
     {
-        lnx_flags = O_RDONLY;
+        access_flags = O_RDONLY;
     }
     if(flags & OS_AccessFlag_Append)
     {
-        lnx_flags |= O_APPEND;
+        access_flags |= O_APPEND;
     }
     if(flags & (OS_AccessFlag_Write|OS_AccessFlag_Append))
     {
-        lnx_flags |= O_CREAT;
+        access_flags |= O_CREAT;
     }
-    Os_File file = open((char *)path.cstr, lnx_flags, 0666);
+    Os_File file = open((char *)path.cstr, access_flags, 0666);
+    if (!(flags & OS_AccessFlag_Inherited)) {
+        fcntl(file, F_SETFD, FD_CLOEXEC);
+    }
+    // Lock file based on given flags
+    short share_mode = 0;
+    if (!(flags & OS_AccessFlag_ShareRead)) {
+        share_mode |= F_RDLCK;
+    }
+    if (!(flags & OS_AccessFlag_ShareWrite)) {
+        share_mode |= F_WRLCK;
+    }
+    if (share_mode) {
+        struct flock lock = {0};
+        lock.l_type = share_mode;
+        lock.l_start = 0;
+        lock.l_whence = SEEK_SET;
+        lock.l_len = 0;  // Lock entire file
+        fcntl(file, F_SETLK, &lock);
+    }
     return file;
 }
 
