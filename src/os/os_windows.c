@@ -197,7 +197,7 @@ internal bool os_dir_make(Str8 path)
     WIN32_FILE_ATTRIBUTE_DATA attributes = {0};
     GetFileAttributesExW((WCHAR*)path16.cstr, GetFileExInfoStandard, &attributes);
     if(attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        result = true;
+        result = false;
     } else if(CreateDirectoryW((WCHAR*)path16.cstr, 0)) {
         result = true;
     }
