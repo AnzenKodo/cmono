@@ -179,12 +179,14 @@ internal void build_compile_gcc(Build_Info *info)
         " -Wno-unknown-pragmas"
         " -Wno-missing-braces"
         " -Wno-unused-function"
+        " -Wno-unused-variable"
     );
     // Security ===============================================================
     build_cmd_append(info, " -mshstk -fcf-protection=full");
     if (info->type != Build_Type_Debug && !info->mingw)
     {
-        build_cmd_append(info, " -fstack-protector -fsanitize=address");
+        build_cmd_append(info, " -fstack-protector -fsanitize=address,undefined -fno-omit-frame-pointer");
+        // build_cmd_append(info, "-fanalyzer");
     }
     // Libs ===================================================================
     if (info->mingw || info->os == Context_Os_Windows)
