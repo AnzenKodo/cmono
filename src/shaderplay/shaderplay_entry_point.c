@@ -52,7 +52,8 @@ internal void entry_point(void)
     Alloc alloc = alloc_arena_init(buffer, size);
     render_init();
 
-    U32 shader_id, i_time, i_resolution, i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
+    U32 shader_id, i_time, i_resolution;
+    // U32 i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
     DenseTime old_modified = 0;
 
     U64 start = os_now_microsec();
@@ -77,17 +78,17 @@ internal void entry_point(void)
 
             i_time               = render_shader_get_value(shader_id, str8("iTime"));
             i_resolution         = render_shader_get_value(shader_id, str8("iResolution"));
-            i_time_delta         = render_shader_get_value(shader_id, str8("iTimeDelta"));
-            i_frame              = render_shader_get_value(shader_id, str8("iFrame"));
-            i_channel_time       = render_shader_get_value(shader_id, str8("iChannelTime"));
-            i_mouse              = render_shader_get_value(shader_id, str8("iMouse"));
-            i_date               = render_shader_get_value(shader_id, str8("iDate"));
-            i_samplerate         = render_shader_get_value(shader_id, str8("iSampleRate"));
-            i_channel_resolution = render_shader_get_value(shader_id, str8("iChannelResolution"));
-            i_channel_0          = render_shader_get_value(shader_id, str8("iChannel0"));
-            i_channel_1          = render_shader_get_value(shader_id, str8("iChannel1"));
-            i_channel_2          = render_shader_get_value(shader_id, str8("iChannel2"));
-            i_channel_3          = render_shader_get_value(shader_id, str8("iChannel3"));
+            // i_time_delta         = render_shader_get_value(shader_id, str8("iTimeDelta"));
+            // i_frame              = render_shader_get_value(shader_id, str8("iFrame"));
+            // i_channel_time       = render_shader_get_value(shader_id, str8("iChannelTime"));
+            // i_mouse              = render_shader_get_value(shader_id, str8("iMouse"));
+            // i_date               = render_shader_get_value(shader_id, str8("iDate"));
+            // i_samplerate         = render_shader_get_value(shader_id, str8("iSampleRate"));
+            // i_channel_resolution = render_shader_get_value(shader_id, str8("iChannelResolution"));
+            // i_channel_0          = render_shader_get_value(shader_id, str8("iChannel0"));
+            // i_channel_1          = render_shader_get_value(shader_id, str8("iChannel1"));
+            // i_channel_2          = render_shader_get_value(shader_id, str8("iChannel2"));
+            // i_channel_3          = render_shader_get_value(shader_id, str8("iChannel3"));
 
             GLint positionAttrib = glGetAttribLocation(shader_id, "position");
             glEnableVertexAttribArray(positionAttrib);
