@@ -1,22 +1,77 @@
 #include "../base/base_include.h"
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
-#include "../draw/draw.h"
 #include "../render/render_include.h"
-#include "../shaderplay/shaderplay_include.h"
+#include "./shaderplay_core.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
-#include "../draw/draw.c"
 #include "../render/render_include.c"
-#include "../shaderplay/shaderplay_include.c"
-#include <stdio.h>
-
-#define FRAGMENT_SHADER_PATH   "shaders/circles.frag"
 
 internal void entry_point(void)
 {
+    // Command Line ===========================================================
+    Str8 frag_filepath;
+    bool no_aot = false;
+    bool no_esc = false;
+    U64 fps = 60;
+    const char *help_message = PROGRAM_NAME": "PROGRAM_DESCRIPTION"\n"
+        "USAGE:\n"
+        "   "PROGRAM_CMD_NAME" [OPTIONS] <shader_file_name.frag>\n"
+        "OPTIONS:\n"
+        "   --fps           Set how many Frames Per Seconds window to render\n"
+        "                   (default: 60)\n"
+        "   --no-aot        Disable window Always On Top\n"
+        "   --no-esc        Disable `ESC` key close functionality\n"
+        "   --help -h       Print help message\n"
+        "   --version -v    Print version message\n"
+        "VERSION:\n"
+        "   "PROGRAM_VERSION;
+    Str8Array *args = os_args_get();
+    if (args->length >= 2)
+    {
+        Str8 arg1 = args->strings[1];
+        for (U8 i = 1; i < args->length; i++)
+        {
+            Str8 arg = args->strings[i];
+            if (str8_match(arg, str8("--help"), 0) || str8_match(arg, str8("-h"), 0))
+            {
+                fmt_print(help_message);
+                os_exit(0);
+            }
+            if (str8_match(arg, str8("--version"), 0) || str8_match(arg, str8("-v"), 0))
+            {
+                fmt_print("v"PROGRAM_VERSION);
+                os_exit(0);
+            }
+            if (str8_match(arg, str8("--fps"), 0))
+            {
+                // fps = args->strings[i++];
+            }
+            if (str8_match(arg, str8("--no_aot"), 0))
+            {
+                no_aot = true;
+            }
+            if (str8_match(arg, str8("--no_esc"), 0))
+            {
+                no_esc = true;
+            }
+            // if ()
+            {
+                frag_filepath = arg1;
+                break;
+            }
+        }
+    }
+
+    // Program Init ===========================================================
+    wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+    render_init();
+
     char *vert_source = "in vec4 position;\n"
         "void main() {\n"
         "    gl_Position = position;\n"
@@ -45,21 +100,16 @@ internal void entry_point(void)
         // "   mainVR(fragColor, gl_FragCoord.xy, in vec3 fragRayOri, in vec3 fragRayDir);\n"
         "}\n";
 
-    // Program Init ===========================================================
-    wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
-    U64 size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-    render_init();
-
     U32 shader_id, i_time, i_resolution;
     // U32 i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
     DenseTime old_modified = 0;
+    Os_File frag_file;
 
+    // Program Loop ===========================================================
     U64 start = os_now_microsec();
     while (!wl_should_window_close())
     {
-        Os_File frag_file = os_file_open(str8(FRAGMENT_SHADER_PATH), OS_AccessFlag_Read|OS_AccessFlag_ShareWrite);
+        frag_file = os_file_open(frag_filepath, OS_AccessFlag_Read|OS_AccessFlag_ShareWrite);
         Os_FileProperties prop = os_file_properties(frag_file);
         if (prop.modified && prop.modified != old_modified)
         {
@@ -74,6 +124,10 @@ internal void entry_point(void)
                 shader_init_code,
                 (char *)frag_source.cstr
             };
+            if (shader_id)
+            {
+                render_shader_unload(shader_id);
+            }
             shader_id = render_shader_load_multi(vert_sources, 2, frag_sources, 3);
 
             i_time               = render_shader_get_value(shader_id, str8("iTime"));
@@ -89,17 +143,16 @@ internal void entry_point(void)
             // i_channel_1          = render_shader_get_value(shader_id, str8("iChannel1"));
             // i_channel_2          = render_shader_get_value(shader_id, str8("iChannel2"));
             // i_channel_3          = render_shader_get_value(shader_id, str8("iChannel3"));
-
             GLint positionAttrib = glGetAttribLocation(shader_id, "position");
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
         }
         render_shader_set_value(i_resolution, (float[2]){ (F32)wl_get_window_width(), (F32)wl_get_window_height() }, Render_Shader_Vec2);
 
-        wl_set_fps(60);
+        wl_set_fps(fps);
         wl_update_events();
-        if (
-            wl_is_key_pressed(Wl_Key_Esc) || wl_is_event_happen(Wl_EventType_WindowClose)
+        if ((!no_esc && wl_is_key_pressed(Wl_Key_Esc)) ||
+            wl_is_event_happen(Wl_EventType_WindowClose)
         ) {
             wl_set_window_close();
         }
@@ -119,6 +172,6 @@ internal void entry_point(void)
     // Free Everything ========================================================
     render_deinit();
     wl_window_close();
-    // os_file_close(frag_file);
+    os_file_close(frag_file);
     os_memory_free(buffer, size);
 }
