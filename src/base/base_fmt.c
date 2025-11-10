@@ -26,7 +26,7 @@ internal U64 fmt_vfprintf(Os_File file, const char *format, va_list args)
         va_copy(args_copy, args);
             written = fmt_vsprintf(buffer, format, args_copy);
         va_end(args_copy);
-        os_file_write(file, rng_1u64(0, written), buffer);
+        fmt_fprint(file, buffer);
         alloc_free(_os_core_state.alloc, buffer, needed);
     }
     return written;
@@ -54,7 +54,7 @@ internal U64 fmt_vfprintfln(Os_File file, const char *format, va_list args)
         va_end(args_copy);
         buffer[written] = '\n';
         buffer[written+1] = '\0';
-        os_file_write(file, rng_1u64(0, written+1), buffer);
+        fmt_fprint(file, buffer);
         alloc_free(_os_core_state.alloc, buffer, needed);
     }
     return written;
