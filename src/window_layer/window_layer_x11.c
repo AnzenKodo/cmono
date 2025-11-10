@@ -323,11 +323,38 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
+// Set window property
+// ============================================================================
+
+internal void wl_set_window_pos(Vec2I32 win_pos)
+{
+    xcb_configure_window(
+        _wl_x11_state.connection, _wl_x11_state.window,
+        XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
+        (int[2]){ win_pos.x, win_pos.y }
+    );
+}
+
+internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
+{
+    U32 data[2 + width * height];
+    data[0] = width;
+    data[1] = height;
+    mem_copy(data + 2, icon_data, width * height * sizeof(U32));
+    xcb_change_property(
+        _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, _wl_x11_state.window,
+        _wl_x11_state.wm_icon, XCB_ATOM_CARDINAL, 32,
+        2 + width * height, data
+    );
+}
+
+
+// Software render
+// ============================================================================
 
 internal void wl_render_init(void *render_buffer)
 {
     _wl_x11_state.render_buffer = render_buffer;
-
     // Create pixmap format ===================================================
     _wl_x11_state.pixmap = xcb_generate_id(_wl_x11_state.connection);
     xcb_format_t *pixmap_format = xcb_setup_pixmap_formats(

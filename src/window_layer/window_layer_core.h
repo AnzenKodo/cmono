@@ -229,16 +229,17 @@ internal void wl_update_events(void);
 internal Wl_Event wl_get_event(void);
 internal bool wl_is_key_pressed(Wl_Key key);
 
-// Get window information =====================================================
+// Set window property ========================================================
+
+internal void wl_set_window_pos(Vec2I32 win_pos);
+internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height);
+
+// Get window property ========================================================
 
 internal U32 wl_get_display_width(void);
 internal U32 wl_get_display_height(void);
 internal U32 wl_get_window_width(void);
 internal U32 wl_get_window_height(void);
-
-// Window icon ================================================================
-
-internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height);
 
 // Software render ============================================================
 
