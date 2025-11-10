@@ -18,7 +18,6 @@ internal void wl_update_events(void)
 {
     // Update Event ===========================================================
     _wl_core_state.event = wl_get_event();
-
     // Update FPS =============================================================
     _wl_core_state.frame_count++;
     U64 frame_current_time = os_now_microsec();
@@ -40,7 +39,7 @@ internal bool wl_is_event_happen(Wl_EventType type)
     return _wl_core_state.event.type == type;
 }
 
-// Get Window Information
+// Get Window Property
 //=============================================================================
 
 internal U32 wl_get_display_width(void)

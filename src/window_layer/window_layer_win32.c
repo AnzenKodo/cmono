@@ -9,7 +9,6 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
     {
         first = 0;
         MemoryZeroArray(key_table);
-
         key_table[(unsigned int)'A'] = Wl_Key_A;
         key_table[(unsigned int)'B'] = Wl_Key_B;
         key_table[(unsigned int)'C'] = Wl_Key_C;
@@ -36,7 +35,6 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
         key_table[(unsigned int)'X'] = Wl_Key_X;
         key_table[(unsigned int)'Y'] = Wl_Key_Y;
         key_table[(unsigned int)'Z'] = Wl_Key_Z;
-
         for (U64 i = '0', j = Wl_Key_0; i <= '9'; i += 1, j += 1)
         {
             key_table[i] = (Wl_Key)j;
@@ -49,7 +47,6 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
         {
             key_table[i] = (Wl_Key)j;
         }
-
         key_table[VK_SPACE]     = Wl_Key_Space;
         key_table[VK_OEM_3]     = Wl_Key_Tick;
         key_table[VK_OEM_MINUS] = Wl_Key_Minus;
@@ -62,31 +59,25 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
         key_table[VK_OEM_PERIOD]= Wl_Key_Period;
         key_table[VK_OEM_2]     = Wl_Key_Slash;
         key_table[VK_OEM_5]     = Wl_Key_BackSlash;
-
         key_table[VK_TAB]       = Wl_Key_Tab;
         key_table[VK_PAUSE]     = Wl_Key_Pause;
         key_table[VK_ESCAPE]    = Wl_Key_Esc;
-
         key_table[VK_UP]        = Wl_Key_Up;
         key_table[VK_LEFT]      = Wl_Key_Left;
         key_table[VK_DOWN]      = Wl_Key_Down;
         key_table[VK_RIGHT]     = Wl_Key_Right;
-
         key_table[VK_BACK]      = Wl_Key_Backspace;
         key_table[VK_RETURN]    = Wl_Key_Return;
-
         key_table[VK_DELETE]    = Wl_Key_Delete;
         key_table[VK_INSERT]    = Wl_Key_Insert;
         key_table[VK_PRIOR]     = Wl_Key_PageUp;
         key_table[VK_NEXT]      = Wl_Key_PageDown;
         key_table[VK_HOME]      = Wl_Key_Home;
         key_table[VK_END]       = Wl_Key_End;
-
         key_table[VK_CAPITAL]   = Wl_Key_CapsLock;
         key_table[VK_NUMLOCK]   = Wl_Key_NumLock;
         key_table[VK_SCROLL]    = Wl_Key_ScrollLock;
         key_table[VK_APPS]      = Wl_Key_Menu;
-
         key_table[VK_CONTROL]   = Wl_Key_Ctrl;
         key_table[VK_LCONTROL]  = Wl_Key_CtrlLeft;
         key_table[VK_RCONTROL]  = Wl_Key_CtrlRight;
@@ -96,24 +87,20 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
         key_table[VK_MENU]      = Wl_Key_Alt;
         key_table[VK_LMENU]     = Wl_Key_AltLeft;
         key_table[VK_RMENU]     = Wl_Key_AltRight;
-
         key_table[VK_DIVIDE]   = Wl_Key_NumSlash;
         key_table[VK_MULTIPLY] = Wl_Key_NumStar;
         key_table[VK_SUBTRACT] = Wl_Key_NumMinus;
         key_table[VK_ADD]      = Wl_Key_NumPlus;
         key_table[VK_DECIMAL]  = Wl_Key_NumPeriod;
-
         for (U32 i = 0; i < 10; i += 1)
         {
             key_table[VK_NUMPAD0 + i] = (Wl_Key)((U64)Wl_Key_Num0 + i);
         }
-
         for (U64 i = 0xDF, j = 0; i < 0xFF; i += 1, j += 1)
         {
             key_table[i] = (Wl_Key)((U64)Wl_Key_Ex0 + j);
         }
     }
-
     Wl_Key key = key_table[vkey&bitmask8];
     return key;
 }
@@ -227,14 +214,12 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
 {
     LRESULT result = 0;
     // bool release = 0;
-
     switch(message)
     {
         default:
         {
             result = DefWindowProcW(handle, message, w_param, l_param);
         } break;
-
         // Window Size ========================================================
         case WM_SIZE:
         {
@@ -245,14 +230,11 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         case WM_PAINT:
         {
         } break;
-
-
         // Window Close =======================================================
         case WM_CLOSE:
         {
             _wl_win32_state.window_close = true;
         } break;
-
         // // Window Resize ======================================================
         case WM_ENTERSIZEMOVE:
         {
@@ -270,7 +252,6 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         //         } break;
         //     }
         // }
-
         // case WM_PAINT:
         // {
         // } break;
@@ -345,7 +326,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
     return result;
 }
 
-// Basic Window functions
+// Basic window functions
 //=============================================================================
 
 internal void wl_window_open(Str8 title, Vec2I32 win_size)
@@ -384,17 +365,9 @@ internal void wl_window_open(Str8 title, Vec2I32 win_size)
     }
     ShowWindow(_wl_win32_state.handle, SW_SHOW);
     UpdateWindow(_wl_win32_state.handle);
-
-    // Get Display Size ===============================================================
+    // Get Display Size =======================================================
     _wl_core_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
     _wl_core_state.display_size.y = GetSystemMetrics(SM_CYSCREEN);
-}
-
-internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
-{
-    Unused(icon_data);
-    Unused(width);
-    Unused(height);
 }
 
 internal void wl_window_close(void)
@@ -409,7 +382,6 @@ internal Wl_Event wl_get_event(void)
 {
     Wl_Event event = ZERO_STRUCT;
     bool release = 0;
-
     MSG msg = ZERO_STRUCT;
     if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
@@ -428,7 +400,6 @@ internal Wl_Event wl_get_event(void)
                     _wl_win32_state.window_resize = false;
                 }
             } break;
-
             // Keyboard key presses/releases ======================================
             case WM_SYSKEYDOWN: case WM_SYSKEYUP:
             {
@@ -444,14 +415,12 @@ internal Wl_Event wl_get_event(void)
             {
                 I32 was_down = (msg.lParam & bit31);
                 I32 is_down  = !(msg.lParam & bit32);
-
                 I32 is_repeat = 0;
                 if(!is_down) {
                     release = 1;
                 } else if(was_down) {
                     is_repeat = 1;
                 }
-
                 I32 right_sided = 0;
                 if ((msg.lParam & bit25) &&
                         (msg.wParam == VK_CONTROL || msg.wParam == VK_RCONTROL ||
@@ -485,7 +454,6 @@ internal Wl_Event wl_get_event(void)
                 Unused(is_repeat);
                 Unused(right_sided);
             } break;
-
             // Mouse button presses/releases ======================================
             case WM_LBUTTONUP:
             case WM_MBUTTONUP:
@@ -531,7 +499,6 @@ internal Wl_Event wl_get_event(void)
                     SetCapture(_wl_win32_state.handle);
                 }
             } break;
-
             // Mouse Motion =======================================================
             case WM_MOUSEMOVE:
             {
@@ -560,7 +527,6 @@ internal Wl_Event wl_get_event(void)
                 event.pos.y = (F32)p.y;
                 event.delta = vec_2f32((F32)wheel_delta, 0.f);
             } break;
-
             case WM_QUIT:
             {
                 event.type = Wl_EventType_WindowClose;
@@ -568,6 +534,24 @@ internal Wl_Event wl_get_event(void)
         }
     }
     return event;
+}
+
+// Set window property
+// ============================================================================
+
+internal void wl_set_window_pos(Vec2I32 win_pos)
+{
+    SetWindowPos(
+        _wl_win32_state.handle, NULL, win_pos.x, win_pos.y, 0, 0,
+        SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
+    );
+}
+
+internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
+{
+    Unused(icon_data);
+    Unused(width);
+    Unused(height);
 }
 
 // Software Render
