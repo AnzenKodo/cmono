@@ -5,6 +5,7 @@
 #include "src/os/os_include.h"
 #include "src/base/base_include.c"
 #include "src/os/os_include.c"
+#include "src/shaderplay/shaderplay_core.h"
 
 // External Includes ==========================================================
 
@@ -33,6 +34,7 @@ struct Build_Info
 {
     Context_Os os;
     Str8 name;
+    Str8 cmd_name;
     Str8 version;
     Str8 entry_point;
     Str8 dir;
@@ -47,16 +49,16 @@ struct Build_Info
 
 
 global const char *help_message = "build.c: C file that build's C projects.\n"
-"Options:\n"
+"USAGE:\n"
+"   build.c [OPTIONS]\n"
+"OPTIONS:\n"
 "   build                Build project\n"
 "   run                  Run project\n"
 "   build-run            Build and Run project\n"
 "   build-debugger       Build for Debugger\n"
 "   test                 Test project (Requires: valgrid, typos)\n"
 "   profile              Runs Profiler (Requires: perf)\n"
-"   version --version -v Print project version\n"
-"   help --help -h       Print help\n"
-"   --nocolor            Turn off color output\n";
+"   --help -h       Print help\n";
 
 // Functions
 // ============================================================================
@@ -70,11 +72,11 @@ internal void build_cmd_append_output(Build_Info *info)
 {
     if (info->os == Context_Os_Windows)
     {
-        build_cmd_append(info, "%s\\%s", info->dir.cstr, info->name.cstr);
+        build_cmd_append(info, "%s\\%s", info->dir.cstr, info->cmd_name.cstr);
     }
     else
     {
-        build_cmd_append(info, "%s/%s", info->dir.cstr, info->name.cstr);
+        build_cmd_append(info, "%s/%s", info->dir.cstr, info->cmd_name.cstr);
     }
     if (info->type != Build_Type_Release)
     {
@@ -236,7 +238,7 @@ internal void build_test(Build_Info *info)
     fmt_printf("Test Memory Leaks:\n");
     build_cmd_append(info, "valgrind ");
     build_cmd_append(info, " --leak-check=full --track-origins=yes ");
-    build_cmd_append(info, " ./%s/%s", info->dir.cstr, info->name.cstr); // Output
+    build_cmd_append(info, " ./%s/%s", info->dir.cstr, info->cmd_name.cstr); // Output
     build_cmd_append(info, " --leak-check=full --show-leak-kinds=all");
     build_cmd_finish(info);
 }
@@ -250,7 +252,7 @@ internal void build_profiler(Build_Info *info)
     fmt_printf("Profiler Recording:\n");
     build_cmd_append(
         info, "perf record -o ./%s/perf.data -g ./%s/%s",
-        info->dir.cstr, info->dir.cstr, info->name.cstr
+        info->dir.cstr, info->dir.cstr, info->cmd_name.cstr
     );
     build_cmd_finish(info);
     fmt_printf("Profiler Report:\n");
@@ -270,11 +272,11 @@ internal void build_run(Build_Info *info)
     build_cmd_append_output(info);
     if (info->os == Context_Os_Windows)
     {
-        build_cmd_append(info, " shaders\\shader.frag");
+        build_cmd_append(info, " shaders\\circles.frag");
     }
     else
     {
-        build_cmd_append(info, " shaders/shader.frag");
+        build_cmd_append(info, " shaders/circles.frag");
     }
     build_cmd_finish(info);
 }
@@ -282,19 +284,23 @@ internal void build_run(Build_Info *info)
 internal void entry_point()
 {
     Build_Info info = ZERO_STRUCT;
-    info.name = str8("Scuttle");
-    info.version = str8("0.2");
+    info.name = str8(PROGRAM_NAME);
+    info.cmd_name = str8(PROGRAM_CMD_NAME);
     info.entry_point = str8("src/shaderplay/shaderplay_entry_point.c");
     info.dir = str8("build");
     info.os = context_of_os();
     info.log_config = log_init();
 
     bool should_print_help = false;
-    bool should_print_version = false;
     bool build_run_program = false;
 
+    Flags_State state = flags_init();
+    Str8 name = ZERO_STRUCT;
+    flags_string(&state, str8("name"), &name, str8("a"), str8("Name of the program"));
     Str8Array *args = os_args_get();
+    flags_parse(&state, args);
 
+    return;
     if (args->length >= 2)
     {
         Str8 arg1 = args->strings[1];
@@ -303,17 +309,9 @@ internal void entry_point()
         {
             arg2 = args->strings[2];
         }
-        if (str8_match(arg1, str8("help"), 0) || str8_match(arg1,
-            str8("--help"), 0) || str8_match(arg1, str8("-h"), 0))
+        if (str8_match(arg1, str8("--help"), 0) || str8_match(arg1, str8("-h"), 0))
         {
             should_print_help = true;
-            should_print_version = true;
-        }
-        else if (str8_match(arg1, str8("version"), 0) ||
-            str8_match(arg1, str8("--version"), 0) ||
-            str8_match(arg1, str8("-v"), 0))
-        {
-            should_print_version = true;
         }
         else if (str8_match(arg1, str8("build"), 0))
         {
@@ -352,12 +350,10 @@ internal void entry_point()
         {
             fmt_eprintf("Error: wrong option provided `%s`.\n\n", arg1.cstr);
             should_print_help = true;
-            should_print_version = true;
             os_exit(1);
         }
     } else {
         should_print_help = true;
-        should_print_version = true;
     }
     if (str8_match(args->strings[2], str8("mingw"), 0))
     {
@@ -369,7 +365,7 @@ internal void entry_point()
             info.log_config.color_log = false;
         }
     }
-    if (!(should_print_help || should_print_version))
+    if (!(should_print_help))
     {
         fmt_println("# Build Output ===============================================================#");
         fmt_printfln("Build Type: %s", build_type_to_str8(&info));
@@ -385,10 +381,6 @@ internal void entry_point()
     if (should_print_help)
     {
         fmt_printf("%s", help_message);
-    }
-    if (should_print_version)
-    {
-        fmt_printfln("Version: %s", info.version.cstr);
     }
 }
 
@@ -428,22 +420,22 @@ internal char *build_type_to_str8(Build_Info *info)
     {
         case Build_Type_Dev:
         {
-            type_string = "Dev";
+            type_string = "dev";
         }
         break;
         case Build_Type_Debug:
         {
-            type_string = "Debug";
+            type_string = "debug";
         }
         break;
         case Build_Type_Profiler:
         {
-            type_string = "Profiler";
+            type_string = "profiler";
         }
         break;
         case Build_Type_Release:
         {
-            type_string = "Release";
+            type_string = "release";
         }
         break;
         default:

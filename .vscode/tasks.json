@@ -51,7 +51,7 @@
             }
         },
         {
-            "label": "Build File",
+            "label": "Build Build",
             "type": "shell",
             "command": "cc -ggdb -g3 build.c",
             "problemMatcher": {

@@ -4,30 +4,31 @@
         {
             "name": "Debug Program",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Scuttle_Debug",
+            "program": "${workspaceFolder}/build/shaderpaly_debug",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
             "preLaunchTask": "Build Program"
         },
         {
-            "name": "Debug File",
+            "name": "Debug Build",
             "request": "launch",
-            "program": "${workspaceFolder}/a.exe",
+            "program": "${workspaceFolder}/a.out",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
             "args": [ "build-run" ],
-            "arguments": "build-run"
+            // "arguments": "build-run"
+            "arguments": "name"
         },
         {
             "name": "Debug Program Windows",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Scuttle_Debug.exe",
+            "program": "${workspaceFolder}/build/shaderpaly_debug.exe",
             "cwd": "${workspaceFolder}",
             "type": "cppvsdbg",
             "preLaunchTask": "Build Program Windows"
         },
         {
-            "name": "Debug File Windows",
+            "name": "Debug Build Windows",
             "request": "launch",
             "program": "${workspaceFolder}/build/build.exe",
             "cwd": "${workspaceFolder}",
