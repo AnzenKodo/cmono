@@ -165,4 +165,68 @@
 #   define TOOLCHAIN_MINGW 1
 #endif
 
+
+// Toolchain/Environment Enums
+//=============================================================================
+
+typedef enum Context_Os
+{
+    Context_Os_Null,
+    Context_Os_Windows,
+    Context_Os_Linux,
+    Context_Os_Mac,
+    Context_Os_COUNT,
+#if OS_WINDOWS
+    Context_Os_CURRENT = Context_Os_Windows,
+#elif OS_LINUX
+    Context_Os_CURRENT = Context_Os_Linux,
+#elif OS_MAC
+    Context_Os_CURRENT = Context_Os_Mac,
+#else
+    Context_Os_CURRENT = Context_Os_Null,
+#endif
+}
+Context_Os;
+
+typedef enum Context_Arch
+{
+    Context_Arch_Null,
+    Context_Arch_X64,
+    Context_Arch_X86,
+    Context_Arch_Arm64,
+    Context_Arch_Arm32,
+    Context_Arch_COUNT,
+#if ARCH_X64
+    Context_Arch_CURRENT = Context_Arch_X64,
+#elif ARCH_X86
+    Context_Arch_CURRENT = Context_Arch_X86,
+#elif ARCH_ARM64
+    Context_Arch_CURRENT = Context_Arch_Arm64,
+#elif ARCH_ARM32
+    Context_Arch_CURRENT = Context_Arch_Arm32,
+#else
+    Context_Arch_CURRENT = Context_Arch_Null,
+#endif
+}
+Context_Arch;
+
+typedef enum Context_Compiler
+{
+    Context_Compiler_Null,
+    Context_Compiler_Msvc,
+    Context_Compiler_Gcc,
+    Context_Compiler_Clang,
+    Context_Compiler_COUNT,
+#if COMPILER_MSVC
+    Context_Compiler_CURRENT = Context_Compiler_Msvc,
+#elif COMPILER_GCC
+    Context_Compiler_CURRENT = Context_Compiler_Gcc,
+#elif COMPILER_CLANG
+    Context_Compiler_CURRENT = Context_Compiler_Clang,
+#else
+    Context_Compiler_CURRENT = Context_Compiler_Null,
+#endif
+}
+Context_Compiler;
+
 #endif // BASE_CONTEXT_H

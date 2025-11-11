@@ -28,40 +28,6 @@ typedef float     F32;
 typedef double    F64;
 typedef void Void_Proc(void);
 
-// Toolchain/Environment Enums
-//=============================================================================
-
-typedef enum Context_Os
-{
-    Context_Os_Null,
-    Context_Os_Windows,
-    Context_Os_Linux,
-    Context_Os_Mac,
-    Context_Os_COUNT,
-}
-Context_Os;
-
-typedef enum Context_Arch
-{
-    Context_Arch_Null,
-    Context_Arch_X64,
-    Context_Arch_X86,
-    Context_Arch_Arm64,
-    Context_Arch_Arm32,
-    Context_Arch_COUNT,
-}
-Context_Arch;
-
-typedef enum Context_Compiler
-{
-    Context_Compiler_Null,
-    Context_Compiler_msvc,
-    Context_Compiler_gcc,
-    Context_Compiler_clang,
-    Context_Compiler_COUNT,
-}
-Context_Compiler;
-
 // Code Keywords
 //=============================================================================
 
@@ -405,11 +371,5 @@ internal U16 safe_cast_u16(U32 x);
 internal U32 safe_cast_u32(U64 x);
 internal I32 safe_cast_s32(I64 x);
 internal U32 u32_from_u64_saturate(U64 x);
-
-// Toolchain/Environment Enum Functions =======================================
-
-internal Context_Os context_of_os(void);
-internal Context_Arch context_of_arch(void);
-internal Context_Compiler context_of_compiler(void);
 
 #endif // BASE_CORE_H
