@@ -33,7 +33,8 @@
             "program": "${workspaceFolder}/build/build.exe",
             "cwd": "${workspaceFolder}",
             "type": "cppvsdbg",
-            "args": [ "build-run" ],
+            // "args": [ "build-run" ],
+            "args": [ "-name=jone" ],
             "arguments": "build-run"
         },
     ]

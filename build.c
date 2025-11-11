@@ -288,17 +288,22 @@ internal void entry_point()
     info.cmd_name = str8(PROGRAM_CMD_NAME);
     info.entry_point = str8("src/shaderplay/shaderplay_entry_point.c");
     info.dir = str8("build");
-    info.os = context_of_os();
+    info.os = Context_Os_CURRENT;
     info.log_config = log_init();
 
     bool should_print_help = false;
     bool build_run_program = false;
 
-    Flags_State state = flags_init();
+    Flags_Context context = flags_init();
     Str8 name = ZERO_STRUCT;
-    flags_string(&state, str8("name"), &name, str8("a"), str8("Name of the program"));
+    flags_string(&context, str8("name"), &name, str8("a"), str8("Name of the program"));
     Str8Array *args = os_args_get();
-    flags_parse(&state, args);
+    if (!flags_parse(&context, args))
+    {
+        flags_print_error(&context);
+        os_exit(1);
+    }
+    fmt_println((const char *)name.cstr);
 
     return;
     if (args->length >= 2)
