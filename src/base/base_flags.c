@@ -173,7 +173,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
         if (is_option)
         {
             bool has_values = 0;
-            U64 value_signifier_position = str8_find_needle(option_name, 0, str8("="), 0);
+            U64 value_signifier_position = str8_find_substr(option_name, 0, str8("="), 0);
             Str8 value_portion_after_string = str8_skip(option_name, value_signifier_position+1);
             if(value_signifier_position < option_name.size)
             {
@@ -207,10 +207,28 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     break;
                     case _Flags_Flag_Kind_Int:
                     {
+                        if (has_values)
+                        {
+                            Str8 str_value = str8_postfix(args->strings[i], value_signifier_position);
+                            *flag->result_value.int_value = u64_from_str8(str_value)
+                        }
+                        else
+                        {
+                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                        }
                     }
                     break;
                     case _Flags_Flag_Kind_Float:
                     {
+                        if (has_values)
+                        {
+                            Str8 str_value = str8_postfix(args->strings[i], value_signifier_position);
+                            *flag->result_value.float_value = float_from_str8(str_value)
+                        }
+                        else
+                        {
+                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                        }
                     }
                     break;
                     case _Flags_Flag_Kind_Bool:

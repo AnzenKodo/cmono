@@ -50,6 +50,20 @@ internal U8 char_to_upper(U8 c)
     return(c);
 }
 
+internal bool char_is_digit(U8 c, U32 base)
+{
+    bool result = 0;
+    if(0 < base && base <= 16)
+    {
+        U8 val = integer_symbol_reverse[c];
+        if(val < base)
+        {
+            result = 1;
+        }
+    }
+    return result;
+}
+
 // C-String Measurement
 //=============================================================================
 
@@ -114,34 +128,34 @@ internal Str8 str8_range(U8 *first, U8 *one_past_last)
 internal bool str8_match(Str8 a, Str8 b, StrMatchFlags flags)
 {
     bool result = 0;
-    if (a.size == b.size)
+    if (a.size == b.size && flags == 0)
     {
-        if(flags == 0) {
-            result = mem_match(a.cstr, b.cstr, b.size);
-        } else if(flags & StrMatchFlag_RightSideSloppy) {
-            bool case_insensitive  = (flags & StrMatchFlag_CaseInsensitive);
-            bool slash_insensitive = (flags & StrMatchFlag_SlashInsensitive);
-            U64 size              = Min(a.size, b.size);
-            result = 1;
-            for(U64 i = 0; i < size; i += 1)
+        result = mem_match(a.cstr, b.cstr, b.size);
+    }
+    else if (a.size == b.size || (flags & StrMatchFlag_RightSideSloppy))
+    {
+        bool case_insensitive  = (flags & StrMatchFlag_CaseInsensitive);
+        bool slash_insensitive = (flags & StrMatchFlag_SlashInsensitive);
+        U64 size               = Min(a.size, b.size);
+        result = 1;
+        for(U64 i = 0; i < size; i += 1)
+        {
+            U8 at = a.cstr[i];
+            U8 bt = b.cstr[i];
+            if(case_insensitive)
             {
-                U8 at = a.cstr[i];
-                U8 bt = b.cstr[i];
-                if(case_insensitive)
-                {
-                    at = char_to_upper(at);
-                    bt = char_to_upper(bt);
-                }
-                if(slash_insensitive)
-                {
-                    at = char_to_correct_slash(at);
-                    bt = char_to_correct_slash(bt);
-                }
-                if(at != bt)
-                {
-                    result = 0;
-                    break;
-                }
+                at = char_to_upper(at);
+                bt = char_to_upper(bt);
+            }
+            if(slash_insensitive)
+            {
+                at = char_to_correct_slash(at);
+                bt = char_to_correct_slash(bt);
+            }
+            if(at != bt)
+            {
+                result = 0;
+                break;
             }
         }
     }
@@ -155,9 +169,7 @@ internal bool str8_ends_with(Str8 string, Str8 end)
     return is_match;
 }
 
-internal U64 str8_find_substr(
-    Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags
-) {
+internal U64 str8_find_substr(Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags) {
     U8 *p = string.cstr + start_pos;
     U64 stop_offset = Max(string.size + 1, substr.size) - substr.size;
     U8 *stop_p = string.cstr + stop_offset;
@@ -180,9 +192,8 @@ internal U64 str8_find_substr(
             }
             if (haystack_char_adjusted == needle_first_char_adjusted)
             {
-                if (
-                    str8_match(str8_range(p+1, string_opl), needle_tail, adjusted_flags)
-                ){
+                if (str8_match(str8_range(p+1, string_opl), needle_tail, adjusted_flags))
+                {
                     break;
                 }
             }
@@ -193,23 +204,21 @@ internal U64 str8_find_substr(
     {
         result = (U64)(p - string.cstr);
     }
-    return(result);
+    return result;
 }
 
-internal U64 str8_find_substr_reverse(
-    Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags
-) {
-  U64 result = 0;
-  for(I64 i = string.size - start_pos - substr.size; i >= 0; --i)
-  {
-    Str8 haystack = str8_substr(string, rng_1u64(i, i + substr.size));
-    if(str8_match(haystack, substr, flags))
+internal U64 str8_find_substr_reverse(Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags) {
+    U64 result = 0;
+    for(I64 i = string.size - start_pos - substr.size; i >= 0; --i)
     {
-      result = (U64)i + substr.size;
-      break;
+        Str8 haystack = str8_substr(string, rng_1u64(i, i + substr.size));
+        if(str8_match(haystack, substr, flags))
+        {
+            result = (U64)i + substr.size;
+            break;
+        }
     }
-  }
-  return result;
+    return result;
 }
 
 // String Slicing
@@ -257,6 +266,128 @@ internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2)
     return(str);
 }
 
+// String Conversions
+//=============================================================================
+
+internal I64 sign_from_str8(Str8 string, Str8 *string_tail)
+{
+    // count negative signs
+    U64 neg_count = 0;
+    U64 i = 0;
+    for(; i < string.size; i += 1)
+    {
+        if (string.cstr[i] == '-'){
+            neg_count += 1;
+        }
+        else if (string.cstr[i] != '+'){
+            break;
+        }
+    }
+
+    // output part of string after signs
+    *string_tail = str8_skip(string, i);
+
+    // output integer sign
+    I64 sign = (neg_count & 1)?-1:+1;
+    return sign;
+}
+
+internal bool str8_is_integer(Str8 string, U32 radix)
+{
+    bool result = 0;
+    if(string.size > 0)
+    {
+        if(1 < radix && radix <= 16)
+        {
+            result = 1;
+            for(U64 i = 0; i < string.size; i += 1)
+            {
+                U8 c = string.cstr[i];
+                if(!(c < 0x80) || integer_symbol_reverse[c] >= radix)
+                {
+                    result = 0;
+                    break;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+internal U64 u64_from_str8(Str8 string, U32 radix)
+{
+    U64 x = 0;
+    if(1 < radix && radix <= 16)
+    {
+        for(U64 i = 0; i < string.size; i += 1)
+        {
+            x *= radix;
+            x += integer_symbol_reverse[string.cstr[i]&0x7F];
+        }
+    }
+    return x;
+}
+
+internal U32 u32_from_str8(Str8 string, U32 radix)
+{
+    U64 x64 = u64_from_str8(string, radix);
+    U32 x32 = safe_cast_u32(x64);
+    return x32;
+}
+
+internal I64 i64_from_str8(Str8 string, U32 radix)
+{
+    I64 sign = sign_from_str8(string, &string);
+    I64 x = (I64)u64_from_str8(string, radix) * sign;
+    return x;
+}
+
+internal I32 i32_from_str8(Str8 string, U32 radix)
+{
+    I64 x64 = i64_from_str8(string, radix);
+    I32 x32 = safe_cast_s32(x64);
+    return x32;
+}
+
+internal F64 f64_from_str8(Str8 string)
+{
+    // TODO(rjf): crappy implementation for now that just uses atof.
+    F64 result = 0;
+    if(string.size > 0)
+    {
+        // rjf: find starting pos of numeric string, as well as sign
+        F64 sign = +1.0;
+        if(string.cstr[0] == '-')
+        {
+            sign = -1.0;
+        }
+        else if(string.cstr[0] == '+')
+        {
+            sign = 1.0;
+        }
+        // rjf: gather numerics
+        U64 num_valid_chars = 0;
+        char buffer[64];
+        bool exp = 0;
+        for(U64 idx = 0; idx < string.size && num_valid_chars < sizeof(buffer)-1; idx += 1)
+        {
+            if(char_is_digit(string.cstr[idx], 10) || string.cstr[idx] == '.' || string.cstr[idx] == 'e' ||
+                    (exp && (string.cstr[idx] == '+' || string.cstr[idx] == '-')))
+            {
+                buffer[num_valid_chars] = string.cstr[idx];
+                num_valid_chars += 1;
+                exp = 0;
+                exp = (string.cstr[idx] == 'e');
+            }
+        }
+        // rjf: null-terminate (the reason for all of this!!!!!!)
+        buffer[num_valid_chars] = 0;
+        // rjf: do final conversion
+        result = sign * atof(buffer);
+    }
+    return result;
+}
+
 // String List Construction Functions
 //=============================================================================
 
@@ -301,10 +432,8 @@ internal Str8Array str8_array_reserve(Alloc alloc, U64 size)
 // String Split and Join
 //=============================================================================
 
-internal Str8List str8_split(
-    Alloc alloc, Str8 string, U8 *split_chars, U64 split_char_count,
-    StrSplitFlags flags
-) {
+internal Str8List str8_split(Alloc alloc, Str8 string, U8 *split_chars, U64 split_char_count, StrSplitFlags flags)
+{
     Str8List list = ZERO_STRUCT;
     bool keep_empties = (flags & StrSplitFlag_KeepEmpties);
     U8 *ptr = string.cstr;
