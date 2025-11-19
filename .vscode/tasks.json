@@ -53,7 +53,7 @@
         {
             "label": "Build Build",
             "type": "shell",
-            "command": "cc -ggdb -g3 build.c",
+            "command": "cc -ggdb -DBUILD_DEBUG build.c",
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": [
