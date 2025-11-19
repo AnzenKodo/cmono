@@ -297,13 +297,19 @@ internal void entry_point()
     Flags_Context context = flags_init();
     Str8 name = ZERO_STRUCT;
     flags_string(&context, str8("name"), &name, str8("a"), str8("Name of the program"));
+    I64 num = 0;
+    flags_int(&context, str8("num"), &num, 1, str8("Name of the program"));
+    F64 fnum = 0;
+    flags_float(&context, str8("fnum"), &fnum, 1, str8("Name of the program"));
+    bool bvalue = 0;
+    flags_bool(&context, str8("bvalue"), &bvalue, 1, str8("Name of the program"));
     Str8Array *args = os_args_get();
     if (!flags_parse(&context, args))
     {
         flags_print_error(&context);
         os_exit(1);
     }
-    fmt_println((const char *)name.cstr);
+    if (bvalue) fmt_printfln("%s %d %f", name.cstr, num, fnum);
 
     return;
     if (args->length >= 2)

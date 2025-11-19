@@ -13,7 +13,6 @@ typedef enum _Flags_Error_Kind {
 
 typedef enum _Flags_Flag_Kind
 {
-    _Flags_Flag_Kind_None,
     _Flags_Flag_Kind_Str,
     _Flags_Flag_Kind_Bool,
     _Flags_Flag_Kind_Int,
@@ -117,6 +116,42 @@ internal void flags_string(Flags_Context *context, Str8 name, Str8 *result_value
     _flags_add_flag(context, flag);
 }
 
+internal void flags_int(Flags_Context *context, Str8 name, I64 *result_value, I64 default_value, Str8 description)
+{
+    _Flags_Flag flag = ZERO_STRUCT;
+    flag.kind = _Flags_Flag_Kind_Int;
+    flag.name = name;
+    flag.default_value.int_value = default_value;
+    flag.description = description;
+    flag.result_value.int_value = result_value;
+    flag.assigned = false;
+    _flags_add_flag(context, flag);
+}
+
+internal void flags_float(Flags_Context *context, Str8 name, F64 *result_value, F64 default_value, Str8 description)
+{
+    _Flags_Flag flag = ZERO_STRUCT;
+    flag.kind = _Flags_Flag_Kind_Float;
+    flag.name = name;
+    flag.default_value.float_value = default_value;
+    flag.description = description;
+    flag.result_value.float_value = result_value;
+    flag.assigned = false;
+    _flags_add_flag(context, flag);
+}
+
+internal void flags_bool(Flags_Context *context, Str8 name, bool *result_value, bool default_value, Str8 description)
+{
+    _Flags_Flag flag = ZERO_STRUCT;
+    flag.kind = _Flags_Flag_Kind_Bool;
+    flag.name = name;
+    flag.default_value.bool_value = default_value;
+    flag.description = description;
+    flag.result_value.bool_value = result_value;
+    flag.assigned = false;
+    _flags_add_flag(context, flag);
+}
+
 internal void flags_add_flag_name(Flags_Context *context, Str8 name)
 {
 }
@@ -189,15 +224,12 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
             {
                 switch (flag->kind)
                 {
-                    case _Flags_Flag_Kind_None:
-                    {
-                    }
-                    break;
                     case _Flags_Flag_Kind_Str:
                     {
                         if (has_values)
                         {
-                            *flag->result_value.str_value = str8_postfix(args->strings[i], value_signifier_position);
+                            *flag->result_value.str_value = value_portion_after_string;
+                            flag->assigned = true;
                         }
                         else
                         {
@@ -209,8 +241,8 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     {
                         if (has_values)
                         {
-                            Str8 str_value = str8_postfix(args->strings[i], value_signifier_position);
-                            *flag->result_value.int_value = u64_from_str8(str_value)
+                            *flag->result_value.int_value = str8_to_i64(value_portion_after_string, Base_10);
+                            flag->assigned = true;
                         }
                         else
                         {
@@ -222,8 +254,8 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     {
                         if (has_values)
                         {
-                            Str8 str_value = str8_postfix(args->strings[i], value_signifier_position);
-                            *flag->result_value.float_value = float_from_str8(str_value)
+                            *flag->result_value.float_value = str8_to_f64(value_portion_after_string);
+                            flag->assigned = true;
                         }
                         else
                         {
@@ -233,92 +265,52 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     break;
                     case _Flags_Flag_Kind_Bool:
                     {
-                        // flag->result_value.bool_value = true;
+                        *flag->result_value.bool_value = true;
                     }
                     break;
                     case _Flags_Flag_Kind_StrArr:
                     {
+                        if (has_values)
+                        {
+                            // U8 splits[] = { ',' };
+                            // *flag->result_value.str_value = str8_split(context->alloc, value_portion_after_string, splits, ArrayCount(splits), 0);
+                            flag->assigned = true;
+                        }
+                        else
+                        {
+                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                        }
                     }
                     break;
                     case _Flags_Flag_Kind_IntArr:
                     {
+                        if (has_values)
+                        {
+                            *flag->result_value.int_value = str8_to_i64(value_portion_after_string, Base_10);
+                            flag->assigned = true;
+                        }
+                        else
+                        {
+                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                        }
                     }
                     break;
                     case _Flags_Flag_Kind_FloatArr:
                     {
+                        if (has_values)
+                        {
+                            *flag->result_value.float_value = str8_to_f64(value_portion_after_string);
+                            flag->assigned = true;
+                        }
+                        else
+                        {
+                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                        }
                     }
                     break;
                 }
             }
         }
-        // Str8 key = args->strings[i];
-        // Str8 *value = 0;
-        // if (i+1 < args->length)
-        // {
-        //     value = &args->strings[i+1];
-        // }
-        // _Flags_Flag *flag = _flags_get_flag(context, key);
-        // if (flag == NULL)
-        // {
-        //     _flags_add_error(context, _Flags_Error_Kind_UnknownFlag, key);
-        // }
-        // else
-        // {
-        //     switch (flag->kind)
-        //     {
-        //         case _Flags_Flag_Kind_None:
-        //         {
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_Str:
-        //         {
-        //             if (value == NULL)
-        //             {
-        //                 _flags_add_error(context, _Flags_Error_Kind_MissingValue, key);
-        //             }
-        //             *flag->result_value.str_value = *value;
-        //             i++;
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_Int:
-        //         {
-        //             if (value == NULL)
-        //             {
-        //                 _flags_add_error(context, _Flags_Error_Kind_MissingValue, key);
-        //             }
-        //             *flag->result_value.int_value = *value;
-        //             i++;
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_Float:
-        //         {
-        //             if (value == NULL)
-        //             {
-        //                 _flags_add_error(context, _Flags_Error_Kind_MissingValue, key);
-        //             }
-        //             *flag->result_value.float_value = *value;
-        //             i++;
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_Bool:
-        //         {
-        //             // flag->result_value.bool_value = true;
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_StrArr:
-        //         {
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_IntArr:
-        //         {
-        //         }
-        //         break;
-        //         case _Flags_Flag_Kind_FloatArr:
-        //         {
-        //         }
-        //         break;
-        //     }
-        // }
     }
     return !context->has_error;
 }
