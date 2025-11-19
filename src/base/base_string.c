@@ -269,7 +269,7 @@ internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2)
 // String Conversions
 //=============================================================================
 
-internal I64 sign_from_str8(Str8 string, Str8 *string_tail)
+internal I64 str8_to_sign(Str8 string, Str8 *string_tail)
 {
     // count negative signs
     U64 neg_count = 0;
@@ -314,7 +314,7 @@ internal bool str8_is_integer(Str8 string, U32 radix)
     return result;
 }
 
-internal U64 u64_from_str8(Str8 string, U32 radix)
+internal U64 str8_to_u64(Str8 string, U32 radix)
 {
     U64 x = 0;
     if(1 < radix && radix <= 16)
@@ -328,28 +328,28 @@ internal U64 u64_from_str8(Str8 string, U32 radix)
     return x;
 }
 
-internal U32 u32_from_str8(Str8 string, U32 radix)
+internal U32 str8_to_u32(Str8 string, U32 radix)
 {
-    U64 x64 = u64_from_str8(string, radix);
+    U64 x64 = str8_to_u64(string, radix);
     U32 x32 = safe_cast_u32(x64);
     return x32;
 }
 
-internal I64 i64_from_str8(Str8 string, U32 radix)
+internal I64 str8_to_i64(Str8 string, U32 radix)
 {
-    I64 sign = sign_from_str8(string, &string);
-    I64 x = (I64)u64_from_str8(string, radix) * sign;
+    I64 sign = str8_to_sign(string, &string);
+    I64 x = (I64)str8_to_u64(string, radix) * sign;
     return x;
 }
 
-internal I32 i32_from_str8(Str8 string, U32 radix)
+internal I32 str8_to_i32(Str8 string, U32 radix)
 {
-    I64 x64 = i64_from_str8(string, radix);
+    I64 x64 = str8_to_i64(string, radix);
     I32 x32 = safe_cast_s32(x64);
     return x32;
 }
 
-internal F64 f64_from_str8(Str8 string)
+internal F64 str8_to_f64(Str8 string)
 {
     // TODO(rjf): crappy implementation for now that just uses atof.
     F64 result = 0;

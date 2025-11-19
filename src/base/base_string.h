@@ -137,6 +137,16 @@ internal Str8 str8_prefix(Str8 str, U64 size);
 internal Str8 str8_skip(Str8 str, U64 amt);
 internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2);
 
+// String Conversions =========================================================
+
+internal I64 str8_to_sign(Str8 string, Str8 *string_tail);
+internal bool str8_is_integer(Str8 string, U32 radix);
+internal U64 str8_to_u64(Str8 string, U32 radix);
+internal U32 str8_to_u32(Str8 string, U32 radix);
+internal I64 str8_to_i64(Str8 string, U32 radix);
+internal I32 str8_to_i32(Str8 string, U32 radix);
+internal F64 str8_to_f64(Str8 string);
+
 // String List Construction Functions =========================================
 
 internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string);
