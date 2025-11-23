@@ -34,12 +34,12 @@ internal Str8Array *os_args_get(void)
 
 internal void os_entry_point(void)
 {
-    _os_core_state.log_config = log_init();
+    _os_core_state.log_context = log_init();
 #if BUILD_DEBUG
-    _os_core_state.log_config.level = Log_Level_Info;
-    fmt_println("# Program Output =============================================================#");
+    _os_core_state.log_context.level = Log_Level_Info;
+    fmt_println("# Program Output ============================================================ #");
 #else
-    _os_core_state.log_config.level = Log_Level_None;
+    _os_core_state.log_context.level = Log_Level_None;
 #endif
     entry_point();
 }

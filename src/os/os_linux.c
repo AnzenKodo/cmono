@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     U64 size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
-    _os_core_state.args = str8_array_reserve(alloc, argc);
+    _os_core_state.args = str8_array_alloc(alloc, argc);
     _os_core_state.alloc = alloc;
     for(int i = 0; i < argc; i++)
     {

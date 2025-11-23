@@ -49,7 +49,7 @@ typedef struct _Os_Core_State _Os_Core_State;
 struct _Os_Core_State {
     Str8Array args;
     Alloc alloc;
-    Log_Config log_config;
+    Log_Context log_context;
 };
 
 // Functions

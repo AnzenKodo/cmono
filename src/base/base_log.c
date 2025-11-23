@@ -53,62 +53,62 @@ internal char *_log_get_level_color(Log_Level level)
     return level_color;
 }
 
-internal void log_printf(Log_Config config, Log_Level level, const char *format, va_list args)
+internal void log_printf(Log_Context context, Log_Level level, const char *format, va_list args)
 {
-    if (level >= config.level)
+    if (level >= context.level)
     {
         char *level_string = _log_get_level_string(level);
         char *level_color = "";
-        if (config.color_log)
+        if (context.color_log)
         {
             level_color = _log_get_level_color(level);
         }
-        if (config.print_level_prefix)
+        if (context.print_level_prefix)
         {
-            fmt_fprintf(config.file, "%s%s"ANSI_RESET" ", level_color, level_string);
+            fmt_fprintf(context.file, "%s%s"ANSI_RESET" ", level_color, level_string);
         }
         va_list args_copy;
         va_copy(args_copy, args);
-            fmt_vfprintfln(config.file, format, args_copy);
+            fmt_vfprintfln(context.file, format, args_copy);
         va_end(args_copy);
     }
 }
 
-internal Log_Config log_init(void)
+internal Log_Context log_init(void)
 {
-    Log_Config config = ZERO_STRUCT;
-    config.level = Log_Level_Info;
-    config.file = OS_STDOUT;
-    config.print_level_prefix = true;
-    config.color_log = true;
-    return config;
+    Log_Context context = ZERO_STRUCT;
+    context.level = Log_Level_Info;
+    context.file = OS_STDOUT;
+    context.print_level_prefix = true;
+    context.color_log = true;
+    return context;
 }
 
-internal void log_info(Log_Config config, const char *format, ...)
+internal void log_info(Log_Context context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_printf(config, Log_Level_Info, format, args);
+        log_printf(context, Log_Level_Info, format, args);
     va_end(args);
 }
-internal void log_debug(Log_Config config, const char *format, ...)
+internal void log_debug(Log_Context context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_printf(config, Log_Level_Debug, format, args);
+        log_printf(context, Log_Level_Debug, format, args);
     va_end(args);
 }
-internal void log_warn(Log_Config config, const char *format, ...)
+internal void log_warn(Log_Context context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_printf(config, Log_Level_Warn, format, args);
+        log_printf(context, Log_Level_Warn, format, args);
     va_end(args);
 }
-internal void log_error(Log_Config config, const char *format, ...)
+internal void log_error(Log_Context context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_printf(config, Log_Level_Error, format, args);
+        log_printf(context, Log_Level_Error, format, args);
     va_end(args);
 }

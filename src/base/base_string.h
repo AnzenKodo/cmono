@@ -47,7 +47,7 @@ struct Str8List
 {
   Str8Node *first;
   Str8Node *last;
-  U64 index;
+  U64 count;
   U64 size;
 };
 
@@ -55,7 +55,7 @@ typedef struct Str8Array Str8Array;
 struct Str8Array
 {
   Str8 *strings;
-  U64 length;
+  U64 count;
   U64 size;
 };
 
@@ -113,6 +113,7 @@ internal U64 cstr32_length(U32 *c);
 // String Constructors ========================================================
 
 #define str8(S)  str8_init((U8*)(S), sizeof(S) - 1)
+#define str8_varg(S) (int)((S).size), ((S).cstr)
 internal Str8 str8_init(U8 *str, U64 size);
 internal Str8 str8_from_cstr(char *c);
 
@@ -154,7 +155,8 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string);
 // String Arrays ==============================================================
 
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
-internal Str8Array str8_array_reserve(Alloc alloc, U64 count);
+internal Str8Array str8_array_alloc(Alloc alloc, U64 count);
+internal Str8 *str8_array_append(Str8Array *array, Str8 str);
 
 // String Split and Join ======================================================
 
