@@ -26,7 +26,72 @@ typedef uint64_t  U64;
 typedef int64_t   I64;
 typedef float     F32;
 typedef double    F64;
-typedef void Void_Proc(void);
+typedef void      Void_Proc(void);
+
+// Base Type Array ============================================================
+
+typedef struct U8Array U8Array;
+struct U8Array
+{
+    U64  count;
+    U8 *v;
+};
+typedef struct U16Array U16Array;
+struct U16Array
+{
+    U64  count;
+    U16 *v;
+};
+typedef struct U32Array U32Array;
+struct U32Array
+{
+    U64  count;
+    U32 *v;
+};
+typedef struct U64Array U64Array;
+struct U64Array
+{
+    U64  count;
+    U64 *v;
+};
+
+typedef struct I8Array I8Array;
+struct I8Array
+{
+    I64  count;
+    I8 *v;
+};
+typedef struct I16Array I16Array;
+struct I16Array
+{
+    I64  count;
+    I16 *v;
+};
+typedef struct I32Array I32Array;
+struct I32Array
+{
+    I64  count;
+    I32 *v;
+};
+typedef struct I64Array I64Array;
+struct I64Array
+{
+    I64  count;
+    I64 *v;
+};
+
+typedef struct F32Array F32Array;
+struct F32Array
+{
+    I64  count;
+    F32 *v;
+};
+typedef struct F64Array F64Array;
+struct F64Array
+{
+    I64  count;
+    F64 *v;
+};
 
 // Code Keywords
 //=============================================================================
@@ -208,22 +273,63 @@ global const U64 bit64 = (1ull<<63);
 // Link Lists
 //=============================================================================
 
+// Linked List macro helpers ==================================================
 #define CheckNil(nil,p) ((p) == 0 || (p) == nil)
 #define SetNil(nil,p) ((p) = nil)
 
-#define SLLPush_NZ(nil,fist,last,node,next) (CheckNil(nil,fist)?\
-    ((fist)=(last)=(node),SetNil(nil,(node)->next)):\
-    ((last)->next=(node),(last)=(node),SetNil(nil,(node)->next)))
-#define SLLPushFront_NZ(nil,first,last,node,next) (CheckNil(nil,first)?\
-    ((first)=(last)=(node),SetNil(nil,(node)->next)):\
-    ((node)->next=(first),(first)=(node)))
-#define SLLPop_NZ(nil,first,last,next) ((first)==(last)?\
-    (SetNil(nil,first),SetNil(nil,last)):\
-    ((first)=(first)->next))
+// Doubly-Linked-Lists ========================================================
+#define DLLInsert_NPZ(nil,f,l,p,n,next,prev) (CheckNil(nil,f) ? \
+((f) = (l) = (n), SetNil(nil,(n)->next), SetNil(nil,(n)->prev)) :\
+CheckNil(nil,p) ? \
+((n)->next = (f), (f)->prev = (n), (f) = (n), SetNil(nil,(n)->prev)) :\
+((p)==(l)) ? \
+((l)->next = (n), (n)->prev = (l), (l) = (n), SetNil(nil, (n)->next)) :\
+(((!CheckNil(nil,p) && CheckNil(nil,(p)->next)) ? (0) : ((p)->next->prev = (n))), ((n)->next = (p)->next), ((p)->next = (n)), ((n)->prev = (p))))
+#define DLLPushBack_NPZ(nil,f,l,n,next,prev) DLLInsert_NPZ(nil,f,l,l,n,next,prev)
+#define DLLPushFront_NPZ(nil,f,l,n,next,prev) DLLInsert_NPZ(nil,l,f,f,n,prev,next)
+#define DLLRemove_NPZ(nil,f,l,n,next,prev) (((n) == (f) ? (f) = (n)->next : (0)),\
+((n) == (l) ? (l) = (l)->prev : (0)),\
+(CheckNil(nil,(n)->prev) ? (0) :\
+((n)->prev->next = (n)->next)),\
+(CheckNil(nil,(n)->next) ? (0) :\
+((n)->next->prev = (n)->prev)))
 
-#define SLLPush(first,last,node) SLLPush_NZ(0,first,last,node,next)
-#define SLLPushFront(fist,last,node) SLLPushFront_NZ(0,fist,last,node,next)
-#define SLLPop(first,last) SLLPop_NZ(0,first,last,next)
+// Singly-Linked, Doubly-Headed Lists (Queues) ================================
+#define SLLQueuePush_NZ(nil,f,l,n,next) (CheckNil(nil,f)?\
+((f)=(l)=(n),SetNil(nil,(n)->next)):\
+((l)->next=(n),(l)=(n),SetNil(nil,(n)->next)))
+#define SLLQueuePushFront_NZ(nil,f,l,n,next) (CheckNil(nil,f)?\
+((f)=(l)=(n),SetNil(nil,(n)->next)):\
+((n)->next=(f),(f)=(n)))
+#define SLLQueuePop_NZ(nil,f,l,next) ((f)==(l)?\
+(SetNil(nil,f),SetNil(nil,l)):\
+((f)=(f)->next))
+
+// Singly-Linked, Singly-Headed Lists (Stacks) ================================
+#define SLLStackPush_N(f,n,next) ((n)->next=(f), (f)=(n))
+#define SLLStackPop_N(f,next) ((f)=(f)->next)
+
+// Doubly-Linked-List helpers =================================================
+#define DLLInsert_NP(f,l,p,n,next,prev) DLLInsert_NPZ(0,f,l,p,n,next,prev)
+#define DLLPushBack_NP(f,l,n,next,prev) DLLPushBack_NPZ(0,f,l,n,next,prev)
+#define DLLPushFront_NP(f,l,n,next,prev) DLLPushFront_NPZ(0,f,l,n,next,prev)
+#define DLLRemove_NP(f,l,n,next,prev) DLLRemove_NPZ(0,f,l,n,next,prev)
+#define DLLInsert(f,l,p,n) DLLInsert_NPZ(0,f,l,p,n,next,prev)
+#define DLLPushBack(f,l,n) DLLPushBack_NPZ(0,f,l,n,next,prev)
+#define DLLPushFront(f,l,n) DLLPushFront_NPZ(0,f,l,n,next,prev)
+#define DLLRemove(f,l,n) DLLRemove_NPZ(0,f,l,n,next,prev)
+
+// Singly-Linked, Doubly-Headed List helpers ==================================
+#define SLLQueuePush_N(f,l,n,next) SLLQueuePush_NZ(0,f,l,n,next)
+#define SLLQueuePushFront_N(f,l,n,next) SLLQueuePushFront_NZ(0,f,l,n,next)
+#define SLLQueuePop_N(f,l,next) SLLQueuePop_NZ(0,f,l,next)
+#define SLLQueuePush(f,l,n) SLLQueuePush_NZ(0,f,l,n,next)
+#define SLLQueuePushFront(f,l,n) SLLQueuePushFront_NZ(0,f,l,n,next)
+#define SLLQueuePop(f,l) SLLQueuePop_NZ(0,f,l,next)
+
+// Singly-Linked, Singly-Headed List helpers ==================================
+#define SLLStackPush(f,n) SLLStackPush_N(f,n,next)
+#define SLLStackPop(f) SLLStackPop_N(f,next)
 
 // Misc. Macros
 //=============================================================================
