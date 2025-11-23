@@ -7,11 +7,6 @@
 #include "src/os/os_include.c"
 #include "src/shaderplay/shaderplay_core.h"
 
-// External Includes ==========================================================
-
-#include <stdlib.h>
-#include <string.h>
-
 // Defines
 // ============================================================================
 
@@ -41,7 +36,7 @@ struct Build_Info
     bool mingw;
     Build_Type type;
     U8 cmd[BUILD_CMD_SIZE];
-    Log_Config log_config;
+    Log_Context log_context;
 };
 
 // Globals
@@ -209,7 +204,7 @@ internal void build_compile(Build_Info *info)
     {
         fmt_printf("Created `%s` directory.\n", info->dir.cstr);
     }
-    fmt_println("# Compile --------------------------------------------------------------------#");
+    fmt_println("# Compile ------------------------------------------------------------------- #");
     if (info->os == Context_Os_Linux)
     {
         build_compile_gcc(info);
@@ -264,7 +259,7 @@ internal void build_profiler(Build_Info *info)
 
 internal void build_run(Build_Info *info)
 {
-    fmt_println("# Running --------------------------------------------------------------------#");
+    fmt_println("# Running ------------------------------------------------------------------- #");
     if (info->mingw)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");
@@ -283,40 +278,61 @@ internal void build_run(Build_Info *info)
 
 internal void entry_point()
 {
+    U64 size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
     Build_Info info = ZERO_STRUCT;
     info.name = str8(PROGRAM_NAME);
     info.cmd_name = str8(PROGRAM_CMD_NAME);
     info.entry_point = str8("src/shaderplay/shaderplay_entry_point.c");
     info.dir = str8("build");
     info.os = Context_Os_CURRENT;
-    info.log_config = log_init();
+    info.log_context = log_init();
 
     bool should_print_help = false;
     bool build_run_program = false;
 
-    Flags_Context context = flags_init();
+    Flags_Context context = flags_init(alloc);
     Str8 name = ZERO_STRUCT;
-    flags_string(&context, str8("name"), &name, str8("a"), str8("Name of the program"));
+    flags_string(&context, str8("name"), &name, str8(""), str8("Name of the program"));
     I64 num = 0;
-    flags_int(&context, str8("num"), &num, 1, str8("Name of the program"));
+    Flags_Flag *num_flag = flags_int(&context, str8("num"), &num, 0, str8("Name of the program"));
+    flags_add_flag_shortname(num_flag, str8("n"));
+    flags_make_flag_required(num_flag);
+    flags_add_flag_value_hint(num_flag, str8("<list>"));
+    U64 unum = 0;
+    flags_uint(&context, str8("unum"), &unum, 1, str8("Name of the program"));
     F64 fnum = 0;
     flags_float(&context, str8("fnum"), &fnum, 1, str8("Name of the program"));
     bool bvalue = 0;
     flags_bool(&context, str8("bvalue"), &bvalue, 1, str8("Name of the program"));
+    Str8Array strarr;
+    Str8Array dstrarr = str8_array_alloc(alloc, 3);
+    str8_array_append(&dstrarr, str8("hello"));
+    str8_array_append(&dstrarr, str8("world"));
+    flags_str_arr(&context, str8("strarr"), &strarr, &dstrarr, str8("Array value"));
+    I64Array intarr;
+    flags_int_arr(&context, str8("intarr"), &intarr, NULL, str8("Int array value"));
+    U64Array uintarr;
+    flags_uint_arr(&context, str8("uintarr"), &uintarr, NULL, str8("Int array value"));
+    F64Array farr;
+    flags_float_arr(&context, str8("farr"), &farr, NULL, str8("Int array value"));
     Str8Array *args = os_args_get();
     if (!flags_parse(&context, args))
     {
         flags_print_error(&context);
+        flags_print_help(&context);
         os_exit(1);
     }
-    if (bvalue) fmt_printfln("%s %d %f", name.cstr, num, fnum);
+
+    if (bvalue) fmt_printfln("%s %d %d %f %.*s %d %d %f", name.cstr, num, unum, fnum, str8_varg(strarr.strings[0]), intarr.v[1], uintarr.v[2], farr.v[2]);
 
     return;
-    if (args->length >= 2)
+    if (args->count >= 2)
     {
         Str8 arg1 = args->strings[1];
         Str8 arg2 = ZERO_STRUCT;
-        if (args->length == 3)
+        if (args->count == 3)
         {
             arg2 = args->strings[2];
         }
@@ -370,15 +386,15 @@ internal void entry_point()
     {
         info.mingw = true;
     }
-    for (U32 i = 0; i < args->length; i++)
+    for (U32 i = 0; i < args->count; i++)
     {
         if (str8_match(args->strings[i], str8("--nocolor"), 0)) {
-            info.log_config.color_log = false;
+            info.log_context.color_log = false;
         }
     }
     if (!(should_print_help))
     {
-        fmt_println("# Build Output ===============================================================#");
+        fmt_println("# Build Output ============================================================== #");
         fmt_printfln("Build Type: %s", build_type_to_str8(&info));
         if (info.type != Build_Type_None)
         {
