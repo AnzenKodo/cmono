@@ -5,6 +5,7 @@
 //=============================================================================
 
 #if !defined(XXH_IMPLEMENTATION)
+#   define XXH_INLINE_ALL
 #   define XXH_IMPLEMENTATION
 #   define XXH_STATIC_LINKING_ONLY
 #   include "../external/xxhash.h"
@@ -116,12 +117,11 @@ internal U64 cstr32_length(U32 *c);
 #define str8_varg(S) (int)((S).size), ((S).cstr)
 internal Str8 str8_init(U8 *str, U64 size);
 internal Str8 str8_from_cstr(char *c);
-
 internal Str16 str16_init(U16 *str, U64 size);
 internal Str16 str16_from_cstr(U16 *c);
-
 internal Str32 str32_init(U32 *str, U64 size);
 internal Str32 str32_from_cstr(U32 *c);
+internal Str8 str8_range(U8 *first, U8 *one_past_last);
 
 // String Matching ============================================================
 
@@ -142,6 +142,8 @@ internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2);
 
 internal I64 str8_to_sign(Str8 string, Str8 *string_tail);
 internal bool str8_is_integer(Str8 string, U32 radix);
+internal bool str8_is_integer_unsigned(Str8 string, U32 radix);
+internal bool str8_is_float(Str8 string);
 internal U64 str8_to_u64(Str8 string, U32 radix);
 internal U32 str8_to_u32(Str8 string, U32 radix);
 internal I64 str8_to_i64(Str8 string, U32 radix);
@@ -152,11 +154,11 @@ internal F64 str8_to_f64(Str8 string);
 
 internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string);
 
-// String Arrays ==============================================================
+// String Arrays Construction Functions =======================================
 
-internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
-internal Str8Array str8_array_alloc(Alloc alloc, U64 count);
+internal Str8Array str8_array_alloc(Alloc alloc, U64 size);
 internal Str8 *str8_array_append(Str8Array *array, Str8 str);
+internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
 
 // String Split and Join ======================================================
 
@@ -166,6 +168,8 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
 // String Formatting & Copying ================================================
 
 internal Str8 str8_copy(Alloc alloc, Str8 s);
+internal Str8 str8fv(Alloc alloc, char *fmt, va_list args);
+internal Str8 str8f(Alloc alloc, char *fmt, ...);
 
 // UTF-8 & UTF-16 Decoding/Encoding ===========================================
 
@@ -186,5 +190,12 @@ internal Str32 str32_from_8(Alloc alloc, Str8 in);
 
 internal U64 str8_hash_u64_from_seed(U64 seed, Str8 string);
 internal U64 str8_hash_u64(Str8 string);
+
+// Globals
+//=============================================================================
+
+read_only global U8 utf8_class[32] = {
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,2,2,2,2,3,3,4,5,
+};
 
 #endif // BASE_STRING_H

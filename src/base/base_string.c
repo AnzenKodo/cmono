@@ -118,8 +118,7 @@ internal Str32 str32_from_cstr(U32 *c)
 
 internal Str8 str8_range(U8 *first, U8 *one_past_last)
 {
-    Str8 result = {first, (U64)(one_past_last - first)};
-    return result;
+    return (Str8){first, (U64)(one_past_last - first)};
 }
 
 // String Matching
@@ -294,24 +293,101 @@ internal I64 str8_to_sign(Str8 string, Str8 *string_tail)
 
 internal bool str8_is_integer(Str8 string, U32 radix)
 {
-    bool result = 0;
+  bool result = false;
+  Str8 sign = str8_prefix(string, 1);
+  if(str8_match(sign, str8("-"), 0))
+  {
+    result = str8_is_integer_unsigned(str8_skip(string, 1), radix);
+  }
+  else
+  {
+    result = str8_is_integer_unsigned(string, radix);
+  }
+  return result;
+}
+
+
+internal bool str8_is_integer_unsigned(Str8 string, U32 radix)
+{
+    bool result = false;
     if(string.size > 0)
     {
         if(1 < radix && radix <= 16)
         {
-            result = 1;
+            result = true;
             for(U64 i = 0; i < string.size; i += 1)
             {
                 U8 c = string.cstr[i];
                 if(!(c < 0x80) || integer_symbol_reverse[c] >= radix)
                 {
-                    result = 0;
+                    result = false;
                     break;
                 }
             }
         }
     }
     return result;
+}
+
+internal bool str8_is_float(Str8 string)
+{
+    if (string.size == 0) {
+        return false;
+    }
+    U64 i = 0;
+    if (i < string.size && (string.cstr[i] == '+' || string.cstr[i] == '-'))
+    {
+        i += 1;
+    }
+    bool has_digits = false;
+    bool has_dot = false;
+    bool has_exp = false;
+    while (i < string.size)
+    {
+        U8 c = string.cstr[i];
+        if (c >= '0' && c <= '9')
+        {
+            has_digits = true;
+        }
+        else if (c == '.' && !has_dot && !has_exp)
+        {
+            has_dot = true;
+        }
+        else if ((c == 'e' || c == 'E') && !has_exp && has_digits)
+        {
+            // Exponent allowed only after at least one digit
+            has_exp = true;
+            i += 1;
+            if (i >= string.size)
+            {
+                return false; // 'e' at end is invalid
+            }
+            // Optional exponent sign
+            if (string.cstr[i] == '+' || string.cstr[i] == '-')
+            {
+                i += 1;
+            }
+            // Must have at least one digit in exponent
+            if (i >= string.size || string.cstr[i] < '0' || string.cstr[i] > '9')
+            {
+                return false;
+            }
+            // Skip remaining exponent digits
+            while (i < string.size && string.cstr[i] >= '0' && string.cstr[i] <= '9')
+            {
+                i += 1;
+            }
+            return i == string.size; // Must consume all after 'e'
+        }
+        else
+        {
+            return false;
+        }
+        i += 1;
+    }
+    // Valid if we saw at least one digit (somewhere before or after dot)
+    // Examples: ".5" → valid, "5." → valid, "." → invalid
+    return has_digits;
 }
 
 internal U64 str8_to_u64(Str8 string, U32 radix)
@@ -355,7 +431,7 @@ internal F64 str8_to_f64(Str8 string)
     F64 result = 0;
     if(string.size > 0)
     {
-        // rjf: find starting pos of numeric string, as well as sign
+        // Find starting pos of numeric string, as well as sign
         F64 sign = +1.0;
         if(string.cstr[0] == '-')
         {
@@ -365,7 +441,7 @@ internal F64 str8_to_f64(Str8 string)
         {
             sign = 1.0;
         }
-        // rjf: gather numerics
+        // Gather numerics
         U64 num_valid_chars = 0;
         char buffer[64];
         bool exp = 0;
@@ -380,9 +456,9 @@ internal F64 str8_to_f64(Str8 string)
                 exp = (string.cstr[idx] == 'e');
             }
         }
-        // rjf: null-terminate (the reason for all of this!!!!!!)
+        // Null-terminate.
         buffer[num_valid_chars] = 0;
-        // rjf: do final conversion
+        // Do final conversion
         result = sign * atof(buffer);
     }
     return result;
@@ -394,24 +470,37 @@ internal F64 str8_to_f64(Str8 string)
 internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string)
 {
     Str8Node *node = alloc_make(alloc, Str8Node, 1);
-    SLLPush(list->first, list->last, node);
-    list->index += 1;
+    SLLQueuePush(list->first, list->last, node);
+    list->count += 1;
     list->size += string.size;
     node->string = string;
-    return(node);
+    return node;
 }
 
-// String Arrays ==============================================================
+// String Arrays
+// ==============================================================
 
-internal void str8_array_append(Str8Array *array, Str8 str)
+internal Str8Array str8_array_alloc(Alloc alloc, U64 size)
 {
-    array->strings[array->length++] = str;
+    Str8Array arr;
+    arr.size = size;
+    arr.count = 0;
+    arr.strings = alloc_make(alloc, Str8, size);
+    return arr;
+}
+internal Str8 *str8_array_append(Str8Array *array, Str8 str)
+{
+    Str8 *result = NULL;
+    array->strings[array->count] = str;
+    result = &array->strings[array->count];
+    array->count++;
+    return result;
 }
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 {
     Str8Array array;
-    array.size = list->index;
-    array.length = array.size;
+    array.size = list->count;
+    array.count = array.size;
     array.strings = alloc_make(alloc, Str8, array.size);
     U64 idx = 0;
     for (Str8Node *n = list->first; n != 0; n = n->next, idx += 1)
@@ -419,14 +508,6 @@ internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
         array.strings[idx] = n->string;
     }
     return array;
-}
-internal Str8Array str8_array_reserve(Alloc alloc, U64 size)
-{
-    Str8Array arr;
-    arr.size = size;
-    arr.length = 0;
-    arr.strings = alloc_make(alloc, Str8, size);
-    return arr;
 }
 
 // String Split and Join
@@ -444,12 +525,12 @@ internal Str8List str8_split(Alloc alloc, Str8 string, U8 *split_chars, U64 spli
         for (;ptr < opl; ptr += 1)
         {
             U8 c = *ptr;
-            bool is_split = 0;
+            bool is_split = false;
             for (U64 i = 0; i < split_char_count; i += 1)
             {
                 if (split_chars[i] == c)
                 {
-                    is_split = 1;
+                    is_split = true;
                     break;
                 }
             }
@@ -458,10 +539,10 @@ internal Str8List str8_split(Alloc alloc, Str8 string, U8 *split_chars, U64 spli
                 break;
             }
         }
-        string = str8_range(first, ptr);
-        if (keep_empties || string.size > 0)
+        Str8 node = str8_range(first, ptr);
+        if (keep_empties || node.size > 0)
         {
-            str8_list_push(alloc, &list, string);
+            str8_list_push(alloc, &list, node);
         }
         ptr += 1;
     }
@@ -476,9 +557,9 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
         MemoryCopyStruct(&join, optional_params);
     }
     U64 sep_count = 0;
-    if (list->index > 0)
+    if (list->count > 0)
     {
-        sep_count = list->index - 1;
+        sep_count = list->count - 1;
     }
     Str8 result;
     result.size = join.pre.size + join.post.size + sep_count*join.sep.size + list->size;
@@ -514,12 +595,30 @@ internal Str8 str8_copy(Alloc alloc, Str8 s)
     return(str);
 }
 
+internal Str8 str8fv(Alloc alloc, char *fmt, va_list args)
+{
+    va_list args2;
+    va_copy(args2, args);
+    U32 needed_bytes = fmt_vsnprintf(0, 0, fmt, args) + 1;
+    Str8 result = ZERO_STRUCT;
+    result.cstr = alloc_make(alloc, U8, needed_bytes);
+    result.size = fmt_vsnprintf((char*)result.cstr, needed_bytes, fmt, args2);
+    result.cstr[result.size] = 0;
+    va_end(args2);
+    return result;
+}
+
+internal Str8 str8f(Alloc alloc, char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    Str8 result = str8fv(alloc, fmt, args);
+    va_end(args);
+    return result;
+}
+
 // UTF-8 & UTF-16 Decoding/Encoding
 //=============================================================================
-
-read_only global U8 utf8_class[32] = {
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,2,2,2,2,3,3,4,5,
-};
 
 internal UnicodeDecode utf8_decode(U8 *str, U64 max)
 {
