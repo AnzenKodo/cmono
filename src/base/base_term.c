@@ -1,4 +1,33 @@
 internal bool term_is_color_allowed(void)
 {
-    return true;
+    bool result = true;
+
+    if (os_env_is_set(str8("NO_COLOR")))
+    {
+        result = false;
+    }
+
+    return result;
+}
+
+internal void term_style_start(const char *style)
+{
+    if (term_is_color_allowed())
+    {
+        fmt_print(style);
+    }
+}
+internal void term_style_end(void)
+{
+    fmt_print(TERM_RESET);
+}
+
+internal char *term_style_get(const char *style)
+{
+    char *result = NULL;
+    if (term_is_color_allowed())
+    {
+        result = (char *)style;
+    }
+    return result;
 }

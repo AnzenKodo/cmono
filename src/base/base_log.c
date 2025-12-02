@@ -59,7 +59,7 @@ internal void log_printf(Log_Context context, Log_Level level, const char *forma
     {
         char *level_string = _log_get_level_string(level);
         char *level_color = "";
-        if (context.color_log)
+        if (context.enable_color_log || term_is_color_allowed())
         {
             level_color = _log_get_level_color(level);
         }
@@ -80,7 +80,6 @@ internal Log_Context log_init(void)
     context.level = Log_Level_Info;
     context.file = OS_STDOUT;
     context.print_level_prefix = true;
-    context.color_log = true;
     return context;
 }
 

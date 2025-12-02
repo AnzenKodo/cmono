@@ -86,4 +86,12 @@
 // Set Terminal title =========================================================
 #define TermSetTitle(title)  "\x1B]0;" title "\x07"
 
+// Functions
+// ============================================================================
+
+internal bool term_is_color_allowed(void);
+internal void term_style_start(const char *style);
+internal void term_style_end(void);
+internal char *term_style_get(const char *style);
+
 #endif // BASE_TERM_H

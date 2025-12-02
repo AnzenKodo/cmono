@@ -15,7 +15,7 @@ struct Log_Context {
     Log_Level level;
     Os_File file;
     bool print_level_prefix;
-    bool color_log;
+    bool enable_color_log;
 };
 
 // Functions
@@ -34,7 +34,7 @@ internal void log_error(Log_Context context, const char *format, ...);
     char *level_string = _log_get_level_string(level); \
     char *level_color = ""; \
     char *line_info_color = ""; \
-    if (context.color_log) \
+    if (context.enable_color_log || term_is_color_allowed()) \
     { \
         level_color = _log_get_level_color(level); \
         line_info_color = ANSI_FG_CYAN; \
