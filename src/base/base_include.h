@@ -5,6 +5,7 @@
 #include "base_mem.h"
 #include "base_alloc.h"
 #include "base_string.h"
+#include "base_term.h"
 typedef U64 Os_File;
 #include "base_fmt.h"
 #include "base_log.h"

@@ -27,24 +27,24 @@ internal char *_log_get_level_string(Log_Level level)
 }
 internal char *_log_get_level_color(Log_Level level)
 {
-    char *level_color = 0;
+    char *level_color = NULL;
     switch (level)
     {
         case Log_Level_Info:
         {
-            level_color = ANSI_FG_BLUE;
+            level_color = TERM_FG_BLUE;
         } break;
         case Log_Level_Debug:
         {
-            level_color = ANSI_FG_MAGENTA;
+            level_color = TERM_FG_MAGENTA;
         } break;
         case Log_Level_Warn:
         {
-            level_color = ANSI_FG_YELLOW;
+            level_color = TERM_FG_YELLOW;
         } break;
         case Log_Level_Error:
         {
-            level_color = ANSI_FG_RED;
+            level_color = TERM_FG_RED;
         } break;
         default:
         {
@@ -65,7 +65,7 @@ internal void log_printf(Log_Context context, Log_Level level, const char *forma
         }
         if (context.print_level_prefix)
         {
-            fmt_fprintf(context.file, "%s%s"ANSI_RESET" ", level_color, level_string);
+            fmt_fprintf(context.file, "%s%s"TERM_RESET" ", level_color, level_string);
         }
         va_list args_copy;
         va_copy(args_copy, args);

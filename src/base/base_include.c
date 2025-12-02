@@ -4,6 +4,7 @@
 #include "base_alloc.c"
 #include "base_string.c"
 #include "base_mem.c"
+#include "base_term.c"
 #include "base_fmt.c"
 #include "base_log.c"
 #include "base_flags.c"
