@@ -8,7 +8,7 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
     if (first)
     {
         first = 0;
-        MemoryZeroArray(key_table);
+        MemorySetZeroArray(key_table);
         key_table[(unsigned int)'A'] = Wl_Key_A;
         key_table[(unsigned int)'B'] = Wl_Key_B;
         key_table[(unsigned int)'C'] = Wl_Key_C;

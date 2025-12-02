@@ -370,103 +370,25 @@ CheckNil(nil,p) ? \
 // Asserts ====================================================================
 
 #if COMPILER_MSVC
-#   define Trap() __debugbreak()
+#   define TRAP() __debugbreak()
 #elif COMPILER_CLANG || COMPILER_GCC
-#   define Trap() __builtin_trap()
+#   define TRAP() __builtin_trap()
 #elif COMPILER_TCC
-#   define Trap() asm volatile("ud2");
+#   define TRAP() asm volatile("ud2");
 #else
 #   error Unknown trap intrinsic for this compiler.
 #endif
 
-#define AssertAlways(x) do{if(!(x)) {Trap();}}while(0)
+#define AssertAlways(x) do{if(!(x)) {TRAP();}}while(0)
 #if BUILD_DEBUG
 #   define Assert(x) AssertAlways(x)
 #else
 #   define Assert(x) (void)(x)
 #endif
-#define InvalidCodePath Assert(!"Invalid Path!")
-#define NotImplemented  Assert(!"Not Implemented!")
+#define INVALID_CODE_PATH Assert(!"Invalid Path!")
+#define NOT_IMPLEMENTED   Assert(!"Not Implemented!")
 
-// Defines
-//=============================================================================
 
-// ANSI Codes =================================================================
-
-/* Reset */
-#define ANSI_RESET             "\x1B[0m"
-#define ANSI_BOLD              "\x1B[1m"
-#define ANSI_FAINT             "\x1B[2m"
-#define ANSI_ITALIC            "\x1B[3m"
-#define ANSI_UNDERLINE         "\x1B[4m"
-#define ANSI_BLINK_SLOW        "\x1B[5m"
-#define ANSI_BLINK_FAST        "\x1B[6m"
-#define ANSI_REVERSE           "\x1B[7m"
-#define ANSI_CONCEAL           "\x1B[8m"
-#define ANSI_STRIKETHROUGH     "\x1B[9m"
-
-/* Foreground */
-#define ANSI_FG_BLACK          "\x1B[30m"
-#define ANSI_FG_RED            "\x1B[31m"
-#define ANSI_FG_GREEN          "\x1B[32m"
-#define ANSI_FG_YELLOW         "\x1B[33m"
-#define ANSI_FG_BLUE           "\x1B[34m"
-#define ANSI_FG_MAGENTA        "\x1B[35m"
-#define ANSI_FG_CYAN           "\x1B[36m"
-#define ANSI_FG_WHITE          "\x1B[37m"
-#define ANSI_FG_DEFAULT        "\x1B[39m"
-
-/* Bright Foreground */
-#define ANSI_FG_BRIGHT_BLACK   "\x1B[90m"
-#define ANSI_FG_BRIGHT_RED     "\x1B[91m"
-#define ANSI_FG_BRIGHT_GREEN   "\x1B[92m"
-#define ANSI_FG_BRIGHT_YELLOW  "\x1B[93m"
-#define ANSI_FG_BRIGHT_BLUE    "\x1B[94m"
-#define ANSI_FG_BRIGHT_MAGENTA "\x1B[95m"
-#define ANSI_FG_BRIGHT_CYAN    "\x1B[96m"
-#define ANSI_FG_BRIGHT_WHITE   "\x1B[97m"
-
-/* Background */
-#define ANSI_BG_BLACK          "\x1B[40m"
-#define ANSI_BG_RED            "\x1B[41m"
-#define ANSI_BG_GREEN          "\x1B[42m"
-#define ANSI_BG_YELLOW         "\x1B[43m"
-#define ANSI_BG_BLUE           "\x1B[44m"
-#define ANSI_BG_MAGENTA        "\x1B[45m"
-#define ANSI_BG_CYAN           "\x1B[46m"
-#define ANSI_BG_WHITE          "\x1B[47m"
-#define ANSI_BG_DEFAULT        "\x1B[49m"
-
-/* Bright Background */
-#define ANSI_BG_BRIGHT_BLACK   "\x1B[100m"
-#define ANSI_BG_BRIGHT_RED     "\x1B[101m"
-#define ANSI_BG_BRIGHT_GREEN   "\x1B[102m"
-#define ANSI_BG_BRIGHT_YELLOW  "\x1B[103m"
-#define ANSI_BG_BRIGHT_BLUE    "\x1B[104m"
-#define ANSI_BG_BRIGHT_MAGENTA "\x1B[105m"
-#define ANSI_BG_BRIGHT_CYAN    "\x1B[106m"
-#define ANSI_BG_BRIGHT_WHITE   "\x1B[107m"
-
-/* Cursor */
-#define ANSI_CURSOR_UP(n)      "\x1B[" #n "A"
-#define ANSI_CURSOR_DOWN(n)    "\x1B[" #n "B"
-#define ANSI_CURSOR_RIGHT(n)   "\x1B[" #n "C"
-#define ANSI_CURSOR_LEFT(n)    "\x1B[" #n "D"
-#define ANSI_CURSOR_HOME       "\x1B[H"
-#define ANSI_CURSOR_POS(r,c)   "\x1B[" #r ";" #c "H"
-#define ANSI_CURSOR_SAVE       "\x1B[s"
-#define ANSI_CURSOR_RESTORE    "\x1B[u"
-#define ANSI_CURSOR_HIDE       "\x1B[?25l"
-#define ANSI_CURSOR_SHOW       "\x1B[?25h"
-
-/* Screen */
-#define ANSI_CLEAR_SCREEN      "\x1B[2J"
-#define ANSI_CLEAR_LINE        "\x1B[2K"
-#define ANSI_CLEAR_TO_END      "\x1B[0J"
-#define ANSI_CLEAR_TO_START    "\x1B[1J"
-
-/* Title */
-#define ANSI_SET_TITLE(title)  "\x1B]0;" title "\x07"
 
 // Functions
 //=============================================================================

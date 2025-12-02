@@ -260,7 +260,7 @@ int main(void)
     // Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
-    _os_core_state.args = str8_array_reserve(alloc, args_count);
+    _os_core_state.args = str8_array_alloc(alloc, args_count);
     _os_core_state.alloc = alloc;
     for(int i = 0; i < args_count; i++)
     {

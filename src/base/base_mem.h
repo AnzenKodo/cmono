@@ -9,9 +9,9 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n);
 
 internal inline void *mem_set(void *dest, U8 c, I64 n);
 #define MemorySetZero(s,z)       mem_set((s),0,(z))
-#define MemorySetZeroStruct(s)   MemoryZero((s),sizeof(*(s)))
-#define MemorySetZeroArray(a)    MemoryZero((a),sizeof(a))
-#define MemorySetZeroTyped(m,c)  MemoryZero((m),sizeof(*(m))*(c))
+#define MemorySetZeroStruct(s)   MemorySetZero((s),sizeof(*(s)))
+#define MemorySetZeroArray(a)    MemorySetZero((a),sizeof(a))
+#define MemorySetZeroTyped(m,c)  MemorySetZero((m),sizeof(*(m))*(c))
 
 internal inline bool mem_match(void const *s1, void const *s2, I64 size);
 internal inline void *mem_move(void *dest, void const *source, I64 n);

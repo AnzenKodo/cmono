@@ -29,10 +29,10 @@ internal void entry_point(void)
         "VERSION:\n"
         "   "PROGRAM_VERSION;
     Str8Array *args = os_args_get();
-    if (args->length >= 2)
+    if (args->count >= 2)
     {
         Str8 arg1 = args->strings[1];
-        for (U8 i = 1; i < args->length; i++)
+        for (U8 i = 1; i < args->count; i++)
         {
             Str8 arg = args->strings[i];
             if (str8_match(arg, str8("--help"), 0) || str8_match(arg, str8("-h"), 0))
