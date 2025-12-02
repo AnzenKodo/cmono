@@ -1,5 +1,4 @@
 // TODO: Add flags test
-// TODO: custom value string
 // TODO: Add color support
 
 typedef enum _Flags_Error_Kind {
@@ -10,7 +9,6 @@ typedef enum _Flags_Error_Kind {
     _Flags_Error_Kind_UIntMinus,
     _Flags_Error_Kind_InvalidFloat,
     _Flags_Error_Kind_DuplicateFlag,
-    _Flags_Error_Kind_EmptyValue,
     _Flags_Error_Kind_RequireValue,
 } _Flags_Error_Kind;
 
@@ -120,7 +118,7 @@ internal Flags_Flag *_flags_get_flag(Flags_Context *context, Str8 name)
     return result;
 }
 
-internal void *_flags_add_flag(Flags_Context *context, Flags_Flag *flag)
+internal void _flags_add_flag(Flags_Context *context, Flags_Flag *flag)
 {
     // Error on finding dublicate flags
     Assert(_flags_get_flag(context, flag->name) == NULL);
@@ -166,14 +164,14 @@ internal Flags_Flag *flags_int(Flags_Context *context, Str8 name, I64 *result_va
 }
 
 
-internal Flags_Flag *flags_uint(Flags_Context *context, Str8 name, I64 *result_value, I64 default_value, Str8 description)
+internal Flags_Flag *flags_uint(Flags_Context *context, Str8 name, U64 *result_value, U64 default_value, Str8 description)
 {
     Flags_Flag *flag = alloc_make(context->alloc, Flags_Flag, 1);
     flag->kind = _Flags_Flag_Kind_UInt;
     flag->name = name;
-    flag->default_value.int_value = default_value;
+    flag->default_value.uint_value = default_value;
     flag->description = description;
-    flag->result_value.int_value = result_value;
+    flag->result_value.uint_value = result_value;
     _flags_add_flag(context, flag);
     return flag;
 }
@@ -546,7 +544,7 @@ internal void flags_print_error(Flags_Context *context)
             case _Flags_Error_Kind_MissingValue:
             {
                 log_error(log_context,
-                    "flag '%.*s' requires a value. Example: '--%.*s=<value>'.",
+                    "flag '%.*s' requires a value. Example: '--%.*s <value>'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
@@ -589,7 +587,7 @@ internal void flags_print_error(Flags_Context *context)
             case _Flags_Error_Kind_InvalidFloat:
             {
                 log_error(log_context,
-                    "flag '%.*s' expects a floating-point number, but '%.*s' was given. Examples: '--%.*s=.14', '--%.*s=-0.5', '--%.*s=2', '--%.*s=2.0'.",
+                    "flag '%.*s' expects a floating-point number, but '%.*s' was given. Examples: '--%.*s .14', '--%.*s -0.5', '--%.*s 2', '--%.*s 2.0'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
