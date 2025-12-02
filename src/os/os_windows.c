@@ -248,6 +248,31 @@ internal void os_sleep_millisec(U32 millisec)
     Sleep(millisec);
 }
 
+// Environment Variable
+// ============================================================================
+
+internal bool os_env_is_set(Str8 name)
+{
+    Str16 name16 = str16_from_8(_os_core_state.alloc, name);
+    DWORD len = GetEnvironmentVariableW(name16.cstr, NULL, 0);
+    return len;
+}
+
+internal Str8 os_env_get(Str8 name)
+{
+    Str8 result = ZERO_STRUCT;
+    Str16 name16 = str16_from_8(_os_core_state.alloc, name);
+    DWORD len = GetEnvironmentVariableW(name16.cstr, NULL, 0);
+    if (len > 0) {
+        U16* value_buf = alloc_make(_os_core_state.alloc, U16, len);
+        GetEnvironmentVariableW(name16.cstr, value_buf, len);
+        Str16 value16 = str16_from_cstr(value_buf);
+        alloc_free(_os_core_state.alloc, value_buf, len);
+        result = str8_from_16(_os_core_state.alloc, value16);
+    }
+    return result;
+}
+
 // OS Entry Points
 //=============================================================================
 

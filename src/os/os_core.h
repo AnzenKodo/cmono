@@ -88,6 +88,11 @@ internal void os_sleep_millisec(U32 millisec);
 
 internal Str8List *os_agrs_get(void);
 
+// Environment Variable =======================================================
+
+internal bool os_env_is_set(Str8 name);
+internal Str8 os_env_get(Str8 name);
+
 // Program Entry Points =======================================================
 
 internal void os_entry_point(void);
