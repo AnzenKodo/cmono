@@ -389,7 +389,7 @@ internal void entry_point()
     for (U32 i = 0; i < args->count; i++)
     {
         if (str8_match(args->strings[i], str8("--nocolor"), 0)) {
-            info.log_context.color_log = false;
+            info.log_context.enable_color_log = false;
         }
     }
     if (!(should_print_help))

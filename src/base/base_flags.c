@@ -1,5 +1,6 @@
-// TODO: Add flags test
-// TODO: Add color support
+// TODO: new variable value syntex
+// TODO: specify shortname and name size
+// TODO: Auto add -nocolor and -color flags
 
 typedef enum _Flags_Error_Kind {
     _Flags_Error_Kind_MissingValue,
@@ -71,14 +72,6 @@ struct Flags_Flag
     bool required;
 };
 
-#ifndef FLAGS_MAX_FLAGS
-#   define FLAGS_MAX_FLAGS 256
-#endif
-
-#ifndef FLAGS_MAX_ERRORS
-#   define FLAGS_MAX_ERRORS FLAGS_MAX_FLAGS
-#endif
-
 typedef struct Flags_Context Flags_Context;
 struct Flags_Context
 {
@@ -92,12 +85,15 @@ struct Flags_Context
     Str8List error_list;
     bool has_error;
     Str8 program_name;
+    bool should_add_color_flags;
+    bool has_program_name;
 };
 
 internal Flags_Context flags_init(Alloc alloc)
 {
     Flags_Context context = ZERO_STRUCT;
     context.alloc = alloc;
+    context.has_program_name = true;
     return context;
 }
 
@@ -248,6 +244,21 @@ internal Flags_Flag *flags_float_arr(Flags_Context *context, Str8 name, F64Array
     return flag;
 }
 
+internal void flags_add_color_flags(Flags_Context *context)
+{
+    context->should_add_color_flags = true;
+}
+
+internal void flags_has_program_name(Flags_Context *context, bool has_name)
+{
+    context->has_program_name = has_name;
+}
+
+internal Str8 flags_get_program_name(Flags_Context *context)
+{
+    return context->program_name;
+}
+
 internal void _flags_add_error(Flags_Context *context, _Flags_Error_Kind kind, Str8 name)
 {
     _Flags_Error *error = alloc_make(context->alloc, _Flags_Error, 1);
@@ -272,9 +283,12 @@ internal void _flags_add_error_with_value(Flags_Context *context, _Flags_Error_K
 
 internal bool flags_parse(Flags_Context *context, Str8Array *args)
 {
-    context->program_name = args->strings[0];
+    if (context->has_program_name)
+    {
+        context->program_name = args->strings[0];
+    }
     bool has_passthrough_option = false;
-    for (U32 i = 1; i < args->count; i++)
+    for (U32 i = context->has_program_name ? 1 : 0; i < args->count; i++)
     {
         Str8 option_name = args->strings[i];
         bool is_option = false;
@@ -595,17 +609,17 @@ internal void flags_print_error(Flags_Context *context)
     }
 }
 
-
 internal void flags_print_help(Flags_Context *context)
 {
     for (Flags_Flag *flag = context->first_flag; flag != NULL; flag = flag->next)
     {
         Str8 value_syntex = ZERO_STRUCT;
         Str8 required_syntex = ZERO_STRUCT;
-        fmt_printf(" %-1s%-1s%-1s -%.*s",
+        fmt_printf(" %s%s%s%s-%.*s",
             flag->shortname.size > 0 ? "-" : "",
             flag->shortname.size > 0 ? (char *)flag->shortname.cstr : "",
             flag->shortname.size > 0 ? "," : "",
+            flag->shortname.size  ? " " : "",
             str8_varg(flag->name));
         if (flag->value_hint.size > 0)
         {
@@ -615,15 +629,16 @@ internal void flags_print_help(Flags_Context *context)
         {
             fmt_print(" (required)");
         }
-        char *default_syntex = "        (default: ";
-        fmt_printfln("\n        %.*s", str8_varg(flag->description));
+        U8 desc_spacing = 5;
+        char *default_syntex = "(default: ";
+        fmt_printfln("\n%-*s%.*s", desc_spacing, "", str8_varg(flag->description));
         switch (flag->kind)
         {
             case _Flags_Flag_Kind_Str:
             {
                 if (flag->default_value.str_value.size > 0)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     fmt_printfln("\"%.*s\")", str8_varg(flag->default_value.str_value));
                 }
             }
@@ -632,7 +647,7 @@ internal void flags_print_help(Flags_Context *context)
             {
                 if (flag->default_value.int_value != 0)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     fmt_printfln("%lld)", flag->default_value.int_value);
                 }
             }
@@ -641,7 +656,7 @@ internal void flags_print_help(Flags_Context *context)
             {
                 if (flag->default_value.uint_value != 0)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     fmt_printfln("%llu)", flag->default_value.uint_value);
                 }
             }
@@ -650,7 +665,7 @@ internal void flags_print_help(Flags_Context *context)
             {
                 if (flag->default_value.float_value != 0)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     fmt_printfln("%llf)", flag->default_value.float_value);
                 }
             }
@@ -664,7 +679,7 @@ internal void flags_print_help(Flags_Context *context)
                 Str8Array *default_array = flag->default_value.str_value_arr;
                 if (default_array != NULL)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     for (U32 i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("\"%s\"", default_array->strings[i]);
@@ -682,7 +697,7 @@ internal void flags_print_help(Flags_Context *context)
                 I64Array *default_array = flag->default_value.int_value_arr;
                 if (default_array != NULL)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     for (U32 i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("%lld", default_array->v[i]);
@@ -700,7 +715,7 @@ internal void flags_print_help(Flags_Context *context)
                 U64Array *default_array = flag->default_value.uint_value_arr;
                 if (default_array != NULL)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     for (U32 i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("%llu", default_array->v[i]);
@@ -718,7 +733,7 @@ internal void flags_print_help(Flags_Context *context)
                 F64Array *default_array = flag->default_value.float_value_arr;
                 if (default_array != NULL)
                 {
-                    fmt_printf("%s", default_syntex);
+                    fmt_printf("%s", desc_spacing, "", default_syntex);
                     for (U32 i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("%llf", default_array->v[i]);
