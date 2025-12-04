@@ -239,6 +239,37 @@ internal void os_sleep_millisec(U32 millisec)
     usleep(millisec*Thousand(1));
 }
 
+// Environment Variable =======================================================
+
+internal bool os_env_is_set(Str8 name)
+{
+    bool result = false;
+    for (char **e = environ; *e != NULL; e++) {
+        Str8 env = str8_from_cstr(*e);
+        U64 equal_pos = str8_find_substr(env, 0, str8("="), 0);
+        Str8 env_name = str8_prefix(env, equal_pos);
+        if (str8_match(env_name, name, 0)) {
+            result = true;
+        }
+    }
+    return result;
+}
+
+extern char **environ;   // defined by the loader, always available
+internal Str8 os_env_get(Str8 name)
+{
+    Str8 result = ZERO_STRUCT;
+    for (char **e = environ; *e != NULL; e++) {
+        Str8 env = str8_from_cstr(*e);
+        U64 equal_pos = str8_find_substr(env, 0, str8("="), 0);
+        Str8 env_name = str8_prefix(env, equal_pos);
+        if (str8_match(env_name, name, 0)) {
+            result = str8_skip(env, equal_pos+1);
+        }
+    }
+    return result;
+}
+
 // OS Entry Points
 //=============================================================================
 
