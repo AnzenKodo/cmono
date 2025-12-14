@@ -1,6 +1,6 @@
-// TODO: new variable value syntex
-// TODO: specify shortname and name size
-// TODO: Auto add -nocolor and -color flags
+// TODO: Fix help print segment fault
+// TODO: Fix `./a.out --nocolor true --aa`
+// TODO: Fix color print problem
 
 typedef enum _Flags_Error_Kind {
     _Flags_Error_Kind_MissingValue,
@@ -11,6 +11,8 @@ typedef enum _Flags_Error_Kind {
     _Flags_Error_Kind_InvalidFloat,
     _Flags_Error_Kind_DuplicateFlag,
     _Flags_Error_Kind_RequireValue,
+    _Flags_Error_Kind_SingleValue,
+    _Flags_Error_Kind_InvalidBool,
 } _Flags_Error_Kind;
 
 typedef enum _Flags_Flag_Kind
@@ -87,6 +89,7 @@ struct Flags_Context
     Str8 program_name;
     bool should_add_color_flags;
     bool has_program_name;
+    Log_Context log_context;
 };
 
 internal Flags_Context flags_init(Alloc alloc)
@@ -94,6 +97,7 @@ internal Flags_Context flags_init(Alloc alloc)
     Flags_Context context = ZERO_STRUCT;
     context.alloc = alloc;
     context.has_program_name = true;
+    context.log_context = log_init();
     return context;
 }
 
@@ -281,252 +285,244 @@ internal void _flags_add_error_with_value(Flags_Context *context, _Flags_Error_K
     context->has_error = true;
 }
 
+internal Str8 _flags_get_options_from_arg(Str8 arg)
+{
+    Str8 result = ZERO_STRUCT;
+    if (str8_match(str8_prefix(arg, 2), str8("--"), 0))
+    {
+        result = str8_skip(arg, 2);
+    }
+    else if (str8_match(str8_prefix(arg, 1), str8("-"), 0))
+    {
+        result = str8_skip(arg, 1);
+    }
+    else if (Context_Os_CURRENT == Context_Os_Windows &&
+            str8_match(str8_prefix(arg, 1), str8("/"), 0))
+    {
+        result = str8_skip(arg, 1);
+    }
+    return result;
+}
+
+internal bool _flags_is_arg_option(Str8 arg)
+{
+    return _flags_get_options_from_arg(arg).size > 0 ? true : false;
+}
+
+internal U64 _flags_get_values_count(Str8Array *args, U64 index)
+{
+    U64 count = 0;
+    for (U64 i = index; i < args->count; i++)
+    {
+        Str8 arg = args->strings[i];
+        if (_flags_is_arg_option(arg)) break;
+        count++;
+    }
+    return count;
+}
+
 internal bool flags_parse(Flags_Context *context, Str8Array *args)
 {
+    bool nocolor = false;
+    flags_bool(context, str8("nocolor"), &nocolor, false, str8("Don't print color lines"));
     if (context->has_program_name)
     {
         context->program_name = args->strings[0];
     }
     bool has_passthrough_option = false;
-    for (U32 i = context->has_program_name ? 1 : 0; i < args->count; i++)
+    Flags_Flag *flag = NULL;
+    for (U32 index = context->has_program_name ? 1 : 0; index < args->count; index++)
     {
-        Str8 option_name = args->strings[i];
-        bool is_option = false;
-        if (!has_passthrough_option)
+        Str8 arg = args->strings[index];
+        if (str8_match(arg, str8("--"), 0))
         {
-            is_option = 1;
-            if (str8_match(option_name, str8("--"), 0))
-            {
-                has_passthrough_option = 1;
-                is_option = 0;
-            }
-            else if (str8_match(str8_prefix(option_name, 2), str8("--"), 0))
-            {
-                option_name = str8_skip(option_name, 2);
-            }
-            else if (str8_match(str8_prefix(option_name, 1), str8("-"), 0))
-            {
-                option_name = str8_skip(option_name, 1);
-            }
-            else if (Context_Os_CURRENT == Context_Os_Windows &&
-                    str8_match(str8_prefix(option_name, 1), str8("/"), 0))
-            {
-                option_name = str8_skip(option_name, 1);
-            }
-            else
-            {
-                _flags_add_error(context, _Flags_Error_Kind_NoFlagPrefix, option_name);
-                is_option = 0;
-            }
+            has_passthrough_option = 1;
+            break;
         }
-
-        if (is_option)
+        if (_flags_is_arg_option(arg))
         {
-            bool has_values = 0;
-            U64 value_signifier_position = str8_find_substr(option_name, 0, str8("="), 0);
-            Str8 value = str8_skip(option_name, value_signifier_position+1);
-            if(value_signifier_position < option_name.size)
-            {
-                has_values = 1;
-            }
-            option_name = str8_prefix(option_name, value_signifier_position);
-            Flags_Flag *flag = _flags_get_flag(context, option_name);
-            if (flag == NULL)
-            {
+            Str8 option_name = _flags_get_options_from_arg(arg);
+            flag = _flags_get_flag(context, option_name);
+            if (flag == NULL) {
                 _flags_add_error(context, _Flags_Error_Kind_UnknownFlag, option_name);
             }
-            else if (flag->assigned)
-            {
-                _flags_add_error(context, _Flags_Error_Kind_DuplicateFlag, option_name);
-            }
             else
             {
-                U8 splits[] = { ',' };
-                Base base = Base_10;
-                flag->assigned = true;
-                switch (flag->kind)
+                if (flag->assigned)
                 {
-                    case _Flags_Flag_Kind_Str:
-                    {
-                        if (has_values)
-                        {
-                            *flag->result_value.str_value = value;
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_Int:
-                    {
-                        if (has_values)
-                        {
-                            if (str8_is_integer(value, base))
-                            {
-                                *flag->result_value.int_value = str8_to_i64(value, base);
-                            }
-                            else
-                            {
-                                _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, option_name, value);
-                            }
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_UInt:
-                    {
-                        if (has_values)
-                        {
-                            if (str8_is_integer(value, base))
-                            {
-                                if (str8_is_integer_unsigned(value, base))
-                                {
-                                    *flag->result_value.int_value = str8_to_u64(value, base);
-                                }
-                                else
-                                {
-                                    _flags_add_error_with_value(context, _Flags_Error_Kind_UIntMinus, option_name, value);
-                                }
-                            }
-                            else
-                            {
-                                _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, option_name, value);
-                            }
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_Float:
-                    {
-                        if (has_values)
-                        {
-                            if (str8_is_float(value))
-                            {
-                                *flag->result_value.float_value = str8_to_f64(value);
-                            }
-                            else
-                            {
-                                _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidFloat, option_name, value);
-                            }
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_Bool:
-                    {
-                        *flag->result_value.bool_value = true;
-                    }
-                    break;
-                    case _Flags_Flag_Kind_StrArr:
-                    {
-                        if (has_values)
-                        {
-                            Str8List str_list = str8_split(context->alloc, value, splits, ArrayCount(splits), 0);
-                            Str8Array str_arr = str8_array_from_list(context->alloc, &str_list);
-                            *flag->result_value.str_value_arr = str_arr;
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_IntArr:
-                    {
-                        if (has_values)
-                        {
-                            Str8List str_list = str8_split(context->alloc, value, splits, ArrayCount(splits), 0);
-                            I64Array array = ZERO_STRUCT;
-                            array.v = alloc_make(context->alloc, I64, str_list.count);
-                            for (Str8Node *node = str_list.first; node != NULL; node = node->next)
-                            {
-                                if (str8_is_integer(node->string, base))
-                                {
-                                    array.v[array.count++] = str8_to_i64(node->string, base);
-                                }
-                                else
-                                {
-                                    _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, option_name, node->string);
-                                }
-                            }
-                            *flag->result_value.int_value_arr = array;
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_UIntArr:
-                    {
-                        if (has_values)
-                        {
-                            Str8List str_list = str8_split(context->alloc, value, splits, ArrayCount(splits), 0);
-                            U64Array array = ZERO_STRUCT;
-                            array.v = alloc_make(context->alloc, U64, str_list.count);
-                            for (Str8Node *node = str_list.first; node != NULL; node = node->next)
-                            {
-                                if (str8_is_integer(node->string, base))
-                                {
-                                    if (str8_is_integer_unsigned(node->string, base))
-                                    {
-                                        array.v[array.count++] = str8_to_u64(node->string, base);
-                                    }
-                                    else
-                                    {
-                                        _flags_add_error_with_value(context, _Flags_Error_Kind_UIntMinus, option_name, value);
-                                    }
-                                }
-                                else
-                                {
-                                    _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, option_name, node->string);
-                                }
-                            }
-                            *flag->result_value.uint_value_arr = array;
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
-                    case _Flags_Flag_Kind_FloatArr:
-                    {
-                        if (has_values)
-                        {
-                            Str8List str_list = str8_split(context->alloc, value, splits, ArrayCount(splits), 0);
-                            F64Array array = ZERO_STRUCT;
-                            array.v = alloc_make(context->alloc, F64, str_list.count);
-                            for (Str8Node *node = str_list.first; node != NULL; node = node->next)
-                            {
-                                if (str8_is_float(node->string))
-                                {
-                                    array.v[array.count++] = str8_to_f64(node->string);
-                                }
-                                else
-                                {
-                                    _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, option_name, node->string);
-                                }
-                            }
-                            *flag->result_value.float_value_arr = array;
-                        }
-                        else
-                        {
-                            _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
-                        }
-                    }
-                    break;
+                    _flags_add_error(context, _Flags_Error_Kind_DuplicateFlag, option_name);
                 }
+                if (flag->kind == _Flags_Flag_Kind_Bool)
+                {
+                    *flag->result_value.bool_value = true;
+                    flag->assigned = true;
+                }
+                else
+                {
+                    Str8 arg_next = *str8_array_get(args, index+1);
+                    if (_flags_is_arg_option(arg_next))
+                    {
+                        _flags_add_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                    }
+                }
+            }
+        }
+        else if (flag != NULL)
+        {
+            if (flag->assigned)
+            {
+                _flags_add_error(context, _Flags_Error_Kind_SingleValue, flag->name);
+            }
+            Base base = Base_10;
+            flag->assigned = true;
+            switch (flag->kind)
+            {
+                case _Flags_Flag_Kind_Str:
+                {
+                        *flag->result_value.str_value = arg;
+                }
+                break;
+                case _Flags_Flag_Kind_Int:
+                {
+                    if (str8_is_integer(arg, base))
+                    {
+                        *flag->result_value.int_value = str8_to_i64(arg, base);
+                    }
+                    else
+                    {
+                        _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, flag->name, arg);
+                    }
+                }
+                case _Flags_Flag_Kind_UInt:
+                {
+                    if (str8_is_integer(arg, base))
+                    {
+                        if (str8_is_integer_unsigned(arg, base))
+                        {
+                            *flag->result_value.int_value = str8_to_u64(arg, base);
+                        }
+                        else
+                        {
+                            _flags_add_error_with_value(context, _Flags_Error_Kind_UIntMinus, flag->name, arg);
+                        }
+                    }
+                    else
+                    {
+                        _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, flag->name, arg);
+                    }
+                }
+                break;
+                case _Flags_Flag_Kind_Float:
+                {
+                    if (str8_is_float(arg))
+                    {
+                        *flag->result_value.float_value = str8_to_f64(arg);
+                    }
+                    else
+                    {
+                        _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidFloat, flag->name, arg);
+                    }
+                }
+                break;
+                case _Flags_Flag_Kind_Bool:
+                {
+                    if (str8_is_bool(arg))
+                    {
+                        *flag->result_value.bool_value = str8_to_bool(arg);
+                    }
+                    else
+                    {
+                        _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidBool, flag->name, arg);
+                    }
+                }
+                case _Flags_Flag_Kind_StrArr:
+                {
+                    Str8Array array = ZERO_STRUCT;
+                    U64 items_count = _flags_get_values_count(args, index);
+                    array.strings = alloc_make(context->alloc, Str8, items_count);
+                    for (U64 i = 0; i < items_count; i++)
+                    {
+                        Str8 array_arg = args->strings[index];
+                        array.strings[array.count++] = array_arg;
+                        index++;
+                    }
+                    index--;
+                    *flag->result_value.str_value_arr = array;
+                }
+                break;
+                case _Flags_Flag_Kind_IntArr:
+                {
+                    I64Array array = ZERO_STRUCT;
+                    U64 items_count = _flags_get_values_count(args, index);
+                    array.v = alloc_make(context->alloc, I64, items_count);
+                    for (U64 i = 0; i < items_count; i++)
+                    {
+                        Str8 array_arg = args->strings[index];
+                        if (str8_is_integer(array_arg, base))
+                        {
+                            array.v[array.count++] = str8_to_i64(array_arg, base);
+                        }
+                        else
+                        {
+                            _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, flag->name, array_arg);
+                        }
+                        index++;
+                    }
+                    index--;
+                    *flag->result_value.int_value_arr = array;
+                }
+                break;
+                case _Flags_Flag_Kind_UIntArr:
+                {
+                    U64Array array = ZERO_STRUCT;
+                    U64 items_count = _flags_get_values_count(args, index);
+                    array.v = alloc_make(context->alloc, U64, index);
+                    for (U64 i = 0; i < items_count; i++)
+                    {
+                        Str8 array_arg = args->strings[index];
+                        if (str8_is_integer(array_arg, base))
+                        {
+                            if (str8_is_integer_unsigned(array_arg, base))
+                            {
+                                array.v[array.count++] = str8_to_u64(array_arg, base);
+                            }
+                            else
+                            {
+                                _flags_add_error_with_value(context, _Flags_Error_Kind_UIntMinus, flag->name, array_arg);
+                            }
+                        }
+                        else
+                        {
+                            _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, flag->name, array_arg);
+                        }
+                        index++;
+                    }
+                    index--;
+                    *flag->result_value.uint_value_arr = array;
+                }
+                break;
+                case _Flags_Flag_Kind_FloatArr:
+                {
+                    F64Array array = ZERO_STRUCT;
+                    U64 items_count = _flags_get_values_count(args, index);
+                    array.v = alloc_make(context->alloc, F64, items_count);
+                    for (U64 i = 0; i < items_count; i++)
+                    {
+                        Str8 array_arg = args->strings[index];
+                        if (str8_is_float(array_arg))
+                        {
+                            array.v[array.count++] = str8_to_f64(array_arg);
+                        }
+                        else
+                        {
+                            _flags_add_error_with_value(context, _Flags_Error_Kind_InvalidInt, flag->name, array_arg);
+                        }
+                        index++;
+                    }
+                    index--;
+                    *flag->result_value.float_value_arr = array;
+                }
+                break;
             }
         }
     }
@@ -545,64 +541,81 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
             }
         }
     }
+    if (nocolor)
+    {
+        context->log_context.enable_color_log = false;
+    }
     return !context->has_error;
 }
 
 internal void flags_print_error(Flags_Context *context)
 {
-    Log_Context log_context = log_init();
     for (_Flags_Error *error = context->first_error; error != NULL; error = error->next)
     {
         switch (error->kind)
         {
             case _Flags_Error_Kind_MissingValue:
             {
-                log_error(log_context,
+                log_error(context->log_context,
                     "flag '%.*s' requires a value. Example: '--%.*s <value>'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UnknownFlag:
             {
-                log_error(log_context, "flag '%.*s' is invalid.", str8_varg(error->flag_name));
+                log_error(context->log_context, "flag '%.*s' is invalid.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_NoFlagPrefix:
             {
-                log_error(log_context,
+                log_error(context->log_context,
                     "'%.*s' is not recognized as a flag. Flags must start with '-', '--', or '/' (Windows only). Examples: '-%.*s', '--%.*s', '/%.*s'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_DuplicateFlag:
             {
-                log_error(log_context, "flag '%.*s' was specified multiple times.", str8_varg(error->flag_name));
+                log_error(context->log_context, "flag '%.*s' was specified multiple times.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_RequireValue:
             {
-                log_error(log_context, "missing required flag '-%.*s'.", str8_varg(error->flag_name));
+                log_error(context->log_context, "missing required flag '-%.*s'.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_InvalidInt:
             {
-                log_error(log_context,
+                log_error(context->log_context,
                     "flag '%.*s' expects an integer value, but '%.*s' was given. Examples: '--%.*s=42', '--%.*s=-7', '--%.*s 123'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UIntMinus:
             {
-                log_error(log_context,
+                log_error(context->log_context,
                     "flag '%.*s' does not accept negative values (got '%.*s'). Use a positive integer instead.",
                     str8_varg(error->flag_name), str8_varg(error->flag_value));
             }
             break;
             case _Flags_Error_Kind_InvalidFloat:
             {
-                log_error(log_context,
+                log_error(context->log_context,
                     "flag '%.*s' expects a floating-point number, but '%.*s' was given. Examples: '--%.*s .14', '--%.*s -0.5', '--%.*s 2', '--%.*s 2.0'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
+            }
+            break;
+            case _Flags_Error_Kind_InvalidBool:
+            {
+                log_error(context->log_context,
+                    "flag '%.*s' expects a boolean value, but '%.*s' was given. Enter 'true', 'false' or no value for true.",
+                    str8_varg(error->flag_name), str8_varg(error->flag_value));
+            }
+            break;
+            case _Flags_Error_Kind_SingleValue:
+            {
+                log_error(context->log_context,
+                    "flag '%.*s' only accepts single value.",
+                    str8_varg(error->flag_name));
             }
             break;
         }
