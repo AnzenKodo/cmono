@@ -512,6 +512,15 @@ internal Str8 *str8_array_append(Str8Array *array, Str8 str)
     array->count++;
     return result;
 }
+internal Str8 *str8_array_get(Str8Array *array, U64 index)
+{
+    Str8 *result = NULL;
+    if (array->count >= index)
+    {
+        result = &array->strings[index];
+    }
+    return result;
+}
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 {
     Str8Array array;
