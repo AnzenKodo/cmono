@@ -464,6 +464,22 @@ internal F64 str8_to_f64(Str8 string)
     return result;
 }
 
+internal Str8 str8_from_bool(bool value)
+{
+    Str8 result = value ? str8("true") : str8("false");
+    return result;
+}
+internal bool str8_is_bool(Str8 str)
+{
+    bool result = str8_match(str, str8("true"), 0) || str8_match(str, str8("false"), 0);
+    return result;
+}
+internal bool str8_to_bool(Str8 str)
+{
+    bool result = str8_match(str, str8("true"), 0) ? true : false;
+    return result;
+}
+
 // String List Construction Functions
 //=============================================================================
 

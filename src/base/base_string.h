@@ -149,6 +149,9 @@ internal U32 str8_to_u32(Str8 string, U32 radix);
 internal I64 str8_to_i64(Str8 string, U32 radix);
 internal I32 str8_to_i32(Str8 string, U32 radix);
 internal F64 str8_to_f64(Str8 string);
+internal Str8 str8_from_bool(bool value);
+internal bool str8_is_bool(Str8 str);
+internal bool str8_to_bool(Str8 str);
 
 // String List Construction Functions =========================================
 
