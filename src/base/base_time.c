@@ -38,12 +38,12 @@ date_time_from_dense_time(DenseTime time)
     result.mon  = time%12;
     time /= 12;
     Assert(time <= max_u32);
-    result.year = (U32)time;
+    result.year = (uint32_t)time;
     return(result);
 }
 
 internal DateTime
-date_time_from_micro_seconds(U64 time)
+date_time_from_micro_seconds(uint64_t time)
 {
     DateTime result = {0};
     result.micro_sec = time%1000;
@@ -61,25 +61,25 @@ date_time_from_micro_seconds(U64 time)
     result.mon = time%12;
     time /= 12;
     Assert(time <= max_u32);
-    result.year = (U32)time;
+    result.year = (uint32_t)time;
     return(result);
 }
 
 internal DateTime
-date_time_from_unix_time(U64 unix_time)
+date_time_from_unix_time(uint64_t unix_time)
 {
     DateTime date = {0};
     date.year     = 1970;
-    date.day      = (U16)(1 + (unix_time / 86400));
-    date.sec      = (U32)unix_time % 60;
-    date.min      = (U32)(unix_time / 60) % 60;
-    date.hour     = (U32)(unix_time / 3600) % 24;
+    date.day      = (uint16_t)(1 + (unix_time / 86400));
+    date.sec      = (uint32_t)unix_time % 60;
+    date.min      = (uint32_t)(unix_time / 60) % 60;
+    date.hour     = (uint32_t)(unix_time / 3600) % 24;
 
     for(;;)
     {
         for(date.month = 0; date.month < 12; ++date.month)
         {
-            U64 c = 0;
+            uint64_t c = 0;
             switch(date.month)
             {
                 case Month_Jan: c = 31; break;
@@ -113,7 +113,7 @@ date_time_from_unix_time(U64 unix_time)
             {
                 goto exit;
             }
-            date.day -= (U16)c;
+            date.day -= (uint16_t)c;
         }
         ++date.year;
     }

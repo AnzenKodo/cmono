@@ -7,26 +7,26 @@
 typedef struct Draw_Buffer Draw_Buffer;
 struct Draw_Buffer {
     void *memory;
-    U32 width;
-    U32 height;
-    I32 bytes_per_pixel;
-    I32 pitch;
+    uint32_t width;
+    uint32_t height;
+    int32_t bytes_per_pixel;
+    int32_t pitch;
 };
 
 typedef struct Draw_Rgba Draw_Rgba;
 struct Draw_Rgba {
-    U8 red;
-    U8 green;
-    U8 blue;
-    U8 alpha;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+    uint8_t alpha;
 };
 
 typedef struct Draw_Rect Draw_Rect;
 struct Draw_Rect {
-    F32 x;
-    F32 y;
-    F32 width;
-    F32 height;
+    float x;
+    float y;
+    float width;
+    float height;
 };
 
 // Colors 
@@ -61,10 +61,10 @@ struct Draw_Rect {
 // Functions
 // ============================================================================
 
-internal Draw_Buffer draw_init(Alloc alloc, I32 width, I32 height);
+internal Draw_Buffer draw_init(Alloc alloc, int32_t width, int32_t height);
 internal Draw_Buffer draw_init_display(Alloc alloc);
-internal U32 draw_rgba_to_hex(const Draw_Rgba color);
-internal U32 draw_rgba_to_hex_argb(const Draw_Rgba color);
+internal uint32_t draw_rgba_to_hex(const Draw_Rgba color);
+internal uint32_t draw_rgba_to_hex_argb(const Draw_Rgba color);
 internal void draw_fill(Draw_Buffer draw_buffer, Draw_Rgba color);
 internal void draw_rect(Draw_Buffer draw_buffer, Draw_Rect rect, Draw_Rgba color);
 

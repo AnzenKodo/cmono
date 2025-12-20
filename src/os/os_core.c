@@ -1,16 +1,16 @@
-internal void * os_memory_alloc(U64 size)
+internal void * os_memory_alloc(uint64_t size)
 {
     void *result = os_memory_create(size);
     os_memory_commit(result, size);
     return result;
 }
 
-internal Str8 os_file_read_str(Os_File file, Rng1U64 range, Alloc alloc)
+internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Alloc alloc)
 {
     Str8 result;
-    result.size = dim_1u64(range);
-    result.cstr = alloc_make(alloc, U8, result.size);
-    U64 actual_read_size = os_file_read(file, range, result.cstr);
+    result.size = dim1_u64(range);
+    result.cstr = alloc_make(alloc, uint8_t, result.size);
+    uint64_t actual_read_size = os_file_read(file, range, result.cstr);
     if(actual_read_size < result.size)
     {
         alloc_free(alloc, result.cstr, result.size);
@@ -23,7 +23,7 @@ internal Str8 os_file_read_str_full(Os_File file, Alloc alloc)
 {
     Str8 result;
     Os_FileProperties prop = os_file_properties(file);
-    result = os_file_read_str(file, rng_1u64(0, prop.size), alloc);
+    result = os_file_read_str(file, rng1_u64(0, prop.size), alloc);
     return result;
 }
 

@@ -15,7 +15,7 @@ internal void entry_point(void)
     Str8 frag_filepath;
     bool no_aot = false;
     bool no_esc = false;
-    U64 fps = 60;
+    uint64_t fps = 60;
     const char *help_message = PROGRAM_NAME": "PROGRAM_DESCRIPTION"\n"
         "USAGE:\n"
         "   "PROGRAM_CMD_NAME" [OPTIONS] <shader_file_name.frag>\n"
@@ -32,7 +32,7 @@ internal void entry_point(void)
     if (args->count >= 2)
     {
         Str8 arg1 = args->strings[1];
-        for (U8 i = 1; i < args->count; i++)
+        for (uint8_t i = 1; i < args->count; i++)
         {
             Str8 arg = args->strings[i];
             if (str8_match(arg, str8("--help"), 0) || str8_match(arg, str8("-h"), 0))
@@ -66,8 +66,8 @@ internal void entry_point(void)
     }
 
     // Program Init ===========================================================
-    wl_window_open(str8("Scuttle"), vec_2i32(750, 750));
-    U64 size = MB(10);
+    wl_window_open(str8("Scuttle"), vec2_i32(750, 750));
+    uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     render_init();
@@ -100,13 +100,13 @@ internal void entry_point(void)
         // "   mainVR(fragColor, gl_FragCoord.xy, in vec3 fragRayOri, in vec3 fragRayDir);\n"
         "}\n";
 
-    U32 shader_id, i_time, i_resolution;
-    // U32 i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
+    uint32_t shader_id, i_time, i_resolution;
+    // uint32_t i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
     DenseTime old_modified = 0;
     Os_File frag_file;
 
     // Program Loop ===========================================================
-    U64 start = os_now_microsec();
+    uint64_t start = os_now_microsec();
     while (!wl_should_window_close())
     {
         frag_file = os_file_open(frag_filepath, OS_AccessFlag_Read|OS_AccessFlag_ShareWrite);
@@ -147,7 +147,7 @@ internal void entry_point(void)
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
         }
-        render_shader_set_value(i_resolution, (float[2]){ (F32)wl_get_window_width(), (F32)wl_get_window_height() }, Render_Shader_Vec2);
+        render_shader_set_value(i_resolution, (float[2]){ (float)wl_get_window_width(), (float)wl_get_window_height() }, Render_Shader_Vec2);
 
         wl_set_fps(fps);
         wl_update_events();
@@ -157,8 +157,8 @@ internal void entry_point(void)
             wl_set_window_close();
         }
 
-        U64 now = os_now_microsec();
-        float iTime = Cast(float)(now - start) / Million(1);
+        uint64_t now = os_now_microsec();
+        float iTime = (float)(now - start) / Million(1);
         render_shader_set_value(i_time, (float[1]){ iTime }, Render_Shader_Float);
 
         render_begin();

@@ -3,7 +3,7 @@
 
 internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
 {
-    local_persist I32 first = 1;
+    local_persist int32_t first = 1;
     local_persist Wl_Key key_table[256];
     if (first)
     {
@@ -35,15 +35,15 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
         key_table[(unsigned int)'X'] = Wl_Key_X;
         key_table[(unsigned int)'Y'] = Wl_Key_Y;
         key_table[(unsigned int)'Z'] = Wl_Key_Z;
-        for (U64 i = '0', j = Wl_Key_0; i <= '9'; i += 1, j += 1)
+        for (uint64_t i = '0', j = Wl_Key_0; i <= '9'; i += 1, j += 1)
         {
             key_table[i] = (Wl_Key)j;
         }
-        for (U64 i = VK_NUMPAD0, j = Wl_Key_0; i <= VK_NUMPAD9; i += 1, j += 1)
+        for (uint64_t i = VK_NUMPAD0, j = Wl_Key_0; i <= VK_NUMPAD9; i += 1, j += 1)
         {
             key_table[i] = (Wl_Key)j;
         }
-        for (U64 i = VK_F1, j = Wl_Key_F1; i <= VK_F24; i += 1, j += 1)
+        for (uint64_t i = VK_F1, j = Wl_Key_F1; i <= VK_F24; i += 1, j += 1)
         {
             key_table[i] = (Wl_Key)j;
         }
@@ -92,13 +92,13 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
         key_table[VK_SUBTRACT] = Wl_Key_NumMinus;
         key_table[VK_ADD]      = Wl_Key_NumPlus;
         key_table[VK_DECIMAL]  = Wl_Key_NumPeriod;
-        for (U32 i = 0; i < 10; i += 1)
+        for (uint32_t i = 0; i < 10; i += 1)
         {
-            key_table[VK_NUMPAD0 + i] = (Wl_Key)((U64)Wl_Key_Num0 + i);
+            key_table[VK_NUMPAD0 + i] = (Wl_Key)((uint64_t)Wl_Key_Num0 + i);
         }
-        for (U64 i = 0xDF, j = 0; i < 0xFF; i += 1, j += 1)
+        for (uint64_t i = 0xDF, j = 0; i < 0xFF; i += 1, j += 1)
         {
-            key_table[i] = (Wl_Key)((U64)Wl_Key_Ex0 + j);
+            key_table[i] = (Wl_Key)((uint64_t)Wl_Key_Ex0 + j);
         }
     }
     Wl_Key key = key_table[vkey&bitmask8];
@@ -109,7 +109,7 @@ internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key)
 {
     WPARAM result = 0;
     {
-        local_persist I32 initialized = 0;
+        local_persist int32_t initialized = 0;
         local_persist WPARAM vkey_table[Wl_Key_COUNT] = {0};
         if(initialized == 0)
         {
@@ -329,7 +329,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2I32 win_size)
+internal void wl_window_open(Str8 title, Vec2_I32 win_size)
 {
     HINSTANCE instance = GetModuleHandleW(NULL);
     WNDCLASSEXW wc = ZERO_STRUCT;
@@ -413,15 +413,15 @@ internal Wl_Event wl_get_event(void)
             case WM_KEYDOWN:
             case WM_KEYUP:
             {
-                I32 was_down = (msg.lParam & bit31);
-                I32 is_down  = !(msg.lParam & bit32);
-                I32 is_repeat = 0;
+                int32_t was_down = (msg.lParam & bit31);
+                int32_t is_down  = !(msg.lParam & bit32);
+                int32_t is_repeat = 0;
                 if(!is_down) {
                     release = 1;
                 } else if(was_down) {
                     is_repeat = 1;
                 }
-                I32 right_sided = 0;
+                int32_t right_sided = 0;
                 if ((msg.lParam & bit25) &&
                         (msg.wParam == VK_CONTROL || msg.wParam == VK_RCONTROL ||
                          msg.wParam == VK_MENU || msg.wParam == VK_RMENU ||
@@ -488,8 +488,8 @@ internal Wl_Event wl_get_event(void)
                             event.key = Wl_Key_RightMouseButton;
                         } break;
                 }
-                event.pos.x = (F32)(I16)LOWORD(msg.lParam);
-                event.pos.y = (F32)(I16)HIWORD(msg.lParam);
+                event.pos.x = (float)(int16_t)LOWORD(msg.lParam);
+                event.pos.y = (float)(int16_t)HIWORD(msg.lParam);
                 if(release)
                 {
                     ReleaseCapture();
@@ -502,30 +502,30 @@ internal Wl_Event wl_get_event(void)
             // Mouse Motion =======================================================
             case WM_MOUSEMOVE:
             {
-                event.pos.x = (F32)(I16)LOWORD(msg.lParam);
-                event.pos.y = (F32)(I16)HIWORD(msg.lParam);
+                event.pos.x = (float)(int16_t)LOWORD(msg.lParam);
+                event.pos.y = (float)(int16_t)HIWORD(msg.lParam);
             } break;
             case WM_MOUSEWHEEL:
             {
-                I16 wheel_delta = HIWORD(msg.wParam);
+                int16_t wheel_delta = HIWORD(msg.wParam);
                 POINT p;
-                p.x = (I32)(I16)LOWORD(msg.lParam);
-                p.y = (I32)(I16)HIWORD(msg.lParam);
+                p.x = (int32_t)(int16_t)LOWORD(msg.lParam);
+                p.y = (int32_t)(int16_t)HIWORD(msg.lParam);
                 ScreenToClient(_wl_win32_state.handle, &p);
-                event.pos.x = (F32)p.x;
-                event.pos.y = (F32)p.y;
-                event.delta = vec_2f32(0.f, -(F32)wheel_delta);
+                event.pos.x = (float)p.x;
+                event.pos.y = (float)p.y;
+                event.delta = vec2_f32(0.f, -(float)wheel_delta);
             } break;
             case WM_MOUSEHWHEEL:
             {
-                I16 wheel_delta = HIWORD(msg.wParam);
+                int16_t wheel_delta = HIWORD(msg.wParam);
                 POINT p;
-                p.x = (I32)LOWORD(msg.lParam);
-                p.y = (I32)HIWORD(msg.lParam);
+                p.x = (int32_t)LOWORD(msg.lParam);
+                p.y = (int32_t)HIWORD(msg.lParam);
                 ScreenToClient(_wl_win32_state.handle, &p);
-                event.pos.x = (F32)p.x;
-                event.pos.y = (F32)p.y;
-                event.delta = vec_2f32((F32)wheel_delta, 0.f);
+                event.pos.x = (float)p.x;
+                event.pos.y = (float)p.y;
+                event.delta = vec2_f32((float)wheel_delta, 0.f);
             } break;
             case WM_QUIT:
             {
@@ -539,7 +539,7 @@ internal Wl_Event wl_get_event(void)
 // Set window property
 // ============================================================================
 
-internal void wl_set_window_pos(Vec2I32 win_pos)
+internal void wl_set_window_pos(Vec2_I32 win_pos)
 {
     SetWindowPos(
         _wl_win32_state.handle, NULL, win_pos.x, win_pos.y, 0, 0,
@@ -547,7 +547,7 @@ internal void wl_set_window_pos(Vec2I32 win_pos)
     );
 }
 
-internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
+internal void wl_window_icon_set(uint32_t *icon_data, uint32_t width, uint32_t height)
 {
     Unused(icon_data);
     Unused(width);

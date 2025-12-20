@@ -16,152 +16,152 @@ typedef enum Base {
 
 // 2-Vectors ==================================================================
 
-typedef union Vec2F32 Vec2F32;
-union Vec2F32
+typedef union Vec2_F32 Vec2_F32;
+union Vec2_F32
 {
     struct
     {
-        F32 x;
-        F32 y;
+        float x;
+        float y;
     };
-    F32 v[2];
+    float v[2];
 };
 
-typedef union Vec2I64 Vec2I64;
-union Vec2I64
+typedef union Vec2_I64 Vec2_I64;
+union Vec2_I64
 {
     struct
     {
-        I64 x;
-        I64 y;
+        int64_t x;
+        int64_t y;
     };
-    I64 v[2];
+    int64_t v[2];
 };
 
-typedef union Vec2I32 Vec2I32;
-union Vec2I32
+typedef union Vec2_I32 Vec2_I32;
+union Vec2_I32
 {
     struct
     {
-        I32 x;
-        I32 y;
+        int32_t x;
+        int32_t y;
     };
-    I32 v[2];
+    int32_t v[2];
 };
 
-typedef union Vec2I16 Vec2I16;
-union Vec2I16
+typedef union Vec2_I16 Vec2_I16;
+union Vec2_I16
 {
     struct
     {
-        I16 x;
-        I16 y;
+        int16_t x;
+        int16_t y;
     };
-    I16 v[2];
+    int16_t v[2];
 };
 
 // 3-Vectors ==================================================================
 
-typedef union Vec3F32 Vec3F32;
-union Vec3F32
+typedef union Vec3_F32 Vec3_F32;
+union Vec3_F32
 {
     struct
     {
-        F32 x;
-        F32 y;
-        F32 z;
+        float x;
+        float y;
+        float z;
     };
     struct
     {
-        Vec2F32 xy;
-        F32 _z0;
+        Vec2_F32 xy;
+        float _z0;
     };
     struct
     {
-        F32 _x0;
-        Vec2F32 yz;
+        float _x0;
+        Vec2_F32 yz;
     };
-    F32 v[3];
+    float v[3];
 };
 
-typedef union Vec3I32 Vec3I32;
-union Vec3I32
+typedef union Vec3_I32 Vec3_I32;
+union Vec3_I32
 {
     struct
     {
-        I32 x;
-        I32 y;
-        I32 z;
+        int32_t x;
+        int32_t y;
+        int32_t z;
     };
     struct
     {
-        Vec2I32 xy;
-        I32 _z0;
+        Vec2_I32 xy;
+        int32_t _z0;
     };
     struct
     {
-        I32 _x0;
-        Vec2I32 yz;
+        int32_t _x0;
+        Vec2_I32 yz;
     };
-    I32 v[3];
+    int32_t v[3];
 };
 
 // 4-vectors ==================================================================
 
-typedef union Vec4F32 Vec4F32;
-union Vec4F32
+typedef union Vec4_F32 Vec4_F32;
+union Vec4_F32
 {
     struct
     {
-        F32 x;
-        F32 y;
-        F32 z;
-        F32 w;
+        float x;
+        float y;
+        float z;
+        float w;
     };
     struct
     {
-        Vec2F32 xy;
-        Vec2F32 zw;
+        Vec2_F32 xy;
+        Vec2_F32 zw;
     };
     struct
     {
-        Vec3F32 xyz;
-        F32 _z0;
+        Vec3_F32 xyz;
+        float _z0;
     };
     struct
     {
-        F32 _x0;
-        Vec3F32 yzw;
+        float _x0;
+        Vec3_F32 yzw;
     };
-    F32 v[4];
+    float v[4];
 };
 
-typedef union Vec4I32 Vec4I32;
-union Vec4I32
+typedef union Vec4_I32 Vec4_I32;
+union Vec4_I32
 {
     struct
     {
-        I32 x;
-        I32 y;
-        I32 z;
-        I32 w;
+        int32_t x;
+        int32_t y;
+        int32_t z;
+        int32_t w;
     };
     struct
     {
-        Vec2I32 xy;
-        Vec2I32 zw;
+        Vec2_I32 xy;
+        Vec2_I32 zw;
     };
     struct
     {
-        Vec3I32 xyz;
-        I32 _z0;
+        Vec3_I32 xyz;
+        int32_t _z0;
     };
     struct
     {
-        I32 _x0;
-        Vec3I32 yzw;
+        int32_t _x0;
+        Vec3_I32 yzw;
     };
-    I32 v[4];
+    int32_t v[4];
 };
 
 // Range Types
@@ -169,153 +169,153 @@ union Vec4I32
 
 // 1 Range ====================================================================
 
-typedef union Rng1U32 Rng1U32;
-union Rng1U32
+typedef union Rng1_U32 Rng1_U32;
+union Rng1_U32
 {
     struct
     {
-        U32 min;
-        U32 max;
+        uint32_t min;
+        uint32_t max;
     };
-    U32 v[2];
+    uint32_t v[2];
 };
 
-typedef union Rng1I32 Rng1I32;
-union Rng1I32
+typedef union Rng1_I32 Rng1_I32;
+union Rng1_I32
 {
     struct
     {
-        I32 min;
-        I32 max;
+        int32_t min;
+        int32_t max;
     };
-    I32 v[2];
+    int32_t v[2];
 };
 
-typedef union Rng1U64 Rng1U64;
-union Rng1U64
+typedef union Rng1_U64 Rng1_U64;
+union Rng1_U64
 {
     struct
     {
-        U64 min;
-        U64 max;
+        uint64_t min;
+        uint64_t max;
     };
-    U64 v[2];
+    uint64_t v[2];
 };
 
-typedef union Rng1I64 Rng1I64;
-union Rng1I64
+typedef union Rng1_I64 Rng1_I64;
+union Rng1_I64
 {
     struct
     {
-        I64 min;
-        I64 max;
+        int64_t min;
+        int64_t max;
     };
-    I64 v[2];
+    int64_t v[2];
 };
 
-typedef union Rng1F32 Rng1F32;
-union Rng1F32
+typedef union Rng1_F32 Rng1_F32;
+union Rng1_F32
 {
     struct
     {
-        F32 min;
-        F32 max;
+        float min;
+        float max;
     };
-    F32 v[2];
+    float v[2];
 };
 
 // 2 Range (Rectangles) =======================================================
 
-typedef union Rng2I16 Rng2I16;
-union Rng2I16
+typedef union Rng2_I16 Rng2_I16;
+union Rng2_I16
 {
     struct
     {
-        Vec2I16 min;
-        Vec2I16 max;
+        Vec2_I16 min;
+        Vec2_I16 max;
       };
     struct
     {
-        Vec2I16 p0;
-        Vec2I16 p1;
+        Vec2_I16 p0;
+        Vec2_I16 p1;
     };
     struct
     {
-        I16 x0;
-        I16 y0;
-        I16 x1;
-        I16 y1;
+        int16_t x0;
+        int16_t y0;
+        int16_t x1;
+        int16_t y1;
     };
-    Vec2I16 v[2];
+    Vec2_I16 v[2];
 };
 
-typedef union Rng2I32 Rng2I32;
-union Rng2I32
+typedef union Rng2_I32 Rng2_I32;
+union Rng2_I32
 {
     struct
     {
-        Vec2I32 min;
-        Vec2I32 max;
+        Vec2_I32 min;
+        Vec2_I32 max;
     };
     struct
     {
-        Vec2I32 p0;
-        Vec2I32 p1;
+        Vec2_I32 p0;
+        Vec2_I32 p1;
     };
     struct
     {
-        I32 x0;
-        I32 y0;
-        I32 x1;
-        I32 y1;
+        int32_t x0;
+        int32_t y0;
+        int32_t x1;
+        int32_t y1;
     };
-    Vec2I32 v[2];
+    Vec2_I32 v[2];
 };
 
-typedef union Rng2F32 Rng2F32;
-union Rng2F32
+typedef union Rng2_F32 Rng2_F32;
+union Rng2_F32
 {
     struct
     {
-        Vec2F32 min;
-        Vec2F32 max;
+        Vec2_F32 min;
+        Vec2_F32 max;
     };
     struct
     {
-        Vec2F32 p0;
-        Vec2F32 p1;
+        Vec2_F32 p0;
+        Vec2_F32 p1;
     };
     struct
     {
-        F32 x0;
-        F32 y0;
-        F32 x1;
-        F32 y1;
+        float x0;
+        float y0;
+        float x1;
+        float y1;
     };
-    Vec2F32 v[2];
+    Vec2_F32 v[2];
 };
 
-typedef union Rng2I64 Rng2I64;
-union Rng2I64
+typedef union Rng2_I64 Rng2_I64;
+union Rng2_I64
 {
     struct
     {
-        Vec2I64 min;
-        Vec2I64 max;
+        Vec2_I64 min;
+        Vec2_I64 max;
     };
     struct
     {
-        Vec2I64 p0;
-        Vec2I64 p1;
+        Vec2_I64 p0;
+        Vec2_I64 p1;
     };
     struct
     {
-        I64 x0;
-        I64 y0;
-        I64 x1;
-        I64 y1;
+        int64_t x0;
+        int64_t y0;
+        int64_t x1;
+        int64_t y1;
     };
-    Vec2I64 v[2];
+    Vec2_I64 v[2];
 };
 
 // Units
@@ -327,10 +327,10 @@ union Rng2I64
 #define Billion(n)    ((n)*1000000000)
 
 // Unit of Information
-#define KB(n)  (((U64)(n)) << 10)
-#define MB(n)  (((U64)(n)) << 20)
-#define GB(n)  (((U64)(n)) << 30)
-#define TB(n)  (((U64)(n)) << 40)
+#define KB(n)  (((uint64_t)(n)) << 10)
+#define MB(n)  (((uint64_t)(n)) << 20)
+#define GB(n)  (((uint64_t)(n)) << 30)
+#define TB(n)  (((uint64_t)(n)) << 40)
 
 // Constants
 //=============================================================================
@@ -342,58 +342,58 @@ union Rng2I64
 
 // 2-Vectors ==================================================================
 
-internal Vec2I16 vec_2i16(I16 x, I16 y);
-internal Vec2I32 vec_2i32(I32 x, I32 y);
-internal Vec2I64 vec_2i64(I64 x, I64 y);
-internal Vec2F32 vec_2f32(F32 x, F32 y);
+internal Vec2_I16 vec2_i16(int16_t x, int16_t y);
+internal Vec2_I32 vec2_i32(int32_t x, int32_t y);
+internal Vec2_I64 vec2_i64(int64_t x, int64_t y);
+internal Vec2_F32 vec2_f32(float x, float y);
 
 // 3-Vectors ==================================================================
 
-internal Vec3I32 vec_3i32(I32 x, I32 y, I32 z);
-internal Vec3F32 vec_3f32(F32 x, F32 y, F32 z);
+internal Vec3_I32 vec3_i32(int32_t x, int32_t y, int32_t z);
+internal Vec3_F32 vec3_f32(float x, float y, float z);
 
 // 4-vectors ==================================================================
 
-internal Vec4I32 vec_4i32(I32 x, I32 y, I32 z, I32 w);
-internal Vec4F32 vec_4f32(F32 x, F32 y, F32 z, F32 w);
+internal Vec4_I32 vec4_i32(int32_t x, int32_t y, int32_t z, int32_t w);
+internal Vec4_F32 vec4_f32(float x, float y, float z, float w);
 
 // Range Ops
 //=============================================================================
 
 // 1 Range ====================================================================
 
-internal Rng1I32 rng_1i32(I32 min, I32 max);
-internal Rng1I64 rng_1i64(I64 min, I64 max);
-internal Rng1U32 rng_1u32(U32 min, U32 max);
-internal Rng1U64 rng_1u64(U64 min, U64 max);
-internal Rng1F32 rng_1f32(F32 min, F32 max);
+internal Rng1_I32 rng1_i32(int32_t min, int32_t max);
+internal Rng1_I64 rng1_i64(int64_t min, int64_t max);
+internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max);
+internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max);
+internal Rng1_F32 rng1_f32(float min, float max);
 
-internal I32 dim_1i32(Rng1I32 r);
-internal I64 dim_1i64(Rng1I64 r);
-internal U32 dim_1u32(Rng1U32 r);
-internal U64 dim_1u64(Rng1U64 r);
-internal F32 dim_1f32(Rng1F32 r);
+internal int32_t  dim1_i32(Rng1_I32 r);
+internal int64_t  dim1_i64(Rng1_I64 r);
+internal uint32_t dim1_u32(Rng1_U32 r);
+internal uint64_t dim1_u64(Rng1_U64 r);
+internal float    dim1_f32(Rng1_F32 r);
 
 // 2 Range (Rectangles) =======================================================
 
-internal Rng2I16 rng_2i16(Vec2I16 min, Vec2I16 max);
-internal Rng2I32 rng_2i32(Vec2I32 min, Vec2I32 max);
-internal Rng2I64 rng_2i64(Vec2I64 min, Vec2I64 max);
-internal Rng2F32 rng_2f32(Vec2F32 min, Vec2F32 max);
+internal Rng2_I16 rng2_i16(Vec2_I16 min, Vec2_I16 max);
+internal Rng2_I32 rng2_i32(Vec2_I32 min, Vec2_I32 max);
+internal Rng2_I64 rng2_i64(Vec2_I64 min, Vec2_I64 max);
+internal Rng2_F32 rng2_f32(Vec2_F32 min, Vec2_F32 max);
 
-#define rng_2i16p(x, y, z, w) rng_2i16(vec_2i16((x), (y)), vec_2i16((z), (w)))
-#define rng_2i32p(x, y, z, w) rng_2i32(vec_2i32((x), (y)), vec_2i32((z), (w)))
-#define rng_2i64p(x, y, z, w) rng_2i64(vec_2i64((x), (y)), vec_2i64((z), (w)))
-#define rng_2f32p(x, y, z, w) rng_2f32(vec_2f32((x), (y)), vec_2f32((z), (w)))
+#define rng2_i16_p(x, y, z, w) rng2_i16(vec2_i16((x), (y)), vec2_i16((z), (w)))
+#define rng2_i32_p(x, y, z, w) rng2_i32(vec2_i32((x), (y)), vec2_i32((z), (w)))
+#define rng2_i64_p(x, y, z, w) rng2_i64(vec2_i64((x), (y)), vec2_i64((z), (w)))
+#define rng2_f32_p(x, y, z, w) rng2_f32(vec2_f32((x), (y)), vec2_f32((z), (w)))
 
-internal Vec2I16 dim_2i16(Rng2I16 r);
-internal Vec2I32 dim_2i32(Rng2I32 r);
-internal Vec2I64 dim_2i64(Rng2I64 r);
-internal Vec2F32 dim_2f32(Rng2F32 r);
+internal Vec2_I16 dim2_i16(Rng2_I16 r);
+internal Vec2_I32 dim2_i32(Rng2_I32 r);
+internal Vec2_I64 dim2_i64(Rng2_I64 r);
+internal Vec2_F32 dim2_f32(Rng2_F32 r);
 
 // Random Number
 //=============================================================================
 
-internal U32 math_random_u32(U32 seed);
+internal uint32_t math_random_u32(uint32_t seed);
 
 #endif // BASE_MATH_H

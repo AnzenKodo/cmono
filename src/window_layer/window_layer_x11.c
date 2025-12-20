@@ -1,13 +1,13 @@
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2I32 win_size)
+internal void wl_window_open(Str8 title, Vec2_I32 win_size)
 {
     xcb_connection_t *connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(connection);
     xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(connection)).data;
     // Create Window ==========================================================
-    U32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+    uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32_t value_list[] = {
         screen->black_pixel,
 		XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS |
@@ -91,17 +91,17 @@ internal Wl_Event wl_get_event(void)
             case XCB_KEY_PRESS:
             case XCB_KEY_RELEASE:
             {
-                xcb_key_release_event_t *key_event = Cast(xcb_key_release_event_t *)xcb_event;
+                xcb_key_release_event_t *key_event = (xcb_key_release_event_t *)xcb_event;
                 // Determine mod_key
-                Wl_ModKey mod_key = Cast(Wl_ModKey)0;
+                Wl_ModKey mod_key = (Wl_ModKey)0;
                 if(key_event->state & XCB_MOD_MASK_SHIFT)   {
-                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Shift);
+                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
                 }
                 if(key_event->state & XCB_MOD_MASK_CONTROL) {
-                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
+                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
                 }
                 if(key_event->state & XCB_MOD_MASK_1) {
-                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
+                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
                 // Assign keys
                 Wl_Key key = Wl_Key_Null;
@@ -251,17 +251,17 @@ internal Wl_Event wl_get_event(void)
             case XCB_BUTTON_PRESS:
             case XCB_BUTTON_RELEASE:
             {
-                xcb_button_release_event_t *button_event = Cast(xcb_button_release_event_t *)xcb_event;
+                xcb_button_release_event_t *button_event = (xcb_button_release_event_t *)xcb_event;
                 // Determine mod_key
-                Wl_ModKey mod_key = Cast(Wl_ModKey)0;
+                Wl_ModKey mod_key = (Wl_ModKey)0;
                 if(button_event->state & XCB_MOD_MASK_SHIFT)   {
-                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Shift);
+                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
                 }
                 if(button_event->state & XCB_MOD_MASK_CONTROL) {
-                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
+                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
                 }
                 if(button_event->state & XCB_MOD_MASK_1) {
-                    mod_key = Cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
+                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
                 // Assign button
                 Wl_Key key = Wl_Key_Null;
@@ -284,11 +284,11 @@ internal Wl_Event wl_get_event(void)
             // Mouse Motion ===================================================
     		case XCB_MOTION_NOTIFY:
     		{
-                xcb_button_release_event_t *motion_event = Cast(xcb_button_release_event_t *)xcb_event;
+                xcb_button_release_event_t *motion_event = (xcb_button_release_event_t *)xcb_event;
                 // Add to Event Variable
                 event.type = Wl_EventType_MouseMove;
-                event.pos.x = (F32)motion_event->event_x;
-                event.pos.y = (F32)motion_event->event_x;
+                event.pos.x = (float)motion_event->event_x;
+                event.pos.y = (float)motion_event->event_x;
             } break;
             // Window focus/unfocus ===========================================
             case XCB_FOCUS_IN: break;
@@ -299,7 +299,7 @@ internal Wl_Event wl_get_event(void)
             // Client messages ================================================
             case XCB_CLIENT_MESSAGE:
             {
-                xcb_client_message_event_t *message = Cast(xcb_client_message_event_t *)xcb_event;
+                xcb_client_message_event_t *message = (xcb_client_message_event_t *)xcb_event;
                 if (message->data.data32[0] == _wl_x11_state.wm_delete_window)
                 {
                     event.type = Wl_EventType_WindowClose;
@@ -308,7 +308,7 @@ internal Wl_Event wl_get_event(void)
             // Window Resize ==================================================
             case XCB_CONFIGURE_NOTIFY:
             {
-                xcb_configure_notify_event_t *resize_event = Cast(xcb_configure_notify_event_t *)xcb_event;
+                xcb_configure_notify_event_t *resize_event = (xcb_configure_notify_event_t *)xcb_event;
                 // Add to Event Variable
                 _wl_core_state.win_size.x = resize_event->width;
                 _wl_core_state.win_size.y = resize_event->height;
@@ -326,7 +326,7 @@ internal Wl_Event wl_get_event(void)
 // Set window property
 // ============================================================================
 
-internal void wl_set_window_pos(Vec2I32 win_pos)
+internal void wl_set_window_pos(Vec2_I32 win_pos)
 {
     xcb_configure_window(
         _wl_x11_state.connection, _wl_x11_state.window,
@@ -335,12 +335,12 @@ internal void wl_set_window_pos(Vec2I32 win_pos)
     );
 }
 
-internal void wl_window_icon_set(U32 *icon_data, U32 width, U32 height)
+internal void wl_window_icon_set(uint32_t *icon_data, uint32_t width, uint32_t height)
 {
-    U32 data[2 + width * height];
+    uint32_t data[2 + width * height];
     data[0] = width;
     data[1] = height;
-    mem_copy(data + 2, icon_data, width * height * sizeof(U32));
+    mem_copy(data + 2, icon_data, width * height * sizeof(uint32_t));
     xcb_change_property(
         _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, _wl_x11_state.window,
         _wl_x11_state.wm_icon, XCB_ATOM_CARDINAL, 32,
@@ -360,7 +360,7 @@ internal void wl_render_init(void *render_buffer)
     xcb_format_t *pixmap_format = xcb_setup_pixmap_formats(
         xcb_get_setup(_wl_x11_state.connection)
     );
-    I32 pixmap_format_length = xcb_setup_pixmap_formats_length(
+    int32_t pixmap_format_length = xcb_setup_pixmap_formats_length(
         xcb_get_setup(_wl_x11_state.connection)
     );
     for (int i = 0; i < pixmap_format_length; i++) {

@@ -18,20 +18,20 @@
 
 typedef struct Str8 Str8;
 struct Str8 {
-    U8 *cstr;
-    U64 size;
+    uint8_t *cstr;
+    uint64_t size;
 };
 typedef struct Str16 Str16;
 struct Str16
 {
-    U16 *cstr;
-    U64 size;
+    uint16_t *cstr;
+    uint64_t size;
 };
 typedef struct Str32 Str32;
 struct Str32
 {
-    U32 *cstr;
-    U64 size;
+    uint32_t *cstr;
+    uint64_t size;
 };
 
 // String List & Array Types ==================================================
@@ -48,16 +48,16 @@ struct Str8List
 {
   Str8Node *first;
   Str8Node *last;
-  U64 count;
-  U64 size;
+  uint64_t count;
+  uint64_t size;
 };
 
 typedef struct Str8Array Str8Array;
 struct Str8Array
 {
   Str8 *strings;
-  U64 count;
-  U64 size;
+  uint64_t count;
+  uint64_t size;
 };
 
 // String Matching, Splitting, & Joining Types ================================
@@ -87,8 +87,8 @@ typedef enum StrMatchFlags
 typedef struct UnicodeDecode UnicodeDecode;
 struct UnicodeDecode
 {
-    U32 inc;
-    U32 codepoint;
+    uint32_t inc;
+    uint32_t codepoint;
 };
 
 // Functions
@@ -96,59 +96,59 @@ struct UnicodeDecode
 
 // Character Classification & Conversion Functions ============================
 
-internal bool char_is_space(U8 c);
-internal bool char_is_upper(U8 c);
-internal bool char_is_lower(U8 c);
-internal bool char_is_alpha(U8 c);
-internal bool char_is_slash(U8 c);
-internal U8   char_to_lower(U8 c);
-internal U8   char_to_upper(U8 c);
-internal U8   char_to_correct_slash(U8 c);
+internal bool char_is_space(uint8_t c);
+internal bool char_is_upper(uint8_t c);
+internal bool char_is_lower(uint8_t c);
+internal bool char_is_alpha(uint8_t c);
+internal bool char_is_slash(uint8_t c);
+internal uint8_t   char_to_lower(uint8_t c);
+internal uint8_t   char_to_upper(uint8_t c);
+internal uint8_t   char_to_correct_slash(uint8_t c);
 
 // C-String Measurement =======================================================
 
-internal U64 cstr8_length(U8 *c);
-internal U64 cstr16_length(U16 *c);
-internal U64 cstr32_length(U32 *c);
+internal uint64_t cstr8_length(uint8_t *c);
+internal uint64_t cstr16_length(uint16_t *c);
+internal uint64_t cstr32_length(uint32_t *c);
 
 // String Constructors ========================================================
 
-#define str8(S)  str8_init((U8*)(S), sizeof(S) - 1)
+#define str8(S)  str8_init((uint8_t*)(S), sizeof(S) - 1)
 #define str8_varg(S) (int)((S).size), ((S).cstr)
-internal Str8 str8_init(U8 *str, U64 size);
+internal Str8 str8_init(uint8_t *str, uint64_t size);
 internal Str8 str8_from_cstr(char *c);
-internal Str16 str16_init(U16 *str, U64 size);
-internal Str16 str16_from_cstr(U16 *c);
-internal Str32 str32_init(U32 *str, U64 size);
-internal Str32 str32_from_cstr(U32 *c);
-internal Str8 str8_range(U8 *first, U8 *one_past_last);
+internal Str16 str16_init(uint16_t *str, uint64_t size);
+internal Str16 str16_from_cstr(uint16_t *c);
+internal Str32 str32_init(uint32_t *str, uint64_t size);
+internal Str32 str32_from_cstr(uint32_t *c);
+internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last);
 
 // String Matching ============================================================
 
 internal bool str8_match(Str8 a, Str8 b, StrMatchFlags flags);
 internal bool str8_ends_with(Str8 string, Str8 end);
-internal U64 str8_find_substr(Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags);
-internal U64 str8_find_substr_reverse(Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags);
+internal uint64_t str8_find_substr(Str8 string, uint64_t start_pos, Str8 substr, StrMatchFlags flags);
+internal uint64_t str8_find_substr_reverse(Str8 string, uint64_t start_pos, Str8 substr, StrMatchFlags flags);
 
 // String Slicing =============================================================
 
-internal Str8 str8_substr(Str8 str, Rng1U64 range);
-internal Str8 str8_postfix(Str8 str, U64 size);
-internal Str8 str8_prefix(Str8 str, U64 size);
-internal Str8 str8_skip(Str8 str, U64 amt);
+internal Str8 str8_substr(Str8 str, Rng1_U64 range);
+internal Str8 str8_postfix(Str8 str, uint64_t size);
+internal Str8 str8_prefix(Str8 str, uint64_t size);
+internal Str8 str8_skip(Str8 str, uint64_t amt);
 internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2);
 
 // String Conversions =========================================================
 
-internal I64 str8_to_sign(Str8 string, Str8 *string_tail);
-internal bool str8_is_integer(Str8 string, U32 radix);
-internal bool str8_is_integer_unsigned(Str8 string, U32 radix);
+internal int64_t str8_to_sign(Str8 string, Str8 *string_tail);
+internal bool str8_is_integer(Str8 string, uint32_t radix);
+internal bool str8_is_integer_unsigned(Str8 string, uint32_t radix);
 internal bool str8_is_float(Str8 string);
-internal U64 str8_to_u64(Str8 string, U32 radix);
-internal U32 str8_to_u32(Str8 string, U32 radix);
-internal I64 str8_to_i64(Str8 string, U32 radix);
-internal I32 str8_to_i32(Str8 string, U32 radix);
-internal F64 str8_to_f64(Str8 string);
+internal uint64_t str8_to_u64(Str8 string, uint32_t radix);
+internal uint32_t str8_to_u32(Str8 string, uint32_t radix);
+internal int64_t str8_to_i64(Str8 string, uint32_t radix);
+internal int32_t str8_to_i32(Str8 string, uint32_t radix);
+internal double str8_to_f64(Str8 string);
 internal Str8 str8_from_bool(bool value);
 internal bool str8_is_bool(Str8 str);
 internal bool str8_to_bool(Str8 str);
@@ -159,14 +159,14 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string);
 
 // String Arrays Construction Functions =======================================
 
-internal Str8Array str8_array_alloc(Alloc alloc, U64 size);
+internal Str8Array str8_array_alloc(Alloc alloc, uint64_t size);
 internal Str8 *str8_array_append(Str8Array *array, Str8 str);
-internal Str8 *str8_array_get(Str8Array *array, U64 index);
+internal Str8 *str8_array_get(Str8Array *array, uint64_t index);
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
 
 // String Split and Join ======================================================
 
-internal Str8List str8_split(Alloc alloc, Str8 string, U8 *split_chars, U64 split_char_count, StrSplitFlags flags);
+internal Str8List str8_split(Alloc alloc, Str8 string, uint8_t *split_chars, uint64_t split_char_count, StrSplitFlags flags);
 internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_params);
 
 // String Formatting & Copying ================================================
@@ -177,11 +177,11 @@ internal Str8 str8f(Alloc alloc, char *fmt, ...);
 
 // UTF-8 & UTF-16 Decoding/Encoding ===========================================
 
-internal UnicodeDecode utf8_decode(U8 *str, U64 max);
-internal UnicodeDecode utf16_decode(U16 *str, U64 max);
-internal U32 utf8_encode(U8 *str, U32 codepoint);
-internal U32 utf16_encode(U16 *str, U32 codepoint);
-internal U32 utf8_from_utf32_single(U8 *buffer, U32 character);
+internal UnicodeDecode utf8_decode(uint8_t *str, uint64_t max);
+internal UnicodeDecode utf16_decode(uint16_t *str, uint64_t max);
+internal uint32_t utf8_encode(uint8_t *str, uint32_t codepoint);
+internal uint32_t utf16_encode(uint16_t *str, uint32_t codepoint);
+internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character);
 
 // Unicode String Conversions =================================================
 
@@ -192,13 +192,13 @@ internal Str32 str32_from_8(Alloc alloc, Str8 in);
 
 // String Hash ================================================================
 
-internal U64 str8_hash_u64_from_seed(U64 seed, Str8 string);
-internal U64 str8_hash_u64(Str8 string);
+internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 string);
+internal uint64_t str8_hash_u64(Str8 string);
 
 // Globals
 //=============================================================================
 
-read_only global U8 utf8_class[32] = {
+read_only global uint8_t utf8_class[32] = {
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,2,2,2,2,3,3,4,5,
 };
 

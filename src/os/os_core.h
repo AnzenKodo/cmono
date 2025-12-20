@@ -10,11 +10,11 @@
 // Types
 //=============================================================================
 
-typedef U64 Os_File;
+typedef uint64_t Os_File;
 
 // File Property ==============================================================
 
-typedef U32 FilePropertyFlags;
+typedef uint32_t FilePropertyFlags;
 enum
 {
     FilePropertyFlag_IsFolder = (1 << 0),
@@ -23,7 +23,7 @@ enum
 typedef struct Os_FileProperties Os_FileProperties;
 struct Os_FileProperties
 {
-    U64 size;
+    uint64_t size;
     DenseTime modified;
     DenseTime created;
     FilePropertyFlags flags;
@@ -31,7 +31,7 @@ struct Os_FileProperties
 
 // Access Flags ===============================================================
 
-typedef U32 Os_AccessFlags;
+typedef uint32_t Os_AccessFlags;
 enum
 {
     OS_AccessFlag_Read        = (1<<0),
@@ -57,32 +57,32 @@ struct _Os_Core_State {
 
 // Memory Allocation ==========================================================
 
-internal void *os_memory_create(U64 size);
-internal bool os_memory_commit(void *ptr, U64 size);
-internal void os_memory_decommit(void *ptr, U64 size);
-internal void *os_memory_alloc(U64 size);
-internal void os_memory_free(void *ptr, U64 size);
+internal void *os_memory_create(uint64_t size);
+internal bool os_memory_commit(void *ptr, uint64_t size);
+internal void os_memory_decommit(void *ptr, uint64_t size);
+internal void *os_memory_alloc(uint64_t size);
+internal void os_memory_free(void *ptr, uint64_t size);
 
 // File System ================================================================
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags);
 internal void os_file_close(Os_File file);
-internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data);
-internal Str8 os_file_read_str(Os_File file, Rng1U64 range, Alloc alloc);
+internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data);
+internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Alloc alloc);
 internal Str8 os_file_read_str_full(Os_File file, Alloc alloc);
-internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data);
+internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data);
 internal Os_FileProperties os_file_properties(Os_File file);
 internal bool os_dir_make(Str8 path);
 
 // Exit =======================================================================
 
-internal void os_exit(I32 exit_code);
+internal void os_exit(int32_t exit_code);
 
 // Time =======================================================================
 
-internal U32 os_now_unix(void);
-internal void os_sleep_ms(U32 microsec);
-internal void os_sleep_millisec(U32 millisec);
+internal uint32_t os_now_unix(void);
+internal void os_sleep_ms(uint32_t microsec);
+internal void os_sleep_millisec(uint32_t millisec);
 
 // Command line arguments =====================================================
 

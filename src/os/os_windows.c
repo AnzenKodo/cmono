@@ -1,13 +1,13 @@
 // Helpers Functions
 //=============================================================================
 
-internal U32 _os_win32_unix_time_from_file_time(FILETIME file_time)
+internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time)
 {
-    U64 win32_time = ((U64)file_time.dwHighDateTime << 32) | file_time.dwLowDateTime;
-    U64 unix_time64 = ((win32_time - 0x19DB1DED53E8000ULL) / 10000000);
+    uint64_t win32_time = ((uint64_t)file_time.dwHighDateTime << 32) | file_time.dwLowDateTime;
+    uint64_t unix_time64 = ((win32_time - 0x19DB1DED53E8000ULL) / 10000000);
 
     Assert(unix_time64 <= max_u32);
-    U32 unix_time32 = (U32)unix_time64;
+    uint32_t unix_time32 = (uint32_t)unix_time64;
 
     return unix_time32;
 }
@@ -45,24 +45,24 @@ internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
 // Memory Allocation
 //=============================================================================
 
-internal void *os_memory_create(U64 size)
+internal void *os_memory_create(uint64_t size)
 {
     void *result = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
     return result;
 }
 
-internal bool os_memory_commit(void *ptr, U64 size)
+internal bool os_memory_commit(void *ptr, uint64_t size)
 {
     bool result = (VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE) != 0);
     return result;
 }
 
-internal void os_memory_decommit(void *ptr, U64 size)
+internal void os_memory_decommit(void *ptr, uint64_t size)
 {
     VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
-internal void os_memory_free(void *ptr, U64 size)
+internal void os_memory_free(void *ptr, uint64_t size)
 {
     Unused(size);
     VirtualFree(ptr, 0, MEM_RELEASE);
@@ -115,24 +115,24 @@ internal void os_file_close(Os_File file)
     CloseHandle((HANDLE)file);
 }
 
-internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
+internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
-    U64 size = 0;
+    uint64_t size = 0;
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
-    Rng1U64 rng_clamped  = rng_1u64(Min(rng.min, size), Min(rng.max, size));
-    U64 total_read_size = 0;
+    Rng1_U64 rng_clamped  = rng1_u64(Min(rng.min, size), Min(rng.max, size));
+    uint64_t total_read_size = 0;
     // read loop
     {
-        U64 to_read = dim_1u64(rng_clamped);
-        for(U64 off = rng.min; total_read_size < to_read;)
+        uint64_t to_read = dim1_u64(rng_clamped);
+        for(uint64_t off = rng.min; total_read_size < to_read;)
         {
-            U64 amt64 = to_read - total_read_size;
-            U32 amt32 = u32_from_u64_saturate(amt64);
+            uint64_t amt64 = to_read - total_read_size;
+            uint32_t amt32 = u32_from_u64_saturate(amt64);
             DWORD read_size = 0;
             OVERLAPPED overlapped = {0};
             overlapped.Offset     = (off&0x00000000ffffffffull);
             overlapped.OffsetHigh = (off&0xffffffff00000000ull) >> 32;
-            ReadFile((HANDLE)file, (U8 *)out_data + total_read_size, amt32, &read_size, &overlapped);
+            ReadFile((HANDLE)file, (uint8_t *)out_data + total_read_size, amt32, &read_size, &overlapped);
             off += read_size;
             total_read_size += read_size;
                 if(read_size != amt32)
@@ -144,16 +144,16 @@ internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
     return total_read_size;
 }
 
-internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
+internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
 {
-    U64 src_off = 0;
-    U64 dst_off = rng.min;
-    U64 total_write_size = dim_1u64(rng);
+    uint64_t src_off = 0;
+    uint64_t dst_off = rng.min;
+    uint64_t total_write_size = dim1_u64(rng);
     for(;;)
     {
-        void *bytes_src = (U8 *)data + src_off;
-        U64 bytes_left = total_write_size - src_off;
-        DWORD write_size = Cast(DWORD)Min(MB(1), bytes_left);
+        void *bytes_src = (uint8_t *)data + src_off;
+        uint64_t bytes_left = total_write_size - src_off;
+        DWORD write_size = (DWORD)Min(MB(1), bytes_left);
         DWORD bytes_written = 0;
         OVERLAPPED overlapped = {0};
         overlapped.Offset = (dst_off&0x00000000ffffffffull);
@@ -180,9 +180,9 @@ internal Os_FileProperties os_file_properties(Os_File file)
     BOOL info_good = GetFileInformationByHandle((HANDLE)file, &info);
     if(info_good)
     {
-        U32 size_lo = info.nFileSizeLow;
-        U32 size_hi = info.nFileSizeHigh;
-        props.size  = (U64)size_lo | (((U64)size_hi)<<32);
+        uint32_t size_lo = info.nFileSizeLow;
+        uint32_t size_hi = info.nFileSizeHigh;
+        props.size  = (uint64_t)size_lo | (((uint64_t)size_hi)<<32);
         _os_win32_dense_time_from_file_time(&props.modified, &info.ftLastWriteTime);
         _os_win32_dense_time_from_file_time(&props.created, &info.ftCreationTime);
         props.flags = _os_win32_file_property_flags_from_dwFileAttributes(info.dwFileAttributes);
@@ -207,7 +207,7 @@ internal bool os_dir_make(Str8 path)
 // Exit
 //=============================================================================
 
-internal void os_exit(I32 exit_code)
+internal void os_exit(int32_t exit_code)
 {
     ExitProcess(exit_code);
 }
@@ -215,17 +215,17 @@ internal void os_exit(I32 exit_code)
 // Time
 //=============================================================================
 
-internal U32 os_now_unix(void)
+internal uint32_t os_now_unix(void)
 {
     FILETIME file_time;
     GetSystemTimeAsFileTime(&file_time);
-    U32 unix_time = _os_win32_unix_time_from_file_time(file_time);
+    uint32_t unix_time = _os_win32_unix_time_from_file_time(file_time);
     return unix_time;
 }
 
-internal U64 os_now_microsec(void)
+internal uint64_t os_now_microsec(void)
 {
-    U64 result = 0;
+    uint64_t result = 0;
     LARGE_INTEGER large_int_counter;
     if(QueryPerformanceCounter(&large_int_counter))
     {
@@ -234,7 +234,7 @@ internal U64 os_now_microsec(void)
     return result;
 }
 
-internal void os_sleep_microsec(U64 microsec)
+internal void os_sleep_microsec(uint64_t microsec)
 {
     DWORD millisec = (DWORD)(microsec / 1000); // Integer division to get milliseconds
     if (microsec % 1000 >= 500) {
@@ -243,7 +243,7 @@ internal void os_sleep_microsec(U64 microsec)
     os_sleep_millisec(millisec);
 }
 
-internal void os_sleep_millisec(U32 millisec)
+internal void os_sleep_millisec(uint32_t millisec)
 {
     Sleep(millisec);
 }
@@ -264,7 +264,7 @@ internal Str8 os_env_get(Str8 name)
     Str16 name16 = str16_from_8(_os_core_state.alloc, name);
     DWORD len = GetEnvironmentVariableW(name16.cstr, NULL, 0);
     if (len > 0) {
-        U16* value_buf = alloc_make(_os_core_state.alloc, U16, len);
+        uint16_t* value_buf = alloc_make(_os_core_state.alloc, uint16_t, len);
         GetEnvironmentVariableW(name16.cstr, value_buf, len);
         Str16 value16 = str16_from_cstr(value_buf);
         alloc_free(_os_core_state.alloc, value_buf, len);
@@ -279,7 +279,7 @@ internal Str8 os_env_get(Str8 name)
 int main(void)
 {
     // Allocating core memory
-    U64 size = MB(10);
+    uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     // Setup argument array

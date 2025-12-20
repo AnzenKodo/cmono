@@ -1,25 +1,25 @@
 // FPrint
 // ============================================================================
 
-internal U64 fmt_fprint(Os_File file, const char *string)
+internal uint64_t fmt_fprint(Os_File file, const char *string)
 {
-    U64 length = cstr8_length((U8 *)string);
-    os_file_write(file, rng_1u64(0, length), (char *)string);
+    uint64_t length = cstr8_length((uint8_t *)string);
+    os_file_write(file, rng1_u64(0, length), (char *)string);
     return length;
 }
-internal U64 fmt_fprintln(Os_File file, const char *string)
+internal uint64_t fmt_fprintln(Os_File file, const char *string)
 {
-    U64 length = cstr8_length((U8 *)string);
+    uint64_t length = cstr8_length((uint8_t *)string);
     fmt_fprint(file, string);
     fmt_fprint(file, "\n");
     return length;
 }
-internal U64 fmt_vfprintf(Os_File file, const char *format, va_list args)
+internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args)
 {
-    U64 written = 0;
+    uint64_t written = 0;
     va_list args_copy;
     va_copy(args_copy, args);
-        I32 needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 1;
+        int32_t needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 1;
     va_end(args_copy);
     if (needed > 0) {
         char *buffer = alloc_make(_os_core_state.alloc, char, needed);
@@ -31,21 +31,21 @@ internal U64 fmt_vfprintf(Os_File file, const char *format, va_list args)
     }
     return written;
 }
-internal U64 fmt_fprintf(Os_File file, const char *format, ...)
+internal uint64_t fmt_fprintf(Os_File file, const char *format, ...)
 {
-    U64 written = 0;
+    uint64_t written = 0;
     va_list args;
     va_start(args, format);
         written = fmt_vfprintf(file, format, args);
     va_end(args);
     return written;
 }
-internal U64 fmt_vfprintfln(Os_File file, const char *format, va_list args)
+internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args)
 {
-    U64 written = 0;
+    uint64_t written = 0;
     va_list args_copy;
     va_copy(args_copy, args);
-        I32 needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 2;
+        int32_t needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 2;
     va_end(args_copy);
     if (needed > 0) {
         char *buffer = alloc_make(_os_core_state.alloc, char, needed);
@@ -59,9 +59,9 @@ internal U64 fmt_vfprintfln(Os_File file, const char *format, va_list args)
     }
     return written;
 }
-internal U64 fmt_fprintfln(Os_File file, const char *format, ...)
+internal uint64_t fmt_fprintfln(Os_File file, const char *format, ...)
 {
-    U64 written = 0;
+    uint64_t written = 0;
     va_list args;
     va_start(args, format);
         written = fmt_vfprintfln(file, format, args);

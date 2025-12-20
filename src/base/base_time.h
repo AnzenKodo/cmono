@@ -36,26 +36,26 @@ typedef enum Month
 typedef struct DateTime DateTime;
 struct DateTime
 {
-    U16 micro_sec; // [0,999]
-    U16 msec; // [0,999]
-    U16 sec;  // [0,60]
-    U16 min;  // [0,59]
-    U16 hour; // [0,24]
-    U16 day;  // [0,30]
+    uint16_t micro_sec; // [0,999]
+    uint16_t msec; // [0,999]
+    uint16_t sec;  // [0,60]
+    uint16_t min;  // [0,59]
+    uint16_t hour; // [0,24]
+    uint16_t day;  // [0,30]
     union
     {
         WeekDay week_day;
-        U32 wday;
+        uint32_t wday;
     };
     union
     {
         Month month;
-        U32 mon;
+        uint32_t mon;
     };
-    U32 year; // 1 = 1 CE, 0 = 1 BC
+    uint32_t year; // 1 = 1 CE, 0 = 1 BC
 };
 
-typedef U64 DenseTime;
+typedef uint64_t DenseTime;
 
 // Time Functions
 //=============================================================================
@@ -63,7 +63,7 @@ typedef U64 DenseTime;
 
 internal DenseTime dense_time_from_date_time(DateTime date_time);
 internal DateTime date_time_from_dense_time(DenseTime time);
-internal DateTime date_time_from_micro_seconds(U64 time);
-internal DateTime date_time_from_unix_time(U64 unix_time);
+internal DateTime date_time_from_micro_seconds(uint64_t time);
+internal DateTime date_time_from_unix_time(uint64_t unix_time);
 
 #endif // BASE_TIME_H

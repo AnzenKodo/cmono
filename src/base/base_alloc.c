@@ -1,23 +1,23 @@
 // Alloc_Arena Allocator
 //====================================================================
 
-internal void *alloc_arena_push(void *context, U64 size, U64 align)
+internal void *alloc_arena_push(void *context, uint64_t size, uint64_t align)
 {
     void *result = 0;
     if (size)
     {
-        Alloc_Arena *arena = Cast(Alloc_Arena *)context;
+        Alloc_Arena *arena = (Alloc_Arena *)context;
 
         if (IsPow2(align))
         {
-            U64 crr_ptr = IntFromPtr(arena->buffer) + arena->offset;
-            U64 offset = AlignPow2(crr_ptr, align);
+            uint64_t crr_ptr = IntFromPtr(arena->buffer) + arena->offset;
+            uint64_t offset = AlignPow2(crr_ptr, align);
             offset -= IntFromPtr(arena->buffer);
 
             if (offset + size < arena->size)
             {
                 arena->committed += size;
-                result = Cast(void *)(arena->buffer + offset);
+                result = (void *)(arena->buffer + offset);
                 arena->offset = offset + size;
             }
         }
@@ -26,10 +26,10 @@ internal void *alloc_arena_push(void *context, U64 size, U64 align)
     return result;
 }
 
-internal void alloc_arena_pop(void *context, void *buffer, U64 size)
+internal void alloc_arena_pop(void *context, void *buffer, uint64_t size)
 {
-    Alloc_Arena *arena = Cast(Alloc_Arena *)context;
-    U64 offset = IntFromPtr(buffer) - IntFromPtr(arena->buffer);
+    Alloc_Arena *arena = (Alloc_Arena *)context;
+    uint64_t offset = IntFromPtr(buffer) - IntFromPtr(arena->buffer);
     if (size <= offset) {
         arena->offset = offset;
         arena->committed -= size;

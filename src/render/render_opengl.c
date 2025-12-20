@@ -1,7 +1,7 @@
 // OpenGL Helper functions
 //=============================================================================
 
-internal U32 _render_opengl_shader_compile(char **source, U32 source_num, GLenum type, U32 program_id)
+internal uint32_t _render_opengl_shader_compile(char **source, uint32_t source_num, GLenum type, uint32_t program_id)
 {
     GLuint shader_id = glCreateShader(type);
 #if OS_LINUX
@@ -65,11 +65,11 @@ internal void render_end(void)
     _render_opengl_end();
 }
 
-internal U32 render_shader_load_multi(char **vert_sources, U32 vert_source_num, char **frag_sources, U32 frag_source_num)
+internal uint32_t render_shader_load_multi(char **vert_sources, uint32_t vert_source_num, char **frag_sources, uint32_t frag_source_num)
 {
-    U32 program_id = glCreateProgram();
-    U32 vert_id = _render_opengl_shader_compile(vert_sources, vert_source_num, GL_VERTEX_SHADER, program_id);
-    U32 frag_id = _render_opengl_shader_compile(frag_sources, frag_source_num, GL_FRAGMENT_SHADER, program_id);
+    uint32_t program_id = glCreateProgram();
+    uint32_t vert_id = _render_opengl_shader_compile(vert_sources, vert_source_num, GL_VERTEX_SHADER, program_id);
+    uint32_t frag_id = _render_opengl_shader_compile(frag_sources, frag_source_num, GL_FRAGMENT_SHADER, program_id);
     glLinkProgram(program_id);
     GLint status;
     glGetProgramiv(program_id, GL_LINK_STATUS, &status);
@@ -85,7 +85,7 @@ internal U32 render_shader_load_multi(char **vert_sources, U32 vert_source_num, 
     return program_id;
 }
 
-internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
+internal uint32_t render_shader_load(Str8 vert_source, Str8 frag_source)
 {
     char* vert_sources[] = {
         shader_source_header,
@@ -98,35 +98,35 @@ internal U32 render_shader_load(Str8 vert_source, Str8 frag_source)
     return render_shader_load_multi(vert_sources, 2, frag_sources, 2);
 }
 
-internal void render_shader_unload(U32 id)
+internal void render_shader_unload(uint32_t id)
 {
     glDeleteProgram(id);
 }
 
-internal U32 render_shader_get_value(U32 shader_id, Str8 name)
+internal uint32_t render_shader_get_value(uint32_t shader_id, Str8 name)
 {
     return glGetUniformLocation(shader_id, (char *)name.cstr);
 }
 
-internal void render_shader_set_value_vec(U32 value_index, const void *value, Render_Shader type, I32 count)
+internal void render_shader_set_value_vec(uint32_t value_index, const void *value, Render_Shader type, int32_t count)
 {
     switch (type)
     {
-        case Render_Shader_Float:  glUniform1fv(value_index, count, (F32 *)value); break;
-        case Render_Shader_Vec2:   glUniform2fv(value_index, count, (F32 *)value); break;
-        case Render_Shader_Vec3:   glUniform3fv(value_index, count, (F32 *)value); break;
-        case Render_Shader_Vec4:   glUniform4fv(value_index, count, (F32 *)value); break;
-        case Render_Shader_Int:    glUniform1iv(value_index, count, (I32 *)value); break;
-        case Render_Shader_Ivec2:  glUniform2iv(value_index, count, (I32 *)value); break;
-        case Render_Shader_Ivec3:  glUniform3iv(value_index, count, (I32 *)value); break;
-        case Render_Shader_Ivec4:  glUniform4iv(value_index, count, (I32 *)value); break;
-        case Render_Shader_Uint:   glUniform1uv(value_index, count, (U32 *)value); break;
-        case Render_Shader_Uivec2: glUniform2uv(value_index, count, (U32 *)value); break;
-        case Render_Shader_Uivec3: glUniform3uv(value_index, count, (U32 *)value); break;
-        case Render_Shader_Uivec4: glUniform4uv(value_index, count, (U32 *)value); break;
+        case Render_Shader_Float:  glUniform1fv(value_index, count, (float *)value); break;
+        case Render_Shader_Vec2:   glUniform2fv(value_index, count, (float *)value); break;
+        case Render_Shader_Vec3:   glUniform3fv(value_index, count, (float *)value); break;
+        case Render_Shader_Vec4:   glUniform4fv(value_index, count, (float *)value); break;
+        case Render_Shader_Int:    glUniform1iv(value_index, count, (int32_t *)value); break;
+        case Render_Shader_Ivec2:  glUniform2iv(value_index, count, (int32_t *)value); break;
+        case Render_Shader_Ivec3:  glUniform3iv(value_index, count, (int32_t *)value); break;
+        case Render_Shader_Ivec4:  glUniform4iv(value_index, count, (int32_t *)value); break;
+        case Render_Shader_Uint:   glUniform1uv(value_index, count, (uint32_t *)value); break;
+        case Render_Shader_Uivec2: glUniform2uv(value_index, count, (uint32_t *)value); break;
+        case Render_Shader_Uivec3: glUniform3uv(value_index, count, (uint32_t *)value); break;
+        case Render_Shader_Uivec4: glUniform4uv(value_index, count, (uint32_t *)value); break;
     };
 }
-internal void render_shader_set_value(U32 value_index, const void *value, Render_Shader type)
+internal void render_shader_set_value(uint32_t value_index, const void *value, Render_Shader type)
 {
     render_shader_set_value_vec(value_index, value, type, 1);
 }

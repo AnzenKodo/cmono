@@ -17,15 +17,15 @@
 #include <GLES2/gl2ext.h>
 
 internal void
-gen_next(I32 *tilemap, I32 width, I32 height)
+gen_next(int32_t *tilemap, int32_t width, int32_t height)
 {
-    for (I32 w = 0; w < width; w++)
+    for (int32_t w = 0; w < width; w++)
     {
-        for (I32 h = 0; h < height; h++)
+        for (int32_t h = 0; h < height; h++)
         {
-            I32 alive_count = 0;
-            for (I32 k = -1; k <= 1; k++) {
-                for (I32 l = -1; l <= 1; l++) {
+            int32_t alive_count = 0;
+            for (int32_t k = -1; k <= 1; k++) {
+                for (int32_t l = -1; l <= 1; l++) {
                     if (k == 0 && l == 0) continue;
                     if (w + k < height && w + k >= 0 && h + l < width && h + l >= 0) {
                         if (tilemap[(w+k)*width+(h+l)] == 1) {
@@ -62,20 +62,20 @@ entry_point(char *argv[])
 {
     // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec2i32(750, 750));
-    wl_window_icon_set(cast(U32 *)ICON, ICON_WIDTH, ICON_HEIGHT);
-    U64 size = MB(10);
+    wl_window_icon_set(cast(uint32_t *)ICON, ICON_WIDTH, ICON_HEIGHT);
+    uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     Draw_Buffer draw_buffer = render_init(alloc);
 
     // Tilemap Init ===========================================================
-    U32 tile_height = 20;
-    U32 tile_width = 20;
-    I32 tilemap[TILEMAP_COUNT_Y][TILEMAP_COUNT_X];
+    uint32_t tile_height = 20;
+    uint32_t tile_width = 20;
+    int32_t tilemap[TILEMAP_COUNT_Y][TILEMAP_COUNT_X];
     mem_set(tilemap, 0, sizeof(tilemap));
-    for (I32 i = 0; i < TILEMAP_COUNT_X/5; i++)
+    for (int32_t i = 0; i < TILEMAP_COUNT_X/5; i++)
     {
-        for (I32 j = 0; j < TILEMAP_COUNT_X/5; j++)
+        for (int32_t j = 0; j < TILEMAP_COUNT_X/5; j++)
         {
             tilemap[i][j] = 1;
         }
@@ -96,25 +96,25 @@ entry_point(char *argv[])
         {
             // Draw Tile oop ==================================================
             gen_next(&tilemap, TILEMAP_COUNT_Y, TILEMAP_COUNT_X);
-            for (I32 row = 0; row < TILEMAP_COUNT_Y; ++row) {
-                for (I32 col = 0; col < TILEMAP_COUNT_X; ++col) {
+            for (int32_t row = 0; row < TILEMAP_COUNT_Y; ++row) {
+                for (int32_t col = 0; col < TILEMAP_COUNT_X; ++col) {
                     Draw_Rgba color = DRAW_BLUE;
                     if (tilemap[row][col] == 1) {
                        color = DRAW_YELLOW;
                     }
 
-                    F32 rect_x = cast(F32)col * tile_width;
-                    F32 rect_y = cast(F32)row * tile_height;
-                    F32 rect_width  = rect_x + tile_width;
-                    F32 rect_height = rect_y + tile_height;
+                    float rect_x = cast(float)col * tile_width;
+                    float rect_y = cast(float)row * tile_height;
+                    float rect_width  = rect_x + tile_width;
+                    float rect_height = rect_y + tile_height;
                     draw_rect(draw_buffer, (Draw_Rect){
                        rect_x, rect_y, rect_width, rect_height
                     }, color);
                 } // for col
             } // for row
 
-            U32 width = wl_get_window_width();
-            U32 height = wl_get_window_height();
+            uint32_t width = wl_get_window_width();
+            uint32_t height = wl_get_window_height();
             glViewport(0, 0, width, height);
 
             GLuint texture_handle = 0;

@@ -37,9 +37,9 @@ internal void log_error(Log_Context context, const char *format, ...);
     if (context.enable_color_log || term_is_color_allowed()) \
     { \
         level_color = _log_get_level_color(level); \
-        line_info_color = ANSI_FG_CYAN; \
+        line_info_color = TERM_FG_CYAN; \
     } \
-    fmt_fprintf(context.file, "%s%s"ANSI_RESET"%s[%s:%d] "ANSI_RESET, level_color, level_string, line_info_color, FILE_NAME, LINE_NUMBER); \
+    fmt_fprintf(context.file, "%s%s"TERM_RESET"%s[%s:%d] "TERM_RESET, level_color, level_string, line_info_color, FILE_NAME, LINE_NUMBER); \
     fmt_fprintfln(context.file, format, ##__VA_ARGS__); \
 } while(0)
 #define LogInfoLine(context, format, ...) do { \

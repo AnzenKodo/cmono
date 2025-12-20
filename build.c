@@ -35,7 +35,7 @@ struct Build_Info
     Str8 dir;
     bool mingw;
     Build_Type type;
-    U8 cmd[BUILD_CMD_SIZE];
+    uint8_t cmd[BUILD_CMD_SIZE];
     Log_Context log_context;
 };
 
@@ -278,7 +278,7 @@ internal void build_run(Build_Info *info)
 
 internal void entry_point()
 {
-    U64 size = MB(10);
+    uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     Build_Info info = ZERO_STRUCT;
@@ -361,7 +361,7 @@ internal void entry_point()
     {
         info.mingw = true;
     }
-    for (U32 i = 0; i < args->count; i++)
+    for (uint32_t i = 0; i < args->count; i++)
     {
         if (str8_match(args->strings[i], str8("--nocolor"), 0)) {
             info.log_context.enable_color_log = false;
@@ -393,7 +393,7 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
     {
         char buffer[BUILD_CMD_SIZE];
         fmt_vsnprintf(buffer, sizeof(buffer), format, args);
-        strcat(Cast(char *)info->cmd, buffer);
+        strcat((char *)info->cmd, buffer);
     }
     va_end(args);
 }
@@ -412,7 +412,7 @@ internal void build_cmd_run(Build_Info *info)
 internal void build_cmd_finish(Build_Info *info)
 {
     build_cmd_run(info);
-    mem_set(info->cmd, 0, cstr8_length(Cast(U8 *)info->cmd));
+    mem_set(info->cmd, 0, cstr8_length((uint8_t *)info->cmd));
 }
 
 internal char *build_type_to_str8(Build_Info *info)

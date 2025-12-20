@@ -1,11 +1,11 @@
 // Character Classification & Conversion Functions
 //=============================================================================
 
-internal bool char_is_space(U8 c)
+internal bool char_is_space(uint8_t c)
 {
     return(c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f' || c == '\v');
 }
-internal U8 char_to_correct_slash(U8 c)
+internal uint8_t char_to_correct_slash(uint8_t c)
 {
     if(char_is_slash(c))
     {
@@ -14,26 +14,26 @@ internal U8 char_to_correct_slash(U8 c)
     return(c);
 }
 
-internal bool char_is_upper(U8 c)
+internal bool char_is_upper(uint8_t c)
 {
     return('A' <= c && c <= 'Z');
 }
-internal bool char_is_lower(U8 c)
+internal bool char_is_lower(uint8_t c)
 {
     return('a' <= c && c <= 'z');
 }
 
-internal bool char_is_alpha(U8 c)
+internal bool char_is_alpha(uint8_t c)
 {
     return(char_is_upper(c) || char_is_lower(c));
 }
 
-internal bool char_is_slash(U8 c)
+internal bool char_is_slash(uint8_t c)
 {
     return(c == '/' || c == '\\');
 }
 
-internal U8 char_to_lower(U8 c)
+internal uint8_t char_to_lower(uint8_t c)
 {
     if (char_is_upper(c))
     {
@@ -41,7 +41,7 @@ internal U8 char_to_lower(U8 c)
     }
     return(c);
 }
-internal U8 char_to_upper(U8 c)
+internal uint8_t char_to_upper(uint8_t c)
 {
     if (char_is_lower(c))
     {
@@ -50,12 +50,12 @@ internal U8 char_to_upper(U8 c)
     return(c);
 }
 
-internal bool char_is_digit(U8 c, U32 base)
+internal bool char_is_digit(uint8_t c, uint32_t base)
 {
     bool result = 0;
     if(0 < base && base <= 16)
     {
-        U8 val = integer_symbol_reverse[c];
+        uint8_t val = integer_symbol_reverse[c];
         if(val < base)
         {
             result = 1;
@@ -67,21 +67,21 @@ internal bool char_is_digit(U8 c, U32 base)
 // C-String Measurement
 //=============================================================================
 
-internal U64 cstr8_length(U8 *c)
+internal uint64_t cstr8_length(uint8_t *c)
 {
-    U8 *p = c;
+    uint8_t *p = c;
     for (;*p != 0; p += 1);
     return(p - c);
 }
-internal U64 cstr16_length(U16 *c)
+internal uint64_t cstr16_length(uint16_t *c)
 {
-    U16 *p = c;
+    uint16_t *p = c;
     for (;*p != 0; p += 1);
     return(p - c);
 }
-internal U64 cstr32_length(U32 *c)
+internal uint64_t cstr32_length(uint32_t *c)
 {
-    U32 *p = c;
+    uint32_t *p = c;
     for (;*p != 0; p += 1);
     return(p - c);
 }
@@ -89,36 +89,36 @@ internal U64 cstr32_length(U32 *c)
 // String Constructors
 //=============================================================================
 
-internal Str8 str8_init(U8 *str, U64 size)
+internal Str8 str8_init(uint8_t *str, uint64_t size)
 {
     return (Str8){str, size};
 }
 internal Str8 str8_from_cstr(char *c)
 {
-    return (Str8){(U8*)c, cstr8_length((U8*)c)};
+    return (Str8){(uint8_t*)c, cstr8_length((uint8_t*)c)};
 }
 
-internal Str16 str16_init(U16 *str, U64 size)
+internal Str16 str16_init(uint16_t *str, uint64_t size)
 {
     return (Str16){str, size};
 }
-internal Str16 str16_from_cstr(U16 *c)
+internal Str16 str16_from_cstr(uint16_t *c)
 {
-    return (Str16){(U16*)c, cstr16_length((U16*)c)};
+    return (Str16){(uint16_t*)c, cstr16_length((uint16_t*)c)};
 }
 
-internal Str32 str32_init(U32 *str, U64 size)
+internal Str32 str32_init(uint32_t *str, uint64_t size)
 {
     return (Str32){str, size};
 }
-internal Str32 str32_from_cstr(U32 *c)
+internal Str32 str32_from_cstr(uint32_t *c)
 {
-    return (Str32){(U32*)c, cstr32_length((U32*)c)};
+    return (Str32){(uint32_t*)c, cstr32_length((uint32_t*)c)};
 }
 
-internal Str8 str8_range(U8 *first, U8 *one_past_last)
+internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last)
 {
-    return (Str8){first, (U64)(one_past_last - first)};
+    return (Str8){first, (uint64_t)(one_past_last - first)};
 }
 
 // String Matching
@@ -135,12 +135,12 @@ internal bool str8_match(Str8 a, Str8 b, StrMatchFlags flags)
     {
         bool case_insensitive  = (flags & StrMatchFlag_CaseInsensitive);
         bool slash_insensitive = (flags & StrMatchFlag_SlashInsensitive);
-        U64 size               = Min(a.size, b.size);
+        uint64_t size               = Min(a.size, b.size);
         result = 1;
-        for(U64 i = 0; i < size; i += 1)
+        for(uint64_t i = 0; i < size; i += 1)
         {
-            U8 at = a.cstr[i];
-            U8 bt = b.cstr[i];
+            uint8_t at = a.cstr[i];
+            uint8_t bt = b.cstr[i];
             if(case_insensitive)
             {
                 at = char_to_upper(at);
@@ -168,23 +168,23 @@ internal bool str8_ends_with(Str8 string, Str8 end)
     return is_match;
 }
 
-internal U64 str8_find_substr(Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags) {
-    U8 *p = string.cstr + start_pos;
-    U64 stop_offset = Max(string.size + 1, substr.size) - substr.size;
-    U8 *stop_p = string.cstr + stop_offset;
+internal uint64_t str8_find_substr(Str8 string, uint64_t start_pos, Str8 substr, StrMatchFlags flags) {
+    uint8_t *p = string.cstr + start_pos;
+    uint64_t stop_offset = Max(string.size + 1, substr.size) - substr.size;
+    uint8_t *stop_p = string.cstr + stop_offset;
     if (substr.size > 0)
     {
-        U8 *string_opl = string.cstr + string.size;
+        uint8_t *string_opl = string.cstr + string.size;
         Str8 needle_tail = str8_skip(substr, 1);
         StrMatchFlags adjusted_flags = flags | StrMatchFlag_RightSideSloppy;
-        U8 needle_first_char_adjusted = substr.cstr[0];
+        uint8_t needle_first_char_adjusted = substr.cstr[0];
         if(adjusted_flags & StrMatchFlag_CaseInsensitive)
         {
             needle_first_char_adjusted = char_to_upper(needle_first_char_adjusted);
         }
         for (;p < stop_p; p += 1)
         {
-            U8 haystack_char_adjusted = *p;
+            uint8_t haystack_char_adjusted = *p;
             if(adjusted_flags & StrMatchFlag_CaseInsensitive)
             {
                 haystack_char_adjusted = char_to_upper(haystack_char_adjusted);
@@ -198,22 +198,22 @@ internal U64 str8_find_substr(Str8 string, U64 start_pos, Str8 substr, StrMatchF
             }
         }
     }
-    U64 result = string.size;
+    uint64_t result = string.size;
     if (p < stop_p)
     {
-        result = (U64)(p - string.cstr);
+        result = (uint64_t)(p - string.cstr);
     }
     return result;
 }
 
-internal U64 str8_find_substr_reverse(Str8 string, U64 start_pos, Str8 substr, StrMatchFlags flags) {
-    U64 result = 0;
-    for(I64 i = string.size - start_pos - substr.size; i >= 0; --i)
+internal uint64_t str8_find_substr_reverse(Str8 string, uint64_t start_pos, Str8 substr, StrMatchFlags flags) {
+    uint64_t result = 0;
+    for(int64_t i = string.size - start_pos - substr.size; i >= 0; --i)
     {
-        Str8 haystack = str8_substr(string, rng_1u64(i, i + substr.size));
+        Str8 haystack = str8_substr(string, rng1_u64(i, i + substr.size));
         if(str8_match(haystack, substr, flags))
         {
-            result = (U64)i + substr.size;
+            result = (uint64_t)i + substr.size;
             break;
         }
     }
@@ -223,16 +223,16 @@ internal U64 str8_find_substr_reverse(Str8 string, U64 start_pos, Str8 substr, S
 // String Slicing
 //=============================================================================
 
-internal Str8 str8_substr(Str8 str, Rng1U64 range)
+internal Str8 str8_substr(Str8 str, Rng1_U64 range)
 {
     range.min = Min(range.min, str.size);
     range.max = Min(range.max, str.size);
     str.cstr += range.min;
-    str.size = dim_1u64(range);
+    str.size = dim1_u64(range);
     return(str);
 }
 
-internal Str8 str8_postfix(Str8 str, U64 size)
+internal Str8 str8_postfix(Str8 str, uint64_t size)
 {
     size = Min(size, str.size);
     str.cstr = (str.cstr + str.size) - size;
@@ -240,13 +240,13 @@ internal Str8 str8_postfix(Str8 str, U64 size)
     return(str);
 }
 
-internal Str8 str8_prefix(Str8 str, U64 size)
+internal Str8 str8_prefix(Str8 str, uint64_t size)
 {
     str.size = Min(size, str.size);
     return str;
 }
 
-internal Str8 str8_skip(Str8 str, U64 amt)
+internal Str8 str8_skip(Str8 str, uint64_t amt)
 {
     amt = Min(amt, str.size);
     str.cstr += amt;
@@ -258,7 +258,7 @@ internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2)
 {
     Str8 str;
     str.size = s1.size + s2.size;
-    str.cstr = alloc_make(alloc, U8, str.size + 1);
+    str.cstr = alloc_make(alloc, uint8_t, str.size + 1);
     mem_copy(str.cstr, s1.cstr, s1.size);
     mem_copy(str.cstr + s1.size, s2.cstr, s2.size);
     str.cstr[str.size] = 0;
@@ -268,11 +268,11 @@ internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2)
 // String Conversions
 //=============================================================================
 
-internal I64 str8_to_sign(Str8 string, Str8 *string_tail)
+internal int64_t str8_to_sign(Str8 string, Str8 *string_tail)
 {
     // count negative signs
-    U64 neg_count = 0;
-    U64 i = 0;
+    uint64_t neg_count = 0;
+    uint64_t i = 0;
     for(; i < string.size; i += 1)
     {
         if (string.cstr[i] == '-'){
@@ -287,11 +287,11 @@ internal I64 str8_to_sign(Str8 string, Str8 *string_tail)
     *string_tail = str8_skip(string, i);
 
     // output integer sign
-    I64 sign = (neg_count & 1)?-1:+1;
+    int64_t sign = (neg_count & 1)?-1:+1;
     return sign;
 }
 
-internal bool str8_is_integer(Str8 string, U32 radix)
+internal bool str8_is_integer(Str8 string, uint32_t radix)
 {
   bool result = false;
   Str8 sign = str8_prefix(string, 1);
@@ -307,7 +307,7 @@ internal bool str8_is_integer(Str8 string, U32 radix)
 }
 
 
-internal bool str8_is_integer_unsigned(Str8 string, U32 radix)
+internal bool str8_is_integer_unsigned(Str8 string, uint32_t radix)
 {
     bool result = false;
     if(string.size > 0)
@@ -315,9 +315,9 @@ internal bool str8_is_integer_unsigned(Str8 string, U32 radix)
         if(1 < radix && radix <= 16)
         {
             result = true;
-            for(U64 i = 0; i < string.size; i += 1)
+            for(uint64_t i = 0; i < string.size; i += 1)
             {
-                U8 c = string.cstr[i];
+                uint8_t c = string.cstr[i];
                 if(!(c < 0x80) || integer_symbol_reverse[c] >= radix)
                 {
                     result = false;
@@ -334,7 +334,7 @@ internal bool str8_is_float(Str8 string)
     if (string.size == 0) {
         return false;
     }
-    U64 i = 0;
+    uint64_t i = 0;
     if (i < string.size && (string.cstr[i] == '+' || string.cstr[i] == '-'))
     {
         i += 1;
@@ -344,7 +344,7 @@ internal bool str8_is_float(Str8 string)
     bool has_exp = false;
     while (i < string.size)
     {
-        U8 c = string.cstr[i];
+        uint8_t c = string.cstr[i];
         if (c >= '0' && c <= '9')
         {
             has_digits = true;
@@ -390,12 +390,12 @@ internal bool str8_is_float(Str8 string)
     return has_digits;
 }
 
-internal U64 str8_to_u64(Str8 string, U32 radix)
+internal uint64_t str8_to_u64(Str8 string, uint32_t radix)
 {
-    U64 x = 0;
+    uint64_t x = 0;
     if(1 < radix && radix <= 16)
     {
-        for(U64 i = 0; i < string.size; i += 1)
+        for(uint64_t i = 0; i < string.size; i += 1)
         {
             x *= radix;
             x += integer_symbol_reverse[string.cstr[i]&0x7F];
@@ -404,35 +404,35 @@ internal U64 str8_to_u64(Str8 string, U32 radix)
     return x;
 }
 
-internal U32 str8_to_u32(Str8 string, U32 radix)
+internal uint32_t str8_to_u32(Str8 string, uint32_t radix)
 {
-    U64 x64 = str8_to_u64(string, radix);
-    U32 x32 = safe_cast_u32(x64);
+    uint64_t x64 = str8_to_u64(string, radix);
+    uint32_t x32 = safe_cast_u32(x64);
     return x32;
 }
 
-internal I64 str8_to_i64(Str8 string, U32 radix)
+internal int64_t str8_to_i64(Str8 string, uint32_t radix)
 {
-    I64 sign = str8_to_sign(string, &string);
-    I64 x = (I64)str8_to_u64(string, radix) * sign;
+    int64_t sign = str8_to_sign(string, &string);
+    int64_t x = (int64_t)str8_to_u64(string, radix) * sign;
     return x;
 }
 
-internal I32 str8_to_i32(Str8 string, U32 radix)
+internal int32_t str8_to_i32(Str8 string, uint32_t radix)
 {
-    I64 x64 = str8_to_i64(string, radix);
-    I32 x32 = safe_cast_s32(x64);
+    int64_t x64 = str8_to_i64(string, radix);
+    int32_t x32 = safe_cast_s32(x64);
     return x32;
 }
 
-internal F64 str8_to_f64(Str8 string)
+internal double str8_to_f64(Str8 string)
 {
     // TODO(rjf): crappy implementation for now that just uses atof.
-    F64 result = 0;
+    double result = 0;
     if(string.size > 0)
     {
         // Find starting pos of numeric string, as well as sign
-        F64 sign = +1.0;
+        double sign = +1.0;
         if(string.cstr[0] == '-')
         {
             sign = -1.0;
@@ -442,10 +442,10 @@ internal F64 str8_to_f64(Str8 string)
             sign = 1.0;
         }
         // Gather numerics
-        U64 num_valid_chars = 0;
+        uint64_t num_valid_chars = 0;
         char buffer[64];
         bool exp = 0;
-        for(U64 idx = 0; idx < string.size && num_valid_chars < sizeof(buffer)-1; idx += 1)
+        for(uint64_t idx = 0; idx < string.size && num_valid_chars < sizeof(buffer)-1; idx += 1)
         {
             if(char_is_digit(string.cstr[idx], 10) || string.cstr[idx] == '.' || string.cstr[idx] == 'e' ||
                     (exp && (string.cstr[idx] == '+' || string.cstr[idx] == '-')))
@@ -496,7 +496,7 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string)
 // String Arrays
 // ==============================================================
 
-internal Str8Array str8_array_alloc(Alloc alloc, U64 size)
+internal Str8Array str8_array_alloc(Alloc alloc, uint64_t size)
 {
     Str8Array arr;
     arr.size = size;
@@ -512,7 +512,7 @@ internal Str8 *str8_array_append(Str8Array *array, Str8 str)
     array->count++;
     return result;
 }
-internal Str8 *str8_array_get(Str8Array *array, U64 index)
+internal Str8 *str8_array_get(Str8Array *array, uint64_t index)
 {
     Str8 *result = NULL;
     if (array->count >= index)
@@ -527,7 +527,7 @@ internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
     array.size = list->count;
     array.count = array.size;
     array.strings = alloc_make(alloc, Str8, array.size);
-    U64 idx = 0;
+    uint64_t idx = 0;
     for (Str8Node *n = list->first; n != 0; n = n->next, idx += 1)
     {
         array.strings[idx] = n->string;
@@ -538,20 +538,20 @@ internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 // String Split and Join
 //=============================================================================
 
-internal Str8List str8_split(Alloc alloc, Str8 string, U8 *split_chars, U64 split_char_count, StrSplitFlags flags)
+internal Str8List str8_split(Alloc alloc, Str8 string, uint8_t *split_chars, uint64_t split_char_count, StrSplitFlags flags)
 {
     Str8List list = ZERO_STRUCT;
     bool keep_empties = (flags & StrSplitFlag_KeepEmpties);
-    U8 *ptr = string.cstr;
-    U8 *opl = string.cstr + string.size;
+    uint8_t *ptr = string.cstr;
+    uint8_t *opl = string.cstr + string.size;
     for (;ptr < opl;)
     {
-        U8 *first = ptr;
+        uint8_t *first = ptr;
         for (;ptr < opl; ptr += 1)
         {
-            U8 c = *ptr;
+            uint8_t c = *ptr;
             bool is_split = false;
-            for (U64 i = 0; i < split_char_count; i += 1)
+            for (uint64_t i = 0; i < split_char_count; i += 1)
             {
                 if (split_chars[i] == c)
                 {
@@ -581,14 +581,14 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
     {
         MemoryCopyStruct(&join, optional_params);
     }
-    U64 sep_count = 0;
+    uint64_t sep_count = 0;
     if (list->count > 0)
     {
         sep_count = list->count - 1;
     }
     Str8 result;
     result.size = join.pre.size + join.post.size + sep_count*join.sep.size + list->size;
-    U8 *ptr = result.cstr = alloc_make(alloc, U8, result.size + 1);
+    uint8_t *ptr = result.cstr = alloc_make(alloc, uint8_t, result.size + 1);
     mem_copy(ptr, join.pre.cstr, join.pre.size);
     ptr += join.pre.size;
     for (Str8Node *node = list->first; node != 0; node = node->next)
@@ -614,7 +614,7 @@ internal Str8 str8_copy(Alloc alloc, Str8 s)
 {
     Str8 str;
     str.size = s.size;
-    str.cstr = alloc_make(alloc, U8, str.size + 1);
+    str.cstr = alloc_make(alloc, uint8_t, str.size + 1);
     mem_copy(str.cstr, s.cstr, s.size);
     str.cstr[str.size] = 0;
     return(str);
@@ -624,9 +624,9 @@ internal Str8 str8fv(Alloc alloc, char *fmt, va_list args)
 {
     va_list args2;
     va_copy(args2, args);
-    U32 needed_bytes = fmt_vsnprintf(0, 0, fmt, args) + 1;
+    uint32_t needed_bytes = fmt_vsnprintf(0, 0, fmt, args) + 1;
     Str8 result = ZERO_STRUCT;
-    result.cstr = alloc_make(alloc, U8, needed_bytes);
+    result.cstr = alloc_make(alloc, uint8_t, needed_bytes);
     result.size = fmt_vsnprintf((char*)result.cstr, needed_bytes, fmt, args2);
     result.cstr[result.size] = 0;
     va_end(args2);
@@ -645,11 +645,11 @@ internal Str8 str8f(Alloc alloc, char *fmt, ...)
 // UTF-8 & UTF-16 Decoding/Encoding
 //=============================================================================
 
-internal UnicodeDecode utf8_decode(U8 *str, U64 max)
+internal UnicodeDecode utf8_decode(uint8_t *str, uint64_t max)
 {
     UnicodeDecode result = {1, max_u32};
-    U8 byte = str[0];
-    U8 byte_class = utf8_class[byte >> 3];
+    uint8_t byte = str[0];
+    uint8_t byte_class = utf8_class[byte >> 3];
     switch (byte_class)
     {
         case 1:{
@@ -658,7 +658,7 @@ internal UnicodeDecode utf8_decode(U8 *str, U64 max)
         case 2: {
             if (1 < max)
             {
-                U8 cont_byte = str[1];
+                uint8_t cont_byte = str[1];
                 if (utf8_class[cont_byte >> 3] == 0)
                 {
                     result.codepoint = (byte & bitmask5) << 6;
@@ -671,7 +671,7 @@ internal UnicodeDecode utf8_decode(U8 *str, U64 max)
         {
             if (2 < max)
             {
-                U8 cont_byte[2] = {str[1], str[2]};
+                uint8_t cont_byte[2] = {str[1], str[2]};
                 if (
                     utf8_class[cont_byte[0] >> 3] == 0 &&
                     utf8_class[cont_byte[1] >> 3] == 0
@@ -687,7 +687,7 @@ internal UnicodeDecode utf8_decode(U8 *str, U64 max)
         {
             if (3 < max)
             {
-                U8 cont_byte[3] = {str[1], str[2], str[3]};
+                uint8_t cont_byte[3] = {str[1], str[2], str[3]};
                 if (
                     utf8_class[cont_byte[0] >> 3] == 0 &&
                     utf8_class[cont_byte[1] >> 3] == 0 &&
@@ -705,7 +705,7 @@ internal UnicodeDecode utf8_decode(U8 *str, U64 max)
     return result;
 }
 
-internal UnicodeDecode utf16_decode(U16 *str, U64 max)
+internal UnicodeDecode utf16_decode(uint16_t *str, uint64_t max)
 {
     UnicodeDecode result = {1, max_u32};
     result.codepoint = str[0];
@@ -717,29 +717,29 @@ internal UnicodeDecode utf16_decode(U16 *str, U64 max)
     return result;
 }
 
-internal U32 utf8_encode(U8 *str, U32 codepoint)
+internal uint32_t utf8_encode(uint8_t *str, uint32_t codepoint)
 {
-    U32 inc = 0;
+    uint32_t inc = 0;
     if (codepoint <= 0x7F){
-        str[0] = (U8)codepoint;
+        str[0] = (uint8_t)codepoint;
         inc = 1;
     }
     else if (codepoint <= 0x7FF){
-        str[0] = (U8)((bitmask2 << 6)  | ((codepoint >> 6) & bitmask5));
-        str[1] = (U8)( bit8            | ( codepoint       & bitmask6));
+        str[0] = (uint8_t)((bitmask2 << 6)  | ((codepoint >> 6) & bitmask5));
+        str[1] = (uint8_t)( bit8            | ( codepoint       & bitmask6));
         inc = 2;
     }
     else if (codepoint <= 0xFFFF){
-        str[0] = (U8)((bitmask3 << 5)  | ((codepoint >> 12) & bitmask4));
-        str[1] = (U8)( bit8            | ((codepoint >> 6)  & bitmask6));
-        str[2] = (U8)( bit8            | ( codepoint        & bitmask6));
+        str[0] = (uint8_t)((bitmask3 << 5)  | ((codepoint >> 12) & bitmask4));
+        str[1] = (uint8_t)( bit8            | ((codepoint >> 6)  & bitmask6));
+        str[2] = (uint8_t)( bit8            | ( codepoint        & bitmask6));
         inc = 3;
     }
     else if (codepoint <= 0x10FFFF){
-        str[0] = (U8)((bitmask4 << 4)  | ((codepoint >> 18) & bitmask3));
-        str[1] = (U8)( bit8            | ((codepoint >> 12) & bitmask6));
-        str[2] = (U8)( bit8            | ((codepoint >>  6) & bitmask6));
-        str[3] = (U8)( bit8            | ( codepoint        & bitmask6));
+        str[0] = (uint8_t)((bitmask4 << 4)  | ((codepoint >> 18) & bitmask3));
+        str[1] = (uint8_t)( bit8            | ((codepoint >> 12) & bitmask6));
+        str[2] = (uint8_t)( bit8            | ((codepoint >>  6) & bitmask6));
+        str[3] = (uint8_t)( bit8            | ( codepoint        & bitmask6));
         inc = 4;
     }
     else{
@@ -749,17 +749,17 @@ internal U32 utf8_encode(U8 *str, U32 codepoint)
     return(inc);
 }
 
-internal U32 utf16_encode(U16 *str, U32 codepoint)
+internal uint32_t utf16_encode(uint16_t *str, uint32_t codepoint)
 {
-    U32 inc = 1;
+    uint32_t inc = 1;
     if (codepoint == max_u32){
-        str[0] = (U16)'?';
+        str[0] = (uint16_t)'?';
     }
     else if (codepoint < 0x10000){
-        str[0] = (U16)codepoint;
+        str[0] = (uint16_t)codepoint;
     }
     else{
-        U32 v = codepoint - 0x10000;
+        uint32_t v = codepoint - 0x10000;
         str[0] = safe_cast_u16(0xD800 + (v >> 10));
         str[1] = safe_cast_u16(0xDC00 + (v & bitmask10));
         inc = 2;
@@ -767,7 +767,7 @@ internal U32 utf16_encode(U16 *str, U32 codepoint)
     return(inc);
 }
 
-internal U32 utf8_from_utf32_single(U8 *buffer, U32 character)
+internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character)
 {
     return(utf8_encode(buffer, character));
 }
@@ -780,11 +780,11 @@ internal Str8 str8_from_16(Alloc alloc, Str16 in)
     Str8 result = ZERO_STRUCT;
     if(in.size)
     {
-        U64 cap = in.size*3;
-        U8 *str = alloc_make(alloc, U8, cap + 1);
-        U16 *ptr = in.cstr;
-        U16 *opl = ptr + in.size;
-        U64 size = 0;
+        uint64_t cap = in.size*3;
+        uint8_t *str = alloc_make(alloc, uint8_t, cap + 1);
+        uint16_t *ptr = in.cstr;
+        uint16_t *opl = ptr + in.size;
+        uint64_t size = 0;
         UnicodeDecode consume;
         for(;ptr < opl; ptr += consume.inc)
         {
@@ -803,11 +803,11 @@ internal Str16 str16_from_8(Alloc alloc, Str8 in)
     Str16 result = ZERO_STRUCT;
     if(in.size)
     {
-        U64 cap = in.size*2;
-        U16 *str = alloc_make(alloc, U16, cap + 1);
-        U8 *ptr = in.cstr;
-        U8 *opl = ptr + in.size;
-        U64 size = 0;
+        uint64_t cap = in.size*2;
+        uint16_t *str = alloc_make(alloc, uint16_t, cap + 1);
+        uint8_t *ptr = in.cstr;
+        uint8_t *opl = ptr + in.size;
+        uint64_t size = 0;
         UnicodeDecode consume;
         for(;ptr < opl; ptr += consume.inc)
         {
@@ -826,11 +826,11 @@ internal Str8 str8_from_32(Alloc alloc, Str32 in)
     Str8 result = ZERO_STRUCT;
     if(in.size)
     {
-        U64 cap = in.size*4;
-        U8 *str = alloc_make(alloc, U8, cap + 1);
-        U32 *ptr = in.cstr;
-        U32 *opl = ptr + in.size;
-        U64 size = 0;
+        uint64_t cap = in.size*4;
+        uint8_t *str = alloc_make(alloc, uint8_t, cap + 1);
+        uint32_t *ptr = in.cstr;
+        uint32_t *opl = ptr + in.size;
+        uint64_t size = 0;
         for(;ptr < opl; ptr += 1)
         {
             size += utf8_encode(str + size, *ptr);
@@ -847,11 +847,11 @@ internal Str32 str32_from_8(Alloc alloc, Str8 in)
     Str32 result = ZERO_STRUCT;
     if(in.size)
     {
-        U64 cap = in.size;
-        U32 *str = alloc_make(alloc, U32, cap + 1);
-        U8 *ptr = in.cstr;
-        U8 *opl = ptr + in.size;
-        U64 size = 0;
+        uint64_t cap = in.size;
+        uint32_t *str = alloc_make(alloc, uint32_t, cap + 1);
+        uint8_t *ptr = in.cstr;
+        uint8_t *opl = ptr + in.size;
+        uint64_t size = 0;
         UnicodeDecode consume;
         for(;ptr < opl; ptr += consume.inc)
         {
@@ -869,14 +869,14 @@ internal Str32 str32_from_8(Alloc alloc, Str8 in)
 // String Hash
 //=============================================================================
 
-internal U64 str8_hash_u64_from_seed(U64 seed, Str8 string)
+internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 string)
 {
-    U64 result = XXH3_64bits_withSeed(string.cstr, string.size, seed);
+    uint64_t result = XXH3_64bits_withSeed(string.cstr, string.size, seed);
     return result;
 }
 
-internal U64 str8_hash_u64(Str8 string)
+internal uint64_t str8_hash_u64(Str8 string)
 {
-    U64 result = str8_hash_u64_from_seed(5381, string);
+    uint64_t result = str8_hash_u64_from_seed(5381, string);
     return result;
 }

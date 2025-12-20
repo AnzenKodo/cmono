@@ -1,7 +1,7 @@
 // Helpers functions
 //=============================================================================
 
-internal DateTime _os_linux_date_time_from_tm(struct tm in, U32 msec)
+internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec)
 {
     DateTime dt = ZERO_STRUCT;
     dt.sec  = in.tm_sec;
@@ -45,26 +45,26 @@ internal Os_FileProperties _os_linux_file_properties_from_stat(struct stat *s)
 // Memory Allocation
 //=============================================================================
 
-internal void *os_memory_create(U64 size)
+internal void *os_memory_create(uint64_t size)
 {
     void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(result == MAP_FAILED) { result = 0; }
     return result;
 }
 
-internal bool os_memory_commit(void *ptr, U64 size)
+internal bool os_memory_commit(void *ptr, uint64_t size)
 {
     mprotect(ptr, size, PROT_READ|PROT_WRITE);
     return true;
 }
 
-internal void os_memory_decommit(void *ptr, U64 size)
+internal void os_memory_decommit(void *ptr, uint64_t size)
 {
     madvise(ptr, size, MADV_DONTNEED);
     mprotect(ptr, size, PROT_NONE);
 }
 
-internal void os_memory_free(void *ptr, U64 size)
+internal void os_memory_free(void *ptr, uint64_t size)
 {
     munmap(ptr, size);
 }
@@ -74,7 +74,7 @@ internal void os_memory_free(void *ptr, U64 size)
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
-    I32 access_flags = 0;
+    int32_t access_flags = 0;
     if(flags & OS_AccessFlag_Read && flags & OS_AccessFlag_Write)
     {
         access_flags = O_RDWR;
@@ -123,15 +123,15 @@ internal void os_file_close(Os_File file)
     close(file);
 }
 
-internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
+internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
-    U64 total_num_bytes_to_read = dim_1u64(rng);
-    U64 total_num_bytes_read = 0;
-    U64 total_num_bytes_left_to_read = total_num_bytes_to_read;
+    uint64_t total_num_bytes_to_read = dim1_u64(rng);
+    uint64_t total_num_bytes_read = 0;
+    uint64_t total_num_bytes_left_to_read = total_num_bytes_to_read;
     for(;total_num_bytes_left_to_read > 0;)
     {
         int read_result = pread(
-            file, (U8 *)out_data + total_num_bytes_read,
+            file, (uint8_t *)out_data + total_num_bytes_read,
             total_num_bytes_left_to_read, rng.min + total_num_bytes_read
         );
         if(read_result >= 0)
@@ -147,21 +147,21 @@ internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
     return total_num_bytes_read;
 }
 
-internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
+internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
 {
-    U64 total_num_bytes_to_write = dim_1u64(rng);
-    U64 total_num_bytes_written = 0;
+    uint64_t total_num_bytes_to_write = dim1_u64(rng);
+    uint64_t total_num_bytes_written = 0;
     if (file == OS_STDOUT || file == OS_STDIN || file == OS_STDERR)
     {
         total_num_bytes_written = write(file, data, total_num_bytes_to_write);
     }
     else
     {
-        U64 total_num_bytes_left_to_write = total_num_bytes_to_write;
+        uint64_t total_num_bytes_left_to_write = total_num_bytes_to_write;
         for(;total_num_bytes_left_to_write > 0;)
         {
             int write_result = pwrite(
-                file, (U8 *)data + total_num_bytes_written,
+                file, (uint8_t *)data + total_num_bytes_written,
                 total_num_bytes_left_to_write, rng.min + total_num_bytes_written
             );
             if(write_result >= 0)
@@ -192,7 +192,7 @@ internal Os_FileProperties os_file_properties(Os_File file)
 
 internal bool os_dir_make(Str8 path)
 {
-    I32 result = mkdir((const char *)path.cstr, 0700);
+    int32_t result = mkdir((const char *)path.cstr, 0700);
     if (result == 0) {
         return true;
     } else {
@@ -203,7 +203,7 @@ internal bool os_dir_make(Str8 path)
 // Exit
 //=============================================================================
 
-internal void os_exit(I32 exit_code)
+internal void os_exit(int32_t exit_code)
 {
     exit(exit_code);
 }
@@ -211,21 +211,21 @@ internal void os_exit(I32 exit_code)
 // Time
 //=============================================================================
 
-internal U32 os_now_unix(void)
+internal uint32_t os_now_unix(void)
 {
     time_t t = time(0);
-    return (U32)t;
+    return (uint32_t)t;
 }
 
-internal U64 os_now_microsec(void)
+internal uint64_t os_now_microsec(void)
 {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
-    U64 result = t.tv_sec*Million(1) + (t.tv_nsec/Thousand(1));
+    uint64_t result = t.tv_sec*Million(1) + (t.tv_nsec/Thousand(1));
     return result;
 }
 
-internal void os_sleep_microsec(U64 micosec)
+internal void os_sleep_microsec(uint64_t micosec)
 {
     struct timespec ts = {
         .tv_sec = micosec / Million(1),
@@ -234,7 +234,7 @@ internal void os_sleep_microsec(U64 micosec)
     nanosleep(&ts, NULL);
 }
 
-internal void os_sleep_millisec(U32 millisec)
+internal void os_sleep_millisec(uint32_t millisec)
 {
     usleep(millisec*Thousand(1));
 }
@@ -246,7 +246,7 @@ internal bool os_env_is_set(Str8 name)
     bool result = false;
     for (char **e = environ; *e != NULL; e++) {
         Str8 env = str8_from_cstr(*e);
-        U64 equal_pos = str8_find_substr(env, 0, str8("="), 0);
+        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), 0);
         Str8 env_name = str8_prefix(env, equal_pos);
         if (str8_match(env_name, name, 0)) {
             result = true;
@@ -260,7 +260,7 @@ internal Str8 os_env_get(Str8 name)
     Str8 result = ZERO_STRUCT;
     for (char **e = environ; *e != NULL; e++) {
         Str8 env = str8_from_cstr(*e);
-        U64 equal_pos = str8_find_substr(env, 0, str8("="), 0);
+        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), 0);
         if (os_env_is_set(name)) {
             result = str8_skip(env, equal_pos+1);
         }
@@ -273,7 +273,7 @@ internal Str8 os_env_get(Str8 name)
 
 int main(int argc, char *argv[])
 {
-    U64 size = MB(10);
+    uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
     _os_core_state.args = str8_array_alloc(alloc, argc);

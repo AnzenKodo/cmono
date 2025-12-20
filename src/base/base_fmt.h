@@ -14,12 +14,12 @@
 
 // FPrint =====================================================================
 
-internal U64 fmt_fprint(Os_File file, const char *string);
-internal U64 fmt_fprintln(Os_File file, const char *string);
-internal U64 fmt_vfprintf(Os_File file, const char *format, va_list args);
-internal U64 fmt_fprintf(Os_File file, const char *format, ...);
-internal U64 fmt_vfprintfln(Os_File file, const char *format, va_list args);
-internal U64 fmt_fprintfln(Os_File file, const char *format, ...);
+internal uint64_t fmt_fprint(Os_File file, const char *string);
+internal uint64_t fmt_fprintln(Os_File file, const char *string);
+internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args);
+internal uint64_t fmt_fprintf(Os_File file, const char *format, ...);
+internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args);
+internal uint64_t fmt_fprintfln(Os_File file, const char *format, ...);
 
 // Print ======================================================================
 

@@ -5,22 +5,22 @@
 // Memory Allocation
 //=============================================================================
 
-internal void * os_memory_create(U64 size)
+internal void * os_memory_create(uint64_t size)
 {
     void *result = 0;
     return result;
 }
 
-internal bool os_memory_commit(void *ptr, U64 size)
+internal bool os_memory_commit(void *ptr, uint64_t size)
 {
     return true;
 }
 
-internal void os_memory_decommit(void *ptr, U64 size)
+internal void os_memory_decommit(void *ptr, uint64_t size)
 {
 }
 
-internal void os_memory_free(void *ptr, U64 size)
+internal void os_memory_free(void *ptr, uint64_t size)
 {
 }
 
@@ -36,12 +36,12 @@ internal void os_file_close(Os_File file)
 {
 }
 
-internal U64 os_file_read(Os_File file, Rng1U64 rng, void *out_data)
+internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
     return 0;
 }
 
-internal U64 os_file_write(Os_File file, Rng1U64 rng, void *data)
+internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
 {
     return 0;
 }
@@ -60,28 +60,28 @@ internal bool os_dir_make(Str8 path)
 // Exit
 //=============================================================================
 
-internal void os_exit(I32 exit_code)
+internal void os_exit(int32_t exit_code)
 {
 }
 
 // Time
 //=============================================================================
 
-internal U32 os_now_unix(void)
+internal uint32_t os_now_unix(void)
 {
     return 0;
 }
 
-internal U64 os_now_microsec(void)
+internal uint64_t os_now_microsec(void)
 {
     return 0;
 }
 
-internal void os_sleep_microsec(U64 micosec)
+internal void os_sleep_microsec(uint64_t micosec)
 {
 }
 
-internal void os_sleep_millisec(U32 millisec)
+internal void os_sleep_millisec(uint32_t millisec)
 {
 }
 

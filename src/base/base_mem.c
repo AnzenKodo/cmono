@@ -1,8 +1,8 @@
-internal inline bool mem_match(void const *s1, void const *s2, I64 size)
+internal inline bool mem_match(void const *s1, void const *s2, int64_t size)
 {
     bool result = false;
-    U8 const *s1p8 = Cast(U8 const *)s1;
-    U8 const *s2p8 = Cast(U8 const *)s2;
+    uint8_t const *s1p8 = (uint8_t const *)s1;
+    uint8_t const *s2p8 = (uint8_t const *)s2;
     if (s1 == NULL || s2 == NULL) {
         result = false;
     }
@@ -18,14 +18,14 @@ internal inline bool mem_match(void const *s1, void const *s2, I64 size)
     return result;
 }
 
-internal inline void *mem_copy(void *dest, void const *source, I64 n)
+internal inline void *mem_copy(void *dest, void const *source, int64_t n)
 {
 #if COMPILER_MSVC
     if (dest == NULL) {
         return NULL;
     }
     // TODO: Is this good enough?
-    __movsb(Cast(U8 *)dest, Cast(U8 *)source, n);
+    __movsb((uint8_t *)dest, (uint8_t *)source, n);
 // #elif defined(GB_SYSTEM_OSX) || defined(GB_SYSTEM_UNIX)
     // NOTE: I assume there's a reason this isn't being used elsewhere,
     //   but casting pointers as arguments to an __asm__ call is considered an
@@ -40,9 +40,9 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
     void *dest_copy = dest;
     __asm__ __volatile__("rep movsb" : "+D"(dest_copy), "+S"(source), "+c"(n) : : "memory");
 #else
-    U8 *d = Cast(U8 *)dest;
-    U8 const *s = Cast(U8 const *)source;
-    U32 w, x;
+    uint8_t *d = (uint8_t *)dest;
+    uint8_t const *s = (uint8_t const *)source;
+    uint32_t w, x;
     if (dest == NULL) {
         return NULL;
     }
@@ -52,19 +52,19 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
     if (IntFromPtr(d) % 4 == 0) {
         for (; n >= 16;
              s += 16, d += 16, n -= 16) {
-            *Cast(U32 *)(d+ 0) = *Cast(U32 *)(s+ 0);
-            *Cast(U32 *)(d+ 4) = *Cast(U32 *)(s+ 4);
-            *Cast(U32 *)(d+ 8) = *Cast(U32 *)(s+ 8);
-            *Cast(U32 *)(d+12) = *Cast(U32 *)(s+12);
+            *(uint32_t *)(d+ 0) = *(uint32_t *)(s+ 0);
+            *(uint32_t *)(d+ 4) = *(uint32_t *)(s+ 4);
+            *(uint32_t *)(d+ 8) = *(uint32_t *)(s+ 8);
+            *(uint32_t *)(d+12) = *(uint32_t *)(s+12);
         }
         if (n & 8) {
-            *Cast(U32 *)(d+0) = *Cast(U32 *)(s+0);
-            *Cast(U32 *)(d+4) = *Cast(U32 *)(s+4);
+            *(uint32_t *)(d+0) = *(uint32_t *)(s+0);
+            *(uint32_t *)(d+4) = *(uint32_t *)(s+4);
             d += 8;
             s += 8;
         }
         if (n&4) {
-            *Cast(U32 *)(d+0) = *Cast(U32 *)(s+0);
+            *(uint32_t *)(d+0) = *(uint32_t *)(s+0);
             d += 4;
             s += 4;
         }
@@ -86,57 +86,57 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
     #endif
         switch (IntFromPtr(d) % 4) {
         case 1: {
-            w = *Cast(U32 *)s;
+            w = *(uint32_t *)s;
             *d++ = *s++;
             *d++ = *s++;
             *d++ = *s++;
             n -= 3;
             while (n > 16) {
-                x = *Cast(U32 *)(s+1);
-                *Cast(U32 *)(d+0)  = (w LS 24) | (x RS 8);
-                w = *Cast(U32 *)(s+5);
-                *Cast(U32 *)(d+4)  = (x LS 24) | (w RS 8);
-                x = *Cast(U32 *)(s+9);
-                *Cast(U32 *)(d+8)  = (w LS 24) | (x RS 8);
-                w = *Cast(U32 *)(s+13);
-                *Cast(U32 *)(d+12) = (x LS 24) | (w RS 8);
+                x = *(uint32_t *)(s+1);
+                *(uint32_t *)(d+0)  = (w LS 24) | (x RS 8);
+                w = *(uint32_t *)(s+5);
+                *(uint32_t *)(d+4)  = (x LS 24) | (w RS 8);
+                x = *(uint32_t *)(s+9);
+                *(uint32_t *)(d+8)  = (w LS 24) | (x RS 8);
+                w = *(uint32_t *)(s+13);
+                *(uint32_t *)(d+12) = (x LS 24) | (w RS 8);
                 s += 16;
                 d += 16;
                 n -= 16;
             }
         } break;
         case 2: {
-            w = *Cast(U32 *)s;
+            w = *(uint32_t *)s;
             *d++ = *s++;
             *d++ = *s++;
             n -= 2;
             while (n > 17) {
-                x = *Cast(U32 *)(s+2);
-                *Cast(U32 *)(d+0)  = (w LS 16) | (x RS 16);
-                w = *Cast(U32 *)(s+6);
-                *Cast(U32 *)(d+4)  = (x LS 16) | (w RS 16);
-                x = *Cast(U32 *)(s+10);
-                *Cast(U32 *)(d+8)  = (w LS 16) | (x RS 16);
-                w = *Cast(U32 *)(s+14);
-                *Cast(U32 *)(d+12) = (x LS 16) | (w RS 16);
+                x = *(uint32_t *)(s+2);
+                *(uint32_t *)(d+0)  = (w LS 16) | (x RS 16);
+                w = *(uint32_t *)(s+6);
+                *(uint32_t *)(d+4)  = (x LS 16) | (w RS 16);
+                x = *(uint32_t *)(s+10);
+                *(uint32_t *)(d+8)  = (w LS 16) | (x RS 16);
+                w = *(uint32_t *)(s+14);
+                *(uint32_t *)(d+12) = (x LS 16) | (w RS 16);
                 s += 16;
                 d += 16;
                 n -= 16;
             }
         } break;
         case 3: {
-            w = *Cast(U32 *)s;
+            w = *(uint32_t *)s;
             *d++ = *s++;
             n -= 1;
             while (n > 18) {
-                x = *Cast(U32 *)(s+3);
-                *Cast(U32 *)(d+0)  = (w LS 8) | (x RS 24);
-                w = *Cast(U32 *)(s+7);
-                *Cast(U32 *)(d+4)  = (x LS 8) | (w RS 24);
-                x = *Cast(U32 *)(s+11);
-                *Cast(U32 *)(d+8)  = (w LS 8) | (x RS 24);
-                w = *Cast(U32 *)(s+15);
-                *Cast(U32 *)(d+12) = (x LS 8) | (w RS 24);
+                x = *(uint32_t *)(s+3);
+                *(uint32_t *)(d+0)  = (w LS 8) | (x RS 24);
+                w = *(uint32_t *)(s+7);
+                *(uint32_t *)(d+4)  = (x LS 8) | (w RS 24);
+                x = *(uint32_t *)(s+11);
+                *(uint32_t *)(d+8)  = (w LS 8) | (x RS 24);
+                w = *(uint32_t *)(s+15);
+                *(uint32_t *)(d+12) = (x LS 8) | (w RS 24);
                 s += 16;
                 d += 16;
                 n -= 16;
@@ -170,10 +170,10 @@ internal inline void *mem_copy(void *dest, void const *source, I64 n)
     return dest;
 }
 
-internal inline void *mem_move(void *dest, void const *source, I64 n)
+internal inline void *mem_move(void *dest, void const *source, int64_t n)
 {
-    U8 *d = Cast(U8 *)dest;
-    U8 const *s = Cast(U8 const *)source;
+    uint8_t *d = (uint8_t *)dest;
+    uint8_t const *s = (uint8_t const *)source;
     if (dest == NULL) {
         return NULL;
     }
@@ -184,29 +184,29 @@ internal inline void *mem_move(void *dest, void const *source, I64 n)
         return mem_copy(d, s, n);
     }
     if (d < s) {
-        if (IntFromPtr(s) % sizeof(I64) == IntFromPtr(d) % sizeof(I64)) {
-            while (IntFromPtr(d) % sizeof(I64)) {
+        if (IntFromPtr(s) % sizeof(int64_t) == IntFromPtr(d) % sizeof(int64_t)) {
+            while (IntFromPtr(d) % sizeof(int64_t)) {
                 if (!n--) return dest;
                 *d++ = *s++;
             }
-            while (n >= (I64)sizeof(I64)) {
-                *Cast(I64 *)d = *Cast(I64 *)s;
-                n -= sizeof(I64);
-                d += sizeof(I64);
-                s += sizeof(I64);
+            while (n >= (int64_t)sizeof(int64_t)) {
+                *(int64_t *)d = *(int64_t *)s;
+                n -= sizeof(int64_t);
+                d += sizeof(int64_t);
+                s += sizeof(int64_t);
             }
         }
         for (; n; n--) *d++ = *s++;
     } else {
-        if ((IntFromPtr(s) % sizeof(I64)) == (IntFromPtr(d) % sizeof(I64))) {
-            while (IntFromPtr(d+n) % sizeof(I64)) {
+        if ((IntFromPtr(s) % sizeof(int64_t)) == (IntFromPtr(d) % sizeof(int64_t))) {
+            while (IntFromPtr(d+n) % sizeof(int64_t)) {
                 if (!n--)
                     return dest;
                 d[n] = s[n];
             }
-            while (n >= (I64)sizeof(I64)) {
-                n -= sizeof(I64);
-                *Cast(I64 *)(d+n) = *Cast(I64 *)(s+n);
+            while (n >= (int64_t)sizeof(int64_t)) {
+                n -= sizeof(int64_t);
+                *(int64_t *)(d+n) = *(int64_t *)(s+n);
             }
         }
         while (n) n--, d[n] = s[n];
@@ -214,11 +214,11 @@ internal inline void *mem_move(void *dest, void const *source, I64 n)
     return dest;
 }
 
-internal inline void *mem_set(void *dest, U8 c, I64 n)
+internal inline void *mem_set(void *dest, uint8_t c, int64_t n)
 {
-    U8 *s = Cast(U8 *)dest;
-    I64 k;
-    U32 c32 = ((U32)-1)/255 * c;
+    uint8_t *s = (uint8_t *)dest;
+    int64_t k;
+    uint32_t c32 = ((uint32_t)-1)/255 * c;
     if (dest == NULL) {
         return NULL;
     }
@@ -230,36 +230,36 @@ internal inline void *mem_set(void *dest, U8 c, I64 n)
     if (n < 7) { return dest; }
     s[3] = s[n-4] = c;
     if (n < 9) { return dest; }
-    k = -Cast(I64)s & 3;
+    k = -(int64_t)s & 3;
     s += k;
     n -= k;
     n &= -4;
-    *Cast(U32 *)(s+0) = c32;
-    *Cast(U32 *)(s+n-4) = c32;
+    *(uint32_t *)(s+0) = c32;
+    *(uint32_t *)(s+n-4) = c32;
     if (n < 9) { return dest; }
-    *Cast(U32 *)(s +  4)    = c32;
-    *Cast(U32 *)(s +  8)    = c32;
-    *Cast(U32 *)(s+n-12) = c32;
-    *Cast(U32 *)(s+n- 8) = c32;
+    *(uint32_t *)(s +  4)    = c32;
+    *(uint32_t *)(s +  8)    = c32;
+    *(uint32_t *)(s+n-12) = c32;
+    *(uint32_t *)(s+n- 8) = c32;
     if (n < 25) { return dest; }
-    *Cast(U32 *)(s + 12) = c32;
-    *Cast(U32 *)(s + 16) = c32;
-    *Cast(U32 *)(s + 20) = c32;
-    *Cast(U32 *)(s + 24) = c32;
-    *Cast(U32 *)(s+n-28) = c32;
-    *Cast(U32 *)(s+n-24) = c32;
-    *Cast(U32 *)(s+n-20) = c32;
-    *Cast(U32 *)(s+n-16) = c32;
+    *(uint32_t *)(s + 12) = c32;
+    *(uint32_t *)(s + 16) = c32;
+    *(uint32_t *)(s + 20) = c32;
+    *(uint32_t *)(s + 24) = c32;
+    *(uint32_t *)(s+n-28) = c32;
+    *(uint32_t *)(s+n-24) = c32;
+    *(uint32_t *)(s+n-20) = c32;
+    *(uint32_t *)(s+n-16) = c32;
     k = 24 + (IntFromPtr(s) & 4);
     s += k;
     n -= k;
     {
-        U64 c64 = (Cast(U64)c32 << 32) | c32;
+        uint64_t c64 = ((uint64_t)c32 << 32) | c32;
         while (n > 31) {
-            *Cast(U64 *)(s+0) = c64;
-            *Cast(U64 *)(s+8) = c64;
-            *Cast(U64 *)(s+16) = c64;
-            *Cast(U64 *)(s+24) = c64;
+            *(uint64_t *)(s+0) = c64;
+            *(uint64_t *)(s+8) = c64;
+            *(uint64_t *)(s+16) = c64;
+            *(uint64_t *)(s+24) = c64;
             n -= 32;
             s += 32;
         }
@@ -267,18 +267,18 @@ internal inline void *mem_set(void *dest, U8 c, I64 n)
     return dest;
 }
 
-internal I32 mem_is_zero(void *ptr, U64 size){
-  I32 result = 1;
+internal int32_t mem_is_zero(void *ptr, uint64_t size){
+  int32_t result = 1;
 
   // break down size
-  U64 extra = (size&0x7);
-  U64 count8 = (size >> 3);
+  uint64_t extra = (size&0x7);
+  uint64_t count8 = (size >> 3);
 
   // check with 8-byte stride
-  U64 *p64 = (U64*)ptr;
+  uint64_t *p64 = (uint64_t*)ptr;
   if(result)
   {
-    for (U64 i = 0; i < count8; i += 1, p64 += 1){
+    for (uint64_t i = 0; i < count8; i += 1, p64 += 1){
       if (*p64 != 0){
         result = 0;
         goto done;
@@ -289,8 +289,8 @@ internal I32 mem_is_zero(void *ptr, U64 size){
   // check extra
   if(result)
   {
-    U8 *p8 = (U8*)p64;
-    for (U64 i = 0; i < extra; i += 1, p8 += 1){
+    uint8_t *p8 = (uint8_t*)p64;
+    for (uint64_t i = 0; i < extra; i += 1, p8 += 1){
       if (*p8 != 0){
         result = 0;
         goto done;

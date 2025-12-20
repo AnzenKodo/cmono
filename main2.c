@@ -7,68 +7,68 @@
 
 typedef struct Raw_Position Raw_Position;
 struct Raw_Position {
-    I32 tilemap_x;
-    I32 tilemap_y;
-    F32 x;
-    F32 y;
+    int32_t tilemap_x;
+    int32_t tilemap_y;
+    float x;
+    float y;
 };
 
 typedef struct Canonical_Position Canonical_Position;
 struct Canonical_Position {
-    I32 tilemap_x;
-    I32 tilemap_y;
-    I32 tile_x;
-    I32 tile_y;
-    F32 tile_rel_x;
-    F32 tile_rel_y;
+    int32_t tilemap_x;
+    int32_t tilemap_y;
+    int32_t tile_x;
+    int32_t tile_y;
+    float tile_rel_x;
+    float tile_rel_y;
 };
 
 typedef struct Game_State Game_State;
 struct Game_State
 {
-    I32 player_tilemap_x;
-    I32 player_tilemap_y;
-    F32 player_x;
-    F32 player_y;
+    int32_t player_tilemap_x;
+    int32_t player_tilemap_y;
+    float player_x;
+    float player_y;
 };
 
 typedef struct Tilemap Tilemap;
 struct Tilemap
 {
-    U32 *tiles;
+    uint32_t *tiles;
 };
 
 typedef struct World World;
 struct World
 {
     Tilemap *tilemaps;
-    I32 tilemap_count_x;
-    I32 tilemap_count_y;
-    I32 count_x;
-    I32 count_y;
-    F32 upper_left_x;
-    F32 upper_left_y;
-    F32 tile_width;
-    F32 tile_height;
+    int32_t tilemap_count_x;
+    int32_t tilemap_count_y;
+    int32_t count_x;
+    int32_t count_y;
+    float upper_left_x;
+    float upper_left_y;
+    float tile_width;
+    float tile_height;
 
-    F32 tile_side_in_meters;
-    I32 tile_side_in_pixels;
+    float tile_side_in_meters;
+    int32_t tile_side_in_pixels;
 };
 
-internal I32 floor_f32_to_i32(F32 a) { return cast(I32)floor_f32(a); }
+internal int32_t floor_f32_to_i32(float a) { return cast(int32_t)floor_f32(a); }
 
-internal U32 tilemap_get_tile_value_unchecked(
-    World *world,Tilemap *tilemap, I32 tile_x, I32 tile_y
+internal uint32_t tilemap_get_tile_value_unchecked(
+    World *world,Tilemap *tilemap, int32_t tile_x, int32_t tile_y
 ) {
     Assert(tilemap);
     Assert((tile_x >= 0) && (tile_x < world->count_x) &&
         (tile_y >= 0) && (tile_y < world->count_y));
-    U32 tilemap_value = tilemap->tiles[tile_y*world->count_x + tile_x];
+    uint32_t tilemap_value = tilemap->tiles[tile_y*world->count_x + tile_x];
     return tilemap_value;
 }
 
 internal bool tilemap_point_is_empty(
-    World *world, Tilemap *tilemap, I32 test_tile_x, I32 test_tile_y
+    World *world, Tilemap *tilemap, int32_t test_tile_x, int32_t test_tile_y
 ) {
     bool empty = false;
 
@@ -77,7 +77,7 @@ internal bool tilemap_point_is_empty(
             (test_tile_x >= 0) && (test_tile_x < world->count_x) &&
             (test_tile_y >= 0) && (test_tile_y < world->count_y)
         ) {
-            I32 tilemap_value = tilemap_get_tile_value_unchecked(
+            int32_t tilemap_value = tilemap_get_tile_value_unchecked(
                 world, tilemap, test_tile_x, test_tile_y
             );
             empty = (tilemap_value == 0);
@@ -87,7 +87,7 @@ internal bool tilemap_point_is_empty(
     return empty;
 }
 
-internal Tilemap *tilemap_get(World *world, I32 tilemap_x, I32 tilemap_y)
+internal Tilemap *tilemap_get(World *world, int32_t tilemap_x, int32_t tilemap_y)
 {
     Tilemap *tilemap = 0;
     if (
@@ -107,8 +107,8 @@ internal Canonical_Position get_canonical_position(World *world, Raw_Position po
     result.tilemap_x = pos.tilemap_x;
     result.tilemap_y = pos.tilemap_y;
 
-    F32 x = pos.x - world->upper_left_x;
-    F32 y = pos.y - world->upper_left_y;
+    float x = pos.x - world->upper_left_x;
+    float y = pos.y - world->upper_left_y;
     result.tile_x = floor_f32_to_i32(x / world->tile_width);
     result.tile_y = floor_f32_to_i32(y / world->tile_height);
 
@@ -163,18 +163,18 @@ int main(void)
     Arena *arena = arena_alloc();
 
     wl_window_open(str8_lit("Scuttle"), 960, 540);
-    // wl_set_window_icon((const U8 *)SCUTTLEICON);
+    // wl_set_window_icon((const uint8_t *)SCUTTLEICON);
 
-    // F32 monitor_refresh_rate = 60;
-    // F32 game_update_hz = monitor_refresh_rate / 2.0f;
-    // F32 target_sec_per_frame = 10.0f / game_update_hz;
+    // float monitor_refresh_rate = 60;
+    // float game_update_hz = monitor_refresh_rate / 2.0f;
+    // float target_sec_per_frame = 10.0f / game_update_hz;
 
     Draw_Buffer *buffer = render_init();
 
     // Game Start ======================================================
 #define TILEMAP_COUNT_X 15
 #define TILEMAP_COUNT_Y 10
-    I32 tiles00[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
+    int32_t tiles00[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -186,7 +186,7 @@ int main(void)
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
         { 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     };
-    I32 tiles01[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
+    int32_t tiles01[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
@@ -198,7 +198,7 @@ int main(void)
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     };
-    I32 tiles10[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
+    int32_t tiles10[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
@@ -210,7 +210,7 @@ int main(void)
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     };
-    I32 tiles11[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
+    int32_t tiles11[TILEMAP_COUNT_Y][TILEMAP_COUNT_X] = {
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
@@ -224,10 +224,10 @@ int main(void)
     };
 
     Tilemap tilemaps[2][2];
-    tilemaps[0][0].tiles = (U32 *)tiles00;
-    tilemaps[0][1].tiles = (U32 *)tiles10;
-    tilemaps[1][0].tiles = (U32 *)tiles01;
-    tilemaps[1][1].tiles = (U32 *)tiles11;
+    tilemaps[0][0].tiles = (uint32_t *)tiles00;
+    tilemaps[0][1].tiles = (uint32_t *)tiles10;
+    tilemaps[1][0].tiles = (uint32_t *)tiles01;
+    tilemaps[1][1].tiles = (uint32_t *)tiles11;
 
 
     World world;
@@ -242,8 +242,8 @@ int main(void)
     world.tilemaps = (Tilemap *)tilemaps;
     world.tile_side_in_meters = 1.4f;
     world.tile_side_in_pixels = 60;
-    F32 player_width = 0.75f * world.tile_width;
-    F32 player_height = world.tile_height;
+    float player_width = 0.75f * world.tile_width;
+    float player_height = world.tile_height;
 
     Game_State *game_state = arena_push(arena, Game_State, 1);
     game_state->player_x = 50;
@@ -258,7 +258,7 @@ int main(void)
 
     while (!wl_should_window_close()) {
         // wl_enforce_frame_rate(60);
-        // F32 frame_rate = wl_get_current_frame_rate();
+        // float frame_rate = wl_get_current_frame_rate();
         wl_update_events();
         if (wl_is_key_pressed(Wl_Key_Esc))
         {
@@ -269,8 +269,8 @@ int main(void)
         {
             draw_fill(buffer, ORANGE);
 
-            F32 d_player_x = 0.0f;
-            F32 d_player_y = 0.0f;
+            float d_player_x = 0.0f;
+            float d_player_y = 0.0f;
             if (wl_is_key_pressed(Wl_Key_W)) {
                 d_player_y = -1.0f;
             } else if (wl_is_key_pressed(Wl_Key_S)) {
@@ -283,10 +283,10 @@ int main(void)
             d_player_x *= 210.0f;
             d_player_y *= 210.0f;
 
-            // F32 target_sec_per_frame = (1.0f /frame_rate);
-            F32 target_sec_per_frame = (1.0f /60);
-            F32 new_player_x = game_state->player_x + target_sec_per_frame * d_player_x;
-            F32 new_player_y = game_state->player_y + target_sec_per_frame * d_player_y;
+            // float target_sec_per_frame = (1.0f /frame_rate);
+            float target_sec_per_frame = (1.0f /60);
+            float new_player_x = game_state->player_x + target_sec_per_frame * d_player_x;
+            float new_player_y = game_state->player_y + target_sec_per_frame * d_player_y;
 
             Raw_Position player_pos = {
                 game_state->player_tilemap_x, game_state->player_tilemap_y,
@@ -309,27 +309,27 @@ int main(void)
                 game_state->player_y = world.upper_left_y + world.tile_height*con_pos.tile_y + con_pos.tile_rel_y;
             }
 
-            for (I32 row = 0; row < world.count_y; ++row) {
-                for (I32 col = 0; col < world.count_x; ++col) {
-                    I32 tile_id =  tilemap_get_tile_value_unchecked(&world, tilemap, col, row);
+            for (int32_t row = 0; row < world.count_y; ++row) {
+                for (int32_t col = 0; col < world.count_x; ++col) {
+                    int32_t tile_id =  tilemap_get_tile_value_unchecked(&world, tilemap, col, row);
 
                     Rgba color = GREEN;
                     if (tile_id == 1) {
                         color = YELLOW;
                     }
 
-                    F32 rect_x = world.upper_left_x + cast(F32)col * world.tile_width;
-                    F32 rect_y = world.upper_left_y + cast(F32)row * world.tile_height;
-                    F32 rect_width  = rect_x + world.tile_width;
-                    F32 rect_height = rect_y + world.tile_height;
+                    float rect_x = world.upper_left_x + cast(float)col * world.tile_width;
+                    float rect_y = world.upper_left_y + cast(float)row * world.tile_height;
+                    float rect_width  = rect_x + world.tile_width;
+                    float rect_height = rect_y + world.tile_height;
                     draw_rect(buffer, (Rect){
                         rect_x, rect_y, rect_width, rect_height
                     }, color);
                 }
             }
 
-            F32 player_left = game_state->player_x - (0.5f * player_width);
-            F32 player_top = game_state->player_y - player_height;
+            float player_left = game_state->player_x - (0.5f * player_width);
+            float player_top = game_state->player_y - player_height;
 
             draw_rect(buffer, (Rect) {
                 player_left, player_top,

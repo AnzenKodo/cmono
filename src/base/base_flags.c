@@ -57,7 +57,7 @@ internal Flags_Flag *flags_string(Flags_Context *context, Str8 name, Str8 *resul
     return flag;
 }
 
-internal Flags_Flag *flags_int(Flags_Context *context, Str8 name, I64 *result_value, I64 default_value, Str8 description)
+internal Flags_Flag *flags_int(Flags_Context *context, Str8 name, int64_t *result_value, int64_t default_value, Str8 description)
 {
     Flags_Flag *flag = alloc_make(context->alloc, Flags_Flag, 1);
     flag->kind = _Flags_Flag_Kind_Int;
@@ -70,7 +70,7 @@ internal Flags_Flag *flags_int(Flags_Context *context, Str8 name, I64 *result_va
 }
 
 
-internal Flags_Flag *flags_uint(Flags_Context *context, Str8 name, U64 *result_value, U64 default_value, Str8 description)
+internal Flags_Flag *flags_uint(Flags_Context *context, Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description)
 {
     Flags_Flag *flag = alloc_make(context->alloc, Flags_Flag, 1);
     flag->kind = _Flags_Flag_Kind_UInt;
@@ -82,7 +82,7 @@ internal Flags_Flag *flags_uint(Flags_Context *context, Str8 name, U64 *result_v
     return flag;
 }
 
-internal Flags_Flag *flags_float(Flags_Context *context, Str8 name, F64 *result_value, F64 default_value, Str8 description)
+internal Flags_Flag *flags_float(Flags_Context *context, Str8 name, double *result_value, double default_value, Str8 description)
 {
     Flags_Flag *flag = alloc_make(context->alloc, Flags_Flag, 1);
     flag->kind = _Flags_Flag_Kind_Float;
@@ -215,10 +215,10 @@ internal bool _flags_is_arg_option(Str8 arg)
     return _flags_get_options_from_arg(arg).size > 0 ? true : false;
 }
 
-internal U64 _flags_get_values_count(Str8Array *args, U64 index)
+internal uint64_t _flags_get_values_count(Str8Array *args, uint64_t index)
 {
-    U64 count = 0;
-    for (U64 i = index; i < args->count; i++)
+    uint64_t count = 0;
+    for (uint64_t i = index; i < args->count; i++)
     {
         Str8 arg = args->strings[i];
         if (_flags_is_arg_option(arg)) break;
@@ -237,12 +237,13 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
     }
     bool has_passthrough_option = false;
     Flags_Flag *flag = NULL;
-    for (U32 index = context->has_program_name ? 1 : 0; index < args->count; index++)
+    for (uint32_t index = context->has_program_name ? 1 : 0; index < args->count; index++)
     {
         Str8 arg = args->strings[index];
         if (str8_match(arg, str8("--"), 0))
         {
             has_passthrough_option = 1;
+            Unused(has_passthrough_option);
             break;
         }
         if (_flags_is_arg_option(arg))
@@ -343,9 +344,9 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 case _Flags_Flag_Kind_StrArr:
                 {
                     Str8Array array = ZERO_STRUCT;
-                    U64 items_count = _flags_get_values_count(args, index);
+                    uint64_t items_count = _flags_get_values_count(args, index);
                     array.strings = alloc_make(context->alloc, Str8, items_count);
-                    for (U64 i = 0; i < items_count; i++)
+                    for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->strings[index];
                         array.strings[array.count++] = array_arg;
@@ -358,9 +359,9 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 case _Flags_Flag_Kind_IntArr:
                 {
                     I64Array array = ZERO_STRUCT;
-                    U64 items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, I64, items_count);
-                    for (U64 i = 0; i < items_count; i++)
+                    uint64_t items_count = _flags_get_values_count(args, index);
+                    array.v = alloc_make(context->alloc, int64_t, items_count);
+                    for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->strings[index];
                         if (str8_is_integer(array_arg, base))
@@ -380,9 +381,9 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 case _Flags_Flag_Kind_UIntArr:
                 {
                     U64Array array = ZERO_STRUCT;
-                    U64 items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, U64, index);
-                    for (U64 i = 0; i < items_count; i++)
+                    uint64_t items_count = _flags_get_values_count(args, index);
+                    array.v = alloc_make(context->alloc, uint64_t, index);
+                    for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->strings[index];
                         if (str8_is_integer(array_arg, base))
@@ -409,9 +410,9 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 case _Flags_Flag_Kind_FloatArr:
                 {
                     F64Array array = ZERO_STRUCT;
-                    U64 items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, F64, items_count);
-                    for (U64 i = 0; i < items_count; i++)
+                    uint64_t items_count = _flags_get_values_count(args, index);
+                    array.v = alloc_make(context->alloc, double, items_count);
+                    for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->strings[index];
                         if (str8_is_float(array_arg))
@@ -547,7 +548,7 @@ internal void flags_print_help(Flags_Context *context)
         {
             fmt_print(" (required)");
         }
-        U8 desc_spacing = 5;
+        uint8_t desc_spacing = 5;
         char *default_syntex = "(default: ";
         fmt_printfln("\n%-*s%.*s", desc_spacing, "", str8_varg(flag->description));
         switch (flag->kind)
@@ -598,7 +599,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%s", desc_spacing, "", default_syntex);
-                    for (U32 i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("\"%s\"", default_array->strings[i]);
                         if (default_array->count-1 != i)
@@ -616,7 +617,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%s", desc_spacing, "", default_syntex);
-                    for (U32 i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("%lld", default_array->v[i]);
                         if (default_array->count-1 != i)
@@ -634,7 +635,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%s", desc_spacing, "", default_syntex);
-                    for (U32 i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("%llu", default_array->v[i]);
                         if (default_array->count-1 != i)
@@ -652,7 +653,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%s", desc_spacing, "", default_syntex);
-                    for (U32 i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->count; i++)
                     {
                         fmt_printf("%llf", default_array->v[i]);
                         if (default_array->count-1 != i)

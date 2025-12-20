@@ -1,12 +1,12 @@
-internal Draw_Buffer draw_init(Alloc alloc, I32 width, I32 height)
+internal Draw_Buffer draw_init(Alloc alloc, int32_t width, int32_t height)
 {
     Draw_Buffer draw_buffer     = ZERO_STRUCT;
     draw_buffer.width           = width;
     draw_buffer.height          = height;
     draw_buffer.bytes_per_pixel = 4;
     draw_buffer.pitch           = draw_buffer.width * draw_buffer.bytes_per_pixel;
-    U64 memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
-    draw_buffer.memory          = alloc_make(alloc, U8, memory_size);
+    uint64_t memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
+    draw_buffer.memory          = alloc_make(alloc, uint8_t, memory_size);
     return draw_buffer;
 }
 
@@ -17,16 +17,16 @@ internal Draw_Buffer draw_init_display(Alloc alloc)
     draw_buffer.height          = wl_get_display_height();
     draw_buffer.bytes_per_pixel = 4;
     draw_buffer.pitch           = draw_buffer.width * draw_buffer.bytes_per_pixel;
-    U64 memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
-    draw_buffer.memory          = alloc_make(alloc, U8, memory_size);
+    uint64_t memory_size             = (draw_buffer.width * draw_buffer.height) * draw_buffer.bytes_per_pixel;
+    draw_buffer.memory          = alloc_make(alloc, uint8_t, memory_size);
     return draw_buffer;
 }
 
-internal U32 draw_rgba_to_hex(const Draw_Rgba color)
+internal uint32_t draw_rgba_to_hex(const Draw_Rgba color)
 {
-    U32 result = 0;
+    uint32_t result = 0;
 
-    result = (U32)(
+    result = (uint32_t)(
         (color.red << 24) |
         (color.green << 16) |
         (color.blue << 8) |
@@ -36,11 +36,11 @@ internal U32 draw_rgba_to_hex(const Draw_Rgba color)
     return result;
 }
 
-internal U32 draw_rgba_to_hex_argb(const Draw_Rgba color)
+internal uint32_t draw_rgba_to_hex_argb(const Draw_Rgba color)
 {
-    U32 result = 0;
+    uint32_t result = 0;
 
-    result = (U32)(
+    result = (uint32_t)(
         (color.alpha << 24) |
         (color.red << 16) |
         (color.green << 8) |
@@ -52,13 +52,13 @@ internal U32 draw_rgba_to_hex_argb(const Draw_Rgba color)
 
 internal void draw_fill(Draw_Buffer draw_buffer, Draw_Rgba color)
 {
-    U32 color_in_hex = draw_rgba_to_hex_argb(color);
+    uint32_t color_in_hex = draw_rgba_to_hex_argb(color);
 
-    for (F32 y = 0; y < draw_buffer.height; y++)
+    for (float y = 0; y < draw_buffer.height; y++)
     {
-        for (F32 x = 0; x < draw_buffer.width; x++)
+        for (float x = 0; x < draw_buffer.width; x++)
         {
-            U32 *pixel = (U32 *)draw_buffer.memory + Cast(U32)(y * draw_buffer.width + x);
+            uint32_t *pixel = (uint32_t *)draw_buffer.memory + (uint32_t)(y * draw_buffer.width + x);
             *pixel++ = color_in_hex;
         }
     }
@@ -66,23 +66,23 @@ internal void draw_fill(Draw_Buffer draw_buffer, Draw_Rgba color)
 
 internal void draw_rect(Draw_Buffer draw_buffer, Draw_Rect rect, Draw_Rgba color)
 {
-    I32 rect_x = round_f32_to_i32(rect.x);
-    I32 rect_y = round_f32_to_i32(rect.y);
-    I32 width = round_f32_to_i32(rect.width);
-    I32 height = round_f32_to_i32(rect.height);
-    U32 color_in_hex = draw_rgba_to_hex_argb(color);
+    int32_t rect_x = round_f32_to_i32(rect.x);
+    int32_t rect_y = round_f32_to_i32(rect.y);
+    int32_t width = round_f32_to_i32(rect.width);
+    int32_t height = round_f32_to_i32(rect.height);
+    uint32_t color_in_hex = draw_rgba_to_hex_argb(color);
 
-    if (width > (I32)draw_buffer.width) width = draw_buffer.width;
-    if (height > (I32)draw_buffer.height) height = draw_buffer.height;
+    if (width > (int32_t)draw_buffer.width) width = draw_buffer.width;
+    if (height > (int32_t)draw_buffer.height) height = draw_buffer.height;
     if (rect_y < 0) rect_y = 0;
     if (rect_x < 0) rect_x = 0;
 
-    U8 *row = ((U8 *)draw_buffer.memory) + rect_x*draw_buffer.bytes_per_pixel + rect_y*draw_buffer.pitch;
+    uint8_t *row = ((uint8_t *)draw_buffer.memory) + rect_x*draw_buffer.bytes_per_pixel + rect_y*draw_buffer.pitch;
 
-    for (I32 y = rect_y; y < height; ++y)
+    for (int32_t y = rect_y; y < height; ++y)
     {
-        U32 *pixel = (U32 *)row;
-        for (I32 x = rect_x; x < width; ++x) {
+        uint32_t *pixel = (uint32_t *)row;
+        for (int32_t x = rect_x; x < width; ++x) {
             *pixel++ = color_in_hex;
         }
         row += draw_buffer.pitch;
