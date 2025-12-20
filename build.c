@@ -293,30 +293,6 @@ internal void entry_point()
     bool build_run_program = false;
 
     Flags_Context context = flags_init(alloc);
-    Str8 name = ZERO_STRUCT;
-    flags_string(&context, str8("name"), &name, str8(""), str8("Name of the program"));
-    I64 num = 0;
-    Flags_Flag *num_flag = flags_int(&context, str8("num"), &num, 0, str8("Name of the program"));
-    flags_add_flag_shortname(num_flag, str8("n"));
-    flags_make_flag_required(num_flag);
-    flags_add_flag_value_hint(num_flag, str8("<list>"));
-    U64 unum = 0;
-    flags_uint(&context, str8("unum"), &unum, 1, str8("Name of the program"));
-    F64 fnum = 0;
-    flags_float(&context, str8("fnum"), &fnum, 1, str8("Name of the program"));
-    bool bvalue = 0;
-    flags_bool(&context, str8("bvalue"), &bvalue, 1, str8("Name of the program"));
-    Str8Array strarr;
-    Str8Array dstrarr = str8_array_alloc(alloc, 3);
-    str8_array_append(&dstrarr, str8("hello"));
-    str8_array_append(&dstrarr, str8("world"));
-    flags_str_arr(&context, str8("strarr"), &strarr, &dstrarr, str8("Array value"));
-    I64Array intarr;
-    flags_int_arr(&context, str8("intarr"), &intarr, NULL, str8("Int array value"));
-    U64Array uintarr;
-    flags_uint_arr(&context, str8("uintarr"), &uintarr, NULL, str8("Int array value"));
-    F64Array farr;
-    flags_float_arr(&context, str8("farr"), &farr, NULL, str8("Int array value"));
     Str8Array *args = os_args_get();
     if (!flags_parse(&context, args))
     {
@@ -325,9 +301,8 @@ internal void entry_point()
         os_exit(1);
     }
 
-    if (bvalue) fmt_printfln("%s %d %d %f %.*s %d %d %f", name.cstr, num, unum, fnum, str8_varg(strarr.strings[0]), intarr.v[1], uintarr.v[2], farr.v[2]);
+        // fmt_printfln("%s %d %d %f %.*s %d %d %f", name.cstr, num, unum, fnum, str8_varg(strarr.strings[0]), intarr.v[1], uintarr.v[2], farr.v[2]);
 
-    return;
     if (args->count >= 2)
     {
         Str8 arg1 = args->strings[1];
