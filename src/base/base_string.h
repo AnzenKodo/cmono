@@ -161,7 +161,7 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string);
 
 internal Str8Array str8_array_alloc(Alloc alloc, U64 size);
 internal Str8 *str8_array_append(Str8Array *array, Str8 str);
-internal Str8 *str8_array_get(Str8Array *array, U64 index)
+internal Str8 *str8_array_get(Str8Array *array, U64 index);
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
 
 // String Split and Join ======================================================
