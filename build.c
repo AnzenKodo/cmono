@@ -278,9 +278,6 @@ internal void build_run(Build_Info *info)
 
 internal void entry_point()
 {
-    uint64_t size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
     Build_Info info = ZERO_STRUCT;
     info.name = str8(PROGRAM_NAME);
     info.cmd_name = str8(PROGRAM_CMD_NAME);
@@ -292,17 +289,7 @@ internal void entry_point()
     bool should_print_help = false;
     bool build_run_program = false;
 
-    Flags_Context context = flags_init(alloc);
     Str8Array *args = os_args_get();
-    if (!flags_parse(&context, args))
-    {
-        flags_print_error(&context);
-        flags_print_help(&context);
-        os_exit(1);
-    }
-
-        // fmt_printfln("%s %d %d %f %.*s %d %d %f", name.cstr, num, unum, fnum, str8_varg(strarr.strings[0]), intarr.v[1], uintarr.v[2], farr.v[2]);
-
     if (args->count >= 2)
     {
         Str8 arg1 = args->strings[1];
