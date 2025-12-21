@@ -11,9 +11,13 @@
 
 internal void entry_point(void)
 {
+    uint64_t size = MB(10);
+    void *buffer = os_memory_alloc(size);
+    Alloc alloc = alloc_arena_init(buffer, size);
+
     // Command Line ===========================================================
     Str8 frag_filepath;
-    bool no_aot = false;
+    // bool no_aot = false;
     bool no_esc = false;
     uint64_t fps = 60;
     const char *help_message = PROGRAM_NAME": "PROGRAM_DESCRIPTION"\n"
@@ -28,13 +32,28 @@ internal void entry_point(void)
         "   --version -v    Print version message\n"
         "VERSION:\n"
         "   "PROGRAM_VERSION;
+
+    Flags_Context context = flags_init(alloc);
     Str8Array *args = os_args_get();
-    if (args->count >= 2)
+    Str8 name = ZERO_STRUCT;
+    Flags_Flag *flag = flags_string(&context, str8("name"), &name, str8("ram"), str8("Name of the program"));
+    flags_make_flag_required(flag);
+
+    if (!flags_parse(&context, args))
     {
-        Str8 arg1 = args->strings[1];
-        for (uint8_t i = 1; i < args->count; i++)
+        flags_print_error(&context);
+        // flags_print_help(&context);
+        os_exit(1);
+    }
+    // fmt_printf("%s", name.cstr);
+
+    return;
+    if (args->length >= 2)
+    {
+        Str8 arg1 = args->v[1];
+        for (uint8_t i = 1; i < args->length; i++)
         {
-            Str8 arg = args->strings[i];
+            Str8 arg = args->v[i];
             if (str8_match(arg, str8("--help"), 0) || str8_match(arg, str8("-h"), 0))
             {
                 fmt_print(help_message);
@@ -47,11 +66,11 @@ internal void entry_point(void)
             }
             if (str8_match(arg, str8("--fps"), 0))
             {
-                // fps = args->strings[i++];
+                // fps = args->v[i++];
             }
             if (str8_match(arg, str8("--no_aot"), 0))
             {
-                no_aot = true;
+                // no_aot = true;
             }
             if (str8_match(arg, str8("--no_esc"), 0))
             {
@@ -67,9 +86,6 @@ internal void entry_point(void)
 
     // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec2_i32(750, 750));
-    uint64_t size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
     render_init();
 
     char *vert_source = "in vec4 position;\n"

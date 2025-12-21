@@ -14,70 +14,70 @@
     #define true  1
     #define false 0
 #endif
-typedef void      Void_Proc(void);
+typedef void Void_Proc(void);
 
 // Base Type Array ============================================================
 
 typedef struct U8Array U8Array;
 struct U8Array
 {
-    uint64_t count;
+    uint64_t length;
     uint8_t  *v;
 };
 typedef struct U16Array U16Array;
 struct U16Array
 {
-    uint64_t count;
+    uint64_t length;
     uint16_t *v;
 };
 typedef struct U32Array U32Array;
 struct U32Array
 {
-    uint64_t count;
+    uint64_t length;
     uint32_t *v;
 };
 typedef struct U64Array U64Array;
 struct U64Array
 {
-    uint64_t count;
+    uint64_t length;
     uint64_t *v;
 };
 
 typedef struct I8Array I8Array;
 struct I8Array
 {
-    int64_t count;
+    int64_t length;
     int8_t  *v;
 };
 typedef struct I16Array I16Array;
 struct I16Array
 {
-    int64_t count;
+    int64_t length;
     int16_t *v;
 };
 typedef struct I32Array I32Array;
 struct I32Array
 {
-    int64_t count;
+    int64_t length;
     int32_t *v;
 };
 typedef struct I64Array I64Array;
 struct I64Array
 {
-    int64_t count;
+    int64_t length;
     int64_t *v;
 };
 
 typedef struct F32Array F32Array;
 struct F32Array
 {
-    int64_t count;
+    int64_t length;
     float   *v;
 };
 typedef struct F64Array F64Array;
 struct F64Array
 {
-    int64_t count;
+    int64_t length;
     double  *v;
 };
 

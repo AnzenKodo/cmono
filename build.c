@@ -182,7 +182,7 @@ internal void build_compile_gcc(Build_Info *info)
     build_cmd_append(info, " -mshstk -fcf-protection=full");
     if (info->type != Build_Type_Debug && !info->mingw)
     {
-        build_cmd_append(info, " -fstack-protector -fsanitize=address,undefined -fno-omit-frame-pointer");
+        build_cmd_append(info, " -fstack-protector -fsanitize=address -fno-omit-frame-pointer");
         // build_cmd_append(info, "-fanalyzer");
     }
     // Libs ===================================================================
@@ -290,13 +290,13 @@ internal void entry_point()
     bool build_run_program = false;
 
     Str8Array *args = os_args_get();
-    if (args->count >= 2)
+    if (args->length >= 2)
     {
-        Str8 arg1 = args->strings[1];
+        Str8 arg1 = args->v[1];
         Str8 arg2 = ZERO_STRUCT;
-        if (args->count == 3)
+        if (args->length == 3)
         {
-            arg2 = args->strings[2];
+            arg2 = args->v[2];
         }
         if (str8_match(arg1, str8("--help"), 0) || str8_match(arg1, str8("-h"), 0))
         {
@@ -344,13 +344,13 @@ internal void entry_point()
     } else {
         should_print_help = true;
     }
-    if (str8_match(args->strings[2], str8("mingw"), 0))
+    if (str8_match(args->v[2], str8("mingw"), 0))
     {
         info.mingw = true;
     }
-    for (uint32_t i = 0; i < args->count; i++)
+    for (uint32_t i = 0; i < args->length; i++)
     {
-        if (str8_match(args->strings[i], str8("--nocolor"), 0)) {
+        if (str8_match(args->v[i], str8("--nocolor"), 0)) {
             info.log_context.enable_color_log = false;
         }
     }

@@ -212,15 +212,15 @@ internal Str8 _flags_get_options_from_arg(Str8 arg)
 
 internal bool _flags_is_arg_option(Str8 arg)
 {
-    return _flags_get_options_from_arg(arg).size > 0 ? true : false;
+    return _flags_get_options_from_arg(arg).length > 0 ? true : false;
 }
 
 internal uint64_t _flags_get_values_count(Str8Array *args, uint64_t index)
 {
     uint64_t count = 0;
-    for (uint64_t i = index; i < args->count; i++)
+    for (uint64_t i = index; i < args->length; i++)
     {
-        Str8 arg = args->strings[i];
+        Str8 arg = args->v[i];
         if (_flags_is_arg_option(arg)) break;
         count++;
     }
@@ -233,13 +233,13 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
     flags_bool(context, str8("nocolor"), &nocolor, false, str8("Don't print color lines"));
     if (context->has_program_name)
     {
-        context->program_name = args->strings[0];
+        context->program_name = args->v[0];
     }
     bool has_passthrough_option = false;
     Flags_Flag *flag = NULL;
-    for (uint32_t index = context->has_program_name ? 1 : 0; index < args->count; index++)
+    for (uint32_t index = context->has_program_name ? 1 : 0; index < args->length; index++)
     {
-        Str8 arg = args->strings[index];
+        Str8 arg = args->v[index];
         if (str8_match(arg, str8("--"), 0))
         {
             has_passthrough_option = 1;
@@ -261,7 +261,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 }
                 Str8 arg_next = *str8_array_get(args, index+1);
                 bool is_arg_next_option = _flags_is_arg_option(arg_next);
-                if ((is_arg_next_option || arg_next.size == 0) && flag->kind == _Flags_Flag_Kind_Bool) {
+                if ((is_arg_next_option || arg_next.length == 0) && flag->kind == _Flags_Flag_Kind_Bool) {
                     *flag->result_value.bool_value = true;
                     flag->assigned = true;
                 }
@@ -345,11 +345,11 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 {
                     Str8Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.strings = alloc_make(context->alloc, Str8, items_count);
+                    array.v = alloc_make(context->alloc, Str8, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
-                        Str8 array_arg = args->strings[index];
-                        array.strings[array.count++] = array_arg;
+                        Str8 array_arg = args->v[index];
+                        array.v[array.length++] = array_arg;
                         index++;
                     }
                     index--;
@@ -363,10 +363,10 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     array.v = alloc_make(context->alloc, int64_t, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
-                        Str8 array_arg = args->strings[index];
+                        Str8 array_arg = args->v[index];
                         if (str8_is_integer(array_arg, base))
                         {
-                            array.v[array.count++] = str8_to_i64(array_arg, base);
+                            array.v[array.length++] = str8_to_i64(array_arg, base);
                         }
                         else
                         {
@@ -385,12 +385,12 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     array.v = alloc_make(context->alloc, uint64_t, index);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
-                        Str8 array_arg = args->strings[index];
+                        Str8 array_arg = args->v[index];
                         if (str8_is_integer(array_arg, base))
                         {
                             if (str8_is_integer_unsigned(array_arg, base))
                             {
-                                array.v[array.count++] = str8_to_u64(array_arg, base);
+                                array.v[array.length++] = str8_to_u64(array_arg, base);
                             }
                             else
                             {
@@ -414,10 +414,10 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     array.v = alloc_make(context->alloc, double, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
-                        Str8 array_arg = args->strings[index];
+                        Str8 array_arg = args->v[index];
                         if (str8_is_float(array_arg))
                         {
-                            array.v[array.count++] = str8_to_f64(array_arg);
+                            array.v[array.length++] = str8_to_f64(array_arg);
                         }
                         else
                         {
@@ -486,7 +486,7 @@ internal void flags_print_error(Flags_Context *context)
             break;
             case _Flags_Error_Kind_RequireValue:
             {
-                log_error(context->log_context, "missing required flag '-%.*s'.", str8_varg(error->flag_name));
+                log_error(context->log_context, "missing required flag '--%.*s'.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_InvalidInt:
@@ -536,12 +536,12 @@ internal void flags_print_help(Flags_Context *context)
         Str8 required_syntex = ZERO_STRUCT;
         term_style_start(TERM_BOLD);
         fmt_printf(" %s%s%s%s-%.*s",
-            flag->shortname.size > 0 ? "-" : "",
-            flag->shortname.size > 0 ? (char *)flag->shortname.cstr : "",
-            flag->shortname.size > 0 ? "," : "",
-            flag->shortname.size  ? " " : "",
+            flag->shortname.length > 0 ? "-" : "",
+            flag->shortname.length > 0 ? (char *)flag->shortname.cstr : "",
+            flag->shortname.length > 0 ? "," : "",
+            flag->shortname.length  ? " " : "",
             str8_varg(flag->name));
-        if (flag->value_hint.size > 0)
+        if (flag->value_hint.length > 0)
         {
             fmt_printf(" %.*s", str8_varg(flag->value_hint));
         }
@@ -557,7 +557,7 @@ internal void flags_print_help(Flags_Context *context)
         {
             case _Flags_Flag_Kind_Str:
             {
-                if (flag->default_value.str_value.size > 0)
+                if (flag->default_value.str_value.length > 0)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
                     fmt_printfln("\"%.*s\")", str8_varg(flag->default_value.str_value));
@@ -601,10 +601,10 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    for (uint32_t i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->length; i++)
                     {
-                        fmt_printf("\"%s\"", default_array->strings[i]);
-                        if (default_array->count-1 != i)
+                        fmt_printf("\"%s\"", default_array->v[i]);
+                        if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
                         }
@@ -619,10 +619,10 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    for (uint32_t i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->length; i++)
                     {
                         fmt_printf("%lld", default_array->v[i]);
-                        if (default_array->count-1 != i)
+                        if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
                         }
@@ -637,10 +637,10 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    for (uint32_t i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->length; i++)
                     {
                         fmt_printf("%llu", default_array->v[i]);
-                        if (default_array->count-1 != i)
+                        if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
                         }
@@ -655,10 +655,10 @@ internal void flags_print_help(Flags_Context *context)
                 if (default_array != NULL)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    for (uint32_t i = 0; i < default_array->count; i++)
+                    for (uint32_t i = 0; i < default_array->length; i++)
                     {
                         fmt_printf("%llf", default_array->v[i]);
-                        if (default_array->count-1 != i)
+                        if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
                         }

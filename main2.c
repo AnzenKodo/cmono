@@ -61,9 +61,9 @@ internal uint32_t tilemap_get_tile_value_unchecked(
     World *world,Tilemap *tilemap, int32_t tile_x, int32_t tile_y
 ) {
     Assert(tilemap);
-    Assert((tile_x >= 0) && (tile_x < world->count_x) &&
-        (tile_y >= 0) && (tile_y < world->count_y));
-    uint32_t tilemap_value = tilemap->tiles[tile_y*world->count_x + tile_x];
+    Assert((tile_x >= 0) && (tile_x < world->length_x) &&
+        (tile_y >= 0) && (tile_y < world->length_y));
+    uint32_t tilemap_value = tilemap->tiles[tile_y*world->length_x + tile_x];
     return tilemap_value;
 }
 
@@ -74,8 +74,8 @@ internal bool tilemap_point_is_empty(
 
     if (tilemap) {
         if (
-            (test_tile_x >= 0) && (test_tile_x < world->count_x) &&
-            (test_tile_y >= 0) && (test_tile_y < world->count_y)
+            (test_tile_x >= 0) && (test_tile_x < world->length_x) &&
+            (test_tile_y >= 0) && (test_tile_y < world->length_y)
         ) {
             int32_t tilemap_value = tilemap_get_tile_value_unchecked(
                 world, tilemap, test_tile_x, test_tile_y
@@ -122,22 +122,22 @@ internal Canonical_Position get_canonical_position(World *world, Raw_Position po
 
     if (result.tile_x < 0)
     {
-        result.tile_x = world->count_x + result.tile_x;
+        result.tile_x = world->length_x + result.tile_x;
         --result.tilemap_x;
     }
     if (result.tile_y < 0)
     {
-        result.tile_y = world->count_y + result.tile_y;
+        result.tile_y = world->length_y + result.tile_y;
         --result.tilemap_y;
     }
-    if (result.tile_x >= world->count_x)
+    if (result.tile_x >= world->length_x)
     {
-        result.tile_x = world->count_x - result.tile_x;
+        result.tile_x = world->length_x - result.tile_x;
         ++result.tilemap_x;
     }
-    if (result.tile_y >= world->count_y)
+    if (result.tile_y >= world->length_y)
     {
-        result.tile_y = world->count_y - result.tile_y;
+        result.tile_y = world->length_y - result.tile_y;
         ++result.tilemap_y;
     }
 

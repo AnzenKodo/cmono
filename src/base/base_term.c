@@ -2,7 +2,7 @@ internal bool term_is_color_allowed(void)
 {
     bool result = true;
 
-    if (os_env_is_set(str8("NO_COLOR")) || os_env_get(str8("TERM")).size < 1)
+    if (os_env_is_set(str8("NO_COLOR")) || os_env_get(str8("TERM")).length < 1)
     {
         result = false;
     }

@@ -8,13 +8,13 @@ internal void * os_memory_alloc(uint64_t size)
 internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Alloc alloc)
 {
     Str8 result;
-    result.size = dim1_u64(range);
-    result.cstr = alloc_make(alloc, uint8_t, result.size);
+    result.length = dim1_u64(range);
+    result.cstr = alloc_make(alloc, uint8_t, result.length);
     uint64_t actual_read_size = os_file_read(file, range, result.cstr);
-    if(actual_read_size < result.size)
+    if(actual_read_size < result.length)
     {
-        alloc_free(alloc, result.cstr, result.size);
-        result.size = actual_read_size;
+        alloc_free(alloc, result.cstr, result.length);
+        result.length = actual_read_size;
     }
     return result;
 }

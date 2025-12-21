@@ -67,58 +67,61 @@ internal bool char_is_digit(uint8_t c, uint32_t base)
 // C-String Measurement
 //=============================================================================
 
-internal uint64_t cstr8_length(uint8_t *c)
+internal size_t cstr8_length(uint8_t *cstr)
 {
-    uint8_t *p = c;
+    uint8_t *p = cstr;
     for (;*p != 0; p += 1);
-    return(p - c);
+    return(p - cstr);
 }
-internal uint64_t cstr16_length(uint16_t *c)
+internal size_t cstr16_length(uint16_t *cstr)
 {
-    uint16_t *p = c;
+    uint16_t *p = cstr;
     for (;*p != 0; p += 1);
-    return(p - c);
+    return(p - cstr);
 }
-internal uint64_t cstr32_length(uint32_t *c)
+internal size_t cstr32_length(uint32_t *cstr)
 {
-    uint32_t *p = c;
+    uint32_t *p = cstr;
     for (;*p != 0; p += 1);
-    return(p - c);
+    return(p - cstr);
 }
 
 // String Constructors
 //=============================================================================
 
-internal Str8 str8_init(uint8_t *str, uint64_t size)
+internal Str8 str8_init(uint8_t *cstr, size_t size)
 {
-    return (Str8){str, size};
+    return (Str8){cstr, size, size};
 }
-internal Str8 str8_from_cstr(char *c)
+internal Str8 str8_from_cstr(char *cstr)
 {
-    return (Str8){(uint8_t*)c, cstr8_length((uint8_t*)c)};
-}
-
-internal Str16 str16_init(uint16_t *str, uint64_t size)
-{
-    return (Str16){str, size};
-}
-internal Str16 str16_from_cstr(uint16_t *c)
-{
-    return (Str16){(uint16_t*)c, cstr16_length((uint16_t*)c)};
+    size_t len = cstr8_length((uint8_t*)cstr);
+    return (Str8){(uint8_t*)cstr, len, len};
 }
 
-internal Str32 str32_init(uint32_t *str, uint64_t size)
+internal Str16 str16_init(uint16_t *cstr, size_t size)
 {
-    return (Str32){str, size};
+    return (Str16){cstr, size, size};
 }
-internal Str32 str32_from_cstr(uint32_t *c)
+internal Str16 str16_from_cstr(uint16_t *cstr)
 {
-    return (Str32){(uint32_t*)c, cstr32_length((uint32_t*)c)};
+    size_t len = cstr16_length((uint16_t*)cstr);
+    return (Str16){(uint16_t*)cstr, len, len};
 }
 
-internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last)
+internal Str32 str32_init(uint32_t *cstr, size_t size)
 {
-    return (Str8){first, (uint64_t)(one_past_last - first)};
+    return (Str32){cstr, size, size};
+}
+internal Str32 str32_from_cstr(uint32_t *cstr)
+{
+    size_t len = cstr32_length((uint32_t*)cstr);
+    return (Str32){(uint32_t*)cstr, len, len};
+}
+
+internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last, Str8 str)
+{
+    return (Str8){first, (size_t)(one_past_last - first), str.size};
 }
 
 // String Matching
@@ -127,17 +130,17 @@ internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last)
 internal bool str8_match(Str8 a, Str8 b, StrMatchFlags flags)
 {
     bool result = 0;
-    if (a.size == b.size && flags == 0)
+    if (a.length == b.length && flags == 0)
     {
-        result = mem_match(a.cstr, b.cstr, b.size);
+        result = mem_match(a.cstr, b.cstr, b.length);
     }
-    else if (a.size == b.size || (flags & StrMatchFlag_RightSideSloppy))
+    else if (a.length == b.length || (flags & StrMatchFlag_RightSideSloppy))
     {
         bool case_insensitive  = (flags & StrMatchFlag_CaseInsensitive);
         bool slash_insensitive = (flags & StrMatchFlag_SlashInsensitive);
-        uint64_t size               = Min(a.size, b.size);
+        size_t length               = Min(a.length, b.length);
         result = 1;
-        for(uint64_t i = 0; i < size; i += 1)
+        for(size_t i = 0; i < length; i += 1)
         {
             uint8_t at = a.cstr[i];
             uint8_t bt = b.cstr[i];
@@ -161,20 +164,20 @@ internal bool str8_match(Str8 a, Str8 b, StrMatchFlags flags)
     return result;
 }
 
-internal bool str8_ends_with(Str8 string, Str8 end)
+internal bool str8_ends_with(Str8 str, Str8 end)
 {
-    Str8 postfix = str8_postfix(string, end.size);
+    Str8 postfix = str8_postfix(str, end.length);
     bool is_match = str8_match(end, postfix, 0);
     return is_match;
 }
 
-internal uint64_t str8_find_substr(Str8 string, uint64_t start_pos, Str8 substr, StrMatchFlags flags) {
-    uint8_t *p = string.cstr + start_pos;
-    uint64_t stop_offset = Max(string.size + 1, substr.size) - substr.size;
-    uint8_t *stop_p = string.cstr + stop_offset;
-    if (substr.size > 0)
+internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags) {
+    uint8_t *p = str.cstr + start_pos;
+    size_t stop_offset = Max(str.length + 1, substr.length) - substr.length;
+    uint8_t *stop_p = str.cstr + stop_offset;
+    if (substr.length > 0)
     {
-        uint8_t *string_opl = string.cstr + string.size;
+        uint8_t *string_opl = str.cstr + str.length;
         Str8 needle_tail = str8_skip(substr, 1);
         StrMatchFlags adjusted_flags = flags | StrMatchFlag_RightSideSloppy;
         uint8_t needle_first_char_adjusted = substr.cstr[0];
@@ -191,29 +194,29 @@ internal uint64_t str8_find_substr(Str8 string, uint64_t start_pos, Str8 substr,
             }
             if (haystack_char_adjusted == needle_first_char_adjusted)
             {
-                if (str8_match(str8_range(p+1, string_opl), needle_tail, adjusted_flags))
+                if (str8_match(str8_range(p+1, string_opl, str), needle_tail, adjusted_flags))
                 {
                     break;
                 }
             }
         }
     }
-    uint64_t result = string.size;
+    size_t result = str.length;
     if (p < stop_p)
     {
-        result = (uint64_t)(p - string.cstr);
+        result = (size_t)(p - str.cstr);
     }
     return result;
 }
 
-internal uint64_t str8_find_substr_reverse(Str8 string, uint64_t start_pos, Str8 substr, StrMatchFlags flags) {
-    uint64_t result = 0;
-    for(int64_t i = string.size - start_pos - substr.size; i >= 0; --i)
+internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags) {
+    size_t result = 0;
+    for(int64_t i = str.length - start_pos - substr.length; i >= 0; --i)
     {
-        Str8 haystack = str8_substr(string, rng1_u64(i, i + substr.size));
+        Str8 haystack = str8_substr(str, rng1_u64(i, i + substr.length));
         if(str8_match(haystack, substr, flags))
         {
-            result = (uint64_t)i + substr.size;
+            result = (size_t)i + substr.length;
             break;
         }
     }
@@ -225,99 +228,99 @@ internal uint64_t str8_find_substr_reverse(Str8 string, uint64_t start_pos, Str8
 
 internal Str8 str8_substr(Str8 str, Rng1_U64 range)
 {
-    range.min = Min(range.min, str.size);
-    range.max = Min(range.max, str.size);
+    range.min = Min(range.min, str.length);
+    range.max = Min(range.max, str.length);
     str.cstr += range.min;
-    str.size = dim1_u64(range);
+    str.length = dim1_u64(range);
     return(str);
 }
 
-internal Str8 str8_postfix(Str8 str, uint64_t size)
+internal Str8 str8_postfix(Str8 str, size_t length)
 {
-    size = Min(size, str.size);
-    str.cstr = (str.cstr + str.size) - size;
-    str.size = size;
+    length = Min(length, str.length);
+    str.cstr = (str.cstr + str.length) - length;
+    str.length = length;
     return(str);
 }
 
-internal Str8 str8_prefix(Str8 str, uint64_t size)
+internal Str8 str8_prefix(Str8 str, size_t length)
 {
-    str.size = Min(size, str.size);
+    str.length = Min(length, str.length);
     return str;
 }
 
-internal Str8 str8_skip(Str8 str, uint64_t amt)
+internal Str8 str8_skip(Str8 str, size_t amt)
 {
-    amt = Min(amt, str.size);
+    amt = Min(amt, str.length);
     str.cstr += amt;
-    str.size -= amt;
+    str.length -= amt;
     return str;
 }
 
 internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2)
 {
     Str8 str;
-    str.size = s1.size + s2.size;
-    str.cstr = alloc_make(alloc, uint8_t, str.size + 1);
-    mem_copy(str.cstr, s1.cstr, s1.size);
-    mem_copy(str.cstr + s1.size, s2.cstr, s2.size);
-    str.cstr[str.size] = 0;
+    str.length = s1.length + s2.length;
+    str.cstr = alloc_make(alloc, uint8_t, str.length + 1);
+    mem_copy(str.cstr, s1.cstr, s1.length);
+    mem_copy(str.cstr + s1.length, s2.cstr, s2.length);
+    str.cstr[str.length] = 0;
     return(str);
 }
 
 // String Conversions
 //=============================================================================
 
-internal int64_t str8_to_sign(Str8 string, Str8 *string_tail)
+internal int64_t str8_to_sign(Str8 str, Str8 *string_tail)
 {
     // count negative signs
-    uint64_t neg_count = 0;
-    uint64_t i = 0;
-    for(; i < string.size; i += 1)
+    size_t neg_count = 0;
+    size_t i = 0;
+    for(; i < str.length; i += 1)
     {
-        if (string.cstr[i] == '-'){
+        if (str.cstr[i] == '-'){
             neg_count += 1;
         }
-        else if (string.cstr[i] != '+'){
+        else if (str.cstr[i] != '+'){
             break;
         }
     }
 
     // output part of string after signs
-    *string_tail = str8_skip(string, i);
+    *string_tail = str8_skip(str, i);
 
     // output integer sign
     int64_t sign = (neg_count & 1)?-1:+1;
     return sign;
 }
 
-internal bool str8_is_integer(Str8 string, uint32_t radix)
+internal bool str8_is_integer(Str8 str, uint32_t radix)
 {
   bool result = false;
-  Str8 sign = str8_prefix(string, 1);
+  Str8 sign = str8_prefix(str, 1);
   if(str8_match(sign, str8("-"), 0))
   {
-    result = str8_is_integer_unsigned(str8_skip(string, 1), radix);
+    result = str8_is_integer_unsigned(str8_skip(str, 1), radix);
   }
   else
   {
-    result = str8_is_integer_unsigned(string, radix);
+    result = str8_is_integer_unsigned(str, radix);
   }
   return result;
 }
 
 
-internal bool str8_is_integer_unsigned(Str8 string, uint32_t radix)
+internal bool str8_is_integer_unsigned(Str8 str, uint32_t radix)
 {
     bool result = false;
-    if(string.size > 0)
+    if(str.length > 0)
     {
         if(1 < radix && radix <= 16)
         {
             result = true;
-            for(uint64_t i = 0; i < string.size; i += 1)
+            for(size_t i = 0; i < str.length; i += 1)
             {
-                uint8_t c = string.cstr[i];
+                uint8_t c = str.cstr[i];
                 if(!(c < 0x80) || integer_symbol_reverse[c] >= radix)
                 {
                     result = false;
@@ -329,22 +332,22 @@ internal bool str8_is_integer_unsigned(Str8 string, uint32_t radix)
     return result;
 }
 
-internal bool str8_is_float(Str8 string)
+internal bool str8_is_float(Str8 str)
 {
-    if (string.size == 0) {
+    if (str.length == 0) {
         return false;
     }
-    uint64_t i = 0;
-    if (i < string.size && (string.cstr[i] == '+' || string.cstr[i] == '-'))
+    size_t i = 0;
+    if (i < str.length && (str.cstr[i] == '+' || str.cstr[i] == '-'))
     {
         i += 1;
     }
     bool has_digits = false;
     bool has_dot = false;
     bool has_exp = false;
-    while (i < string.size)
+    while (i < str.length)
     {
-        uint8_t c = string.cstr[i];
+        uint8_t c = str.cstr[i];
         if (c >= '0' && c <= '9')
         {
             has_digits = true;
@@ -358,26 +361,26 @@ internal bool str8_is_float(Str8 string)
             // Exponent allowed only after at least one digit
             has_exp = true;
             i += 1;
-            if (i >= string.size)
+            if (i >= str.length)
             {
                 return false; // 'e' at end is invalid
             }
             // Optional exponent sign
-            if (string.cstr[i] == '+' || string.cstr[i] == '-')
+            if (str.cstr[i] == '+' || str.cstr[i] == '-')
             {
                 i += 1;
             }
             // Must have at least one digit in exponent
-            if (i >= string.size || string.cstr[i] < '0' || string.cstr[i] > '9')
+            if (i >= str.length || str.cstr[i] < '0' || str.cstr[i] > '9')
             {
                 return false;
             }
             // Skip remaining exponent digits
-            while (i < string.size && string.cstr[i] >= '0' && string.cstr[i] <= '9')
+            while (i < str.length && str.cstr[i] >= '0' && str.cstr[i] <= '9')
             {
                 i += 1;
             }
-            return i == string.size; // Must consume all after 'e'
+            return i == str.length; // Must consume all after 'e'
         }
         else
         {
@@ -390,70 +393,70 @@ internal bool str8_is_float(Str8 string)
     return has_digits;
 }
 
-internal uint64_t str8_to_u64(Str8 string, uint32_t radix)
+internal uint64_t str8_to_u64(Str8 str, uint32_t radix)
 {
     uint64_t x = 0;
     if(1 < radix && radix <= 16)
     {
-        for(uint64_t i = 0; i < string.size; i += 1)
+        for(uint64_t i = 0; i < str.length; i += 1)
         {
             x *= radix;
-            x += integer_symbol_reverse[string.cstr[i]&0x7F];
+            x += integer_symbol_reverse[str.cstr[i]&0x7F];
         }
     }
     return x;
 }
 
-internal uint32_t str8_to_u32(Str8 string, uint32_t radix)
+internal uint32_t str8_to_u32(Str8 str, uint32_t radix)
 {
-    uint64_t x64 = str8_to_u64(string, radix);
+    uint64_t x64 = str8_to_u64(str, radix);
     uint32_t x32 = safe_cast_u32(x64);
     return x32;
 }
 
-internal int64_t str8_to_i64(Str8 string, uint32_t radix)
+internal int64_t str8_to_i64(Str8 str, uint32_t radix)
 {
-    int64_t sign = str8_to_sign(string, &string);
-    int64_t x = (int64_t)str8_to_u64(string, radix) * sign;
+    int64_t sign = str8_to_sign(str, &str);
+    int64_t x = (int64_t)str8_to_u64(str, radix) * sign;
     return x;
 }
 
-internal int32_t str8_to_i32(Str8 string, uint32_t radix)
+internal int32_t str8_to_i32(Str8 str, uint32_t radix)
 {
-    int64_t x64 = str8_to_i64(string, radix);
+    int64_t x64 = str8_to_i64(str, radix);
     int32_t x32 = safe_cast_s32(x64);
     return x32;
 }
 
-internal double str8_to_f64(Str8 string)
+internal double str8_to_f64(Str8 str)
 {
     // TODO(rjf): crappy implementation for now that just uses atof.
     double result = 0;
-    if(string.size > 0)
+    if(str.length > 0)
     {
         // Find starting pos of numeric string, as well as sign
         double sign = +1.0;
-        if(string.cstr[0] == '-')
+        if(str.cstr[0] == '-')
         {
             sign = -1.0;
         }
-        else if(string.cstr[0] == '+')
+        else if(str.cstr[0] == '+')
         {
             sign = 1.0;
         }
         // Gather numerics
-        uint64_t num_valid_chars = 0;
+        size_t num_valid_chars = 0;
         char buffer[64];
         bool exp = 0;
-        for(uint64_t idx = 0; idx < string.size && num_valid_chars < sizeof(buffer)-1; idx += 1)
+        for(size_t idx = 0; idx < str.length && num_valid_chars < sizeof(buffer)-1; idx += 1)
         {
-            if(char_is_digit(string.cstr[idx], 10) || string.cstr[idx] == '.' || string.cstr[idx] == 'e' ||
-                    (exp && (string.cstr[idx] == '+' || string.cstr[idx] == '-')))
+            if(char_is_digit(str.cstr[idx], 10) || str.cstr[idx] == '.' || str.cstr[idx] == 'e' ||
+                    (exp && (str.cstr[idx] == '+' || str.cstr[idx] == '-')))
             {
-                buffer[num_valid_chars] = string.cstr[idx];
+                buffer[num_valid_chars] = str.cstr[idx];
                 num_valid_chars += 1;
                 exp = 0;
-                exp = (string.cstr[idx] == 'e');
+                exp = (str.cstr[idx] == 'e');
             }
         }
         // Null-terminate.
@@ -483,54 +486,54 @@ internal bool str8_to_bool(Str8 str)
 // String List Construction Functions
 //=============================================================================
 
-internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 string)
+internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 str)
 {
     Str8Node *node = alloc_make(alloc, Str8Node, 1);
     SLLQueuePush(list->first, list->last, node);
-    list->count += 1;
-    list->size += string.size;
-    node->string = string;
+    list->length += 1;
+    list->capacity += str.length;
+    node->str = str;
     return node;
 }
 
 // String Arrays
 // ==============================================================
 
-internal Str8Array str8_array_alloc(Alloc alloc, uint64_t size)
+internal Str8Array str8_array_alloc(Alloc alloc, size_t size)
 {
     Str8Array arr;
     arr.size = size;
-    arr.count = 0;
-    arr.strings = alloc_make(alloc, Str8, size);
+    arr.length = 0;
+    arr.v = alloc_make(alloc, Str8, size);
     return arr;
 }
 internal Str8 *str8_array_append(Str8Array *array, Str8 str)
 {
     Str8 *result = NULL;
-    array->strings[array->count] = str;
-    result = &array->strings[array->count];
-    array->count++;
+    array->v[array->length] = str;
+    result = &array->v[array->length];
+    array->length++;
     return result;
 }
-internal Str8 *str8_array_get(Str8Array *array, uint64_t index)
+internal Str8 *str8_array_get(Str8Array *array, size_t index)
 {
     Str8 *result = NULL;
-    if (array->count >= index)
+    if (array->length >= index)
     {
-        result = &array->strings[index];
+        result = &array->v[index];
     }
     return result;
 }
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 {
     Str8Array array;
-    array.size = list->count;
-    array.count = array.size;
-    array.strings = alloc_make(alloc, Str8, array.size);
-    uint64_t idx = 0;
+    array.size = list->length;
+    array.length = array.size;
+    array.v = alloc_make(alloc, Str8, array.size);
+    size_t idx = 0;
     for (Str8Node *n = list->first; n != 0; n = n->next, idx += 1)
     {
-        array.strings[idx] = n->string;
+        array.v[idx] = n->str;
     }
     return array;
 }
@@ -538,12 +541,12 @@ internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 // String Split and Join
 //=============================================================================
 
-internal Str8List str8_split(Alloc alloc, Str8 string, uint8_t *split_chars, uint64_t split_char_count, StrSplitFlags flags)
+internal Str8List str8_split(Alloc alloc, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags)
 {
     Str8List list = ZERO_STRUCT;
     bool keep_empties = (flags & StrSplitFlag_KeepEmpties);
-    uint8_t *ptr = string.cstr;
-    uint8_t *opl = string.cstr + string.size;
+    uint8_t *ptr = str.cstr;
+    uint8_t *opl = str.cstr + str.length;
     for (;ptr < opl;)
     {
         uint8_t *first = ptr;
@@ -551,7 +554,7 @@ internal Str8List str8_split(Alloc alloc, Str8 string, uint8_t *split_chars, uin
         {
             uint8_t c = *ptr;
             bool is_split = false;
-            for (uint64_t i = 0; i < split_char_count; i += 1)
+            for (size_t i = 0; i < split_char_count; i += 1)
             {
                 if (split_chars[i] == c)
                 {
@@ -564,8 +567,8 @@ internal Str8List str8_split(Alloc alloc, Str8 string, uint8_t *split_chars, uin
                 break;
             }
         }
-        Str8 node = str8_range(first, ptr);
-        if (keep_empties || node.size > 0)
+        Str8 node = str8_range(first, ptr, str);
+        if (keep_empties || node.length > 0)
         {
             str8_list_push(alloc, &list, node);
         }
@@ -581,28 +584,28 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
     {
         MemoryCopyStruct(&join, optional_params);
     }
-    uint64_t sep_count = 0;
-    if (list->count > 0)
+    size_t sep_count = 0;
+    if (list->length > 0)
     {
-        sep_count = list->count - 1;
+        sep_count = list->length - 1;
     }
     Str8 result;
-    result.size = join.pre.size + join.post.size + sep_count*join.sep.size + list->size;
-    uint8_t *ptr = result.cstr = alloc_make(alloc, uint8_t, result.size + 1);
-    mem_copy(ptr, join.pre.cstr, join.pre.size);
-    ptr += join.pre.size;
+    result.length = join.pre.length + join.post.length + sep_count*join.sep.length + list->capacity;
+    uint8_t *ptr = result.cstr = alloc_make(alloc, uint8_t, result.length + 1);
+    mem_copy(ptr, join.pre.cstr, join.pre.length);
+    ptr += join.pre.length;
     for (Str8Node *node = list->first; node != 0; node = node->next)
     {
-        mem_copy(ptr, node->string.cstr, node->string.size);
-        ptr += node->string.size;
+        mem_copy(ptr, node->str.cstr, node->str.length);
+        ptr += node->str.length;
         if (node->next != 0)
         {
-            mem_copy(ptr, join.sep.cstr, join.sep.size);
-            ptr += join.sep.size;
+            mem_copy(ptr, join.sep.cstr, join.sep.length);
+            ptr += join.sep.length;
         }
     }
-    mem_copy(ptr, join.post.cstr, join.post.size);
-    ptr += join.post.size;
+    mem_copy(ptr, join.post.cstr, join.post.length);
+    ptr += join.post.length;
     *ptr = 0;
     return result;
 }
@@ -613,10 +616,10 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
 internal Str8 str8_copy(Alloc alloc, Str8 s)
 {
     Str8 str;
-    str.size = s.size;
-    str.cstr = alloc_make(alloc, uint8_t, str.size + 1);
-    mem_copy(str.cstr, s.cstr, s.size);
-    str.cstr[str.size] = 0;
+    str.length = s.length;
+    str.cstr = alloc_make(alloc, uint8_t, str.length + 1);
+    mem_copy(str.cstr, s.cstr, s.length);
+    str.cstr[str.length] = 0;
     return(str);
 }
 
@@ -627,8 +630,8 @@ internal Str8 str8fv(Alloc alloc, char *fmt, va_list args)
     uint32_t needed_bytes = fmt_vsnprintf(0, 0, fmt, args) + 1;
     Str8 result = ZERO_STRUCT;
     result.cstr = alloc_make(alloc, uint8_t, needed_bytes);
-    result.size = fmt_vsnprintf((char*)result.cstr, needed_bytes, fmt, args2);
-    result.cstr[result.size] = 0;
+    result.length = fmt_vsnprintf((char*)result.cstr, needed_bytes, fmt, args2);
+    result.cstr[result.length] = 0;
     va_end(args2);
     return result;
 }
@@ -645,7 +648,7 @@ internal Str8 str8f(Alloc alloc, char *fmt, ...)
 // UTF-8 & UTF-16 Decoding/Encoding
 //=============================================================================
 
-internal UnicodeDecode utf8_decode(uint8_t *str, uint64_t max)
+internal UnicodeDecode utf8_decode(uint8_t *str, size_t max)
 {
     UnicodeDecode result = {1, max_u32};
     uint8_t byte = str[0];
@@ -705,7 +708,7 @@ internal UnicodeDecode utf8_decode(uint8_t *str, uint64_t max)
     return result;
 }
 
-internal UnicodeDecode utf16_decode(uint16_t *str, uint64_t max)
+internal UnicodeDecode utf16_decode(uint16_t *str, size_t max)
 {
     UnicodeDecode result = {1, max_u32};
     result.codepoint = str[0];
@@ -778,22 +781,22 @@ internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character)
 internal Str8 str8_from_16(Alloc alloc, Str16 in)
 {
     Str8 result = ZERO_STRUCT;
-    if(in.size)
+    if(in.length)
     {
-        uint64_t cap = in.size*3;
+        size_t cap = in.length*3;
         uint8_t *str = alloc_make(alloc, uint8_t, cap + 1);
         uint16_t *ptr = in.cstr;
-        uint16_t *opl = ptr + in.size;
-        uint64_t size = 0;
+        uint16_t *opl = ptr + in.length;
+        size_t length = 0;
         UnicodeDecode consume;
         for(;ptr < opl; ptr += consume.inc)
         {
             consume = utf16_decode(ptr, opl - ptr);
-            size += utf8_encode(str + size, consume.codepoint);
+            length += utf8_encode(str + length, consume.codepoint);
         }
-        str[size] = 0;
-        // alloc_free(alloc, str, (cap - size));
-        result = str8_init(str, size);
+        str[length] = 0;
+        // alloc_free(alloc, str, (cap - length));
+        result = str8_init(str, length);
     }
     return result;
 }
@@ -801,22 +804,22 @@ internal Str8 str8_from_16(Alloc alloc, Str16 in)
 internal Str16 str16_from_8(Alloc alloc, Str8 in)
 {
     Str16 result = ZERO_STRUCT;
-    if(in.size)
+    if(in.length)
     {
-        uint64_t cap = in.size*2;
+        size_t cap = in.length*2;
         uint16_t *str = alloc_make(alloc, uint16_t, cap + 1);
         uint8_t *ptr = in.cstr;
-        uint8_t *opl = ptr + in.size;
-        uint64_t size = 0;
+        uint8_t *opl = ptr + in.length;
+        size_t length = 0;
         UnicodeDecode consume;
         for(;ptr < opl; ptr += consume.inc)
         {
             consume = utf8_decode(ptr, opl - ptr);
-            size += utf16_encode(str + size, consume.codepoint);
+            length += utf16_encode(str + length, consume.codepoint);
         }
-        str[size] = 0;
-        // alloc_free(alloc, str, (cap - size)*2);
-        result = str16_init(str, size);
+        str[length] = 0;
+        // alloc_free(alloc, str, (cap - length)*2);
+        result = str16_init(str, length);
     }
     return result;
 }
@@ -824,20 +827,20 @@ internal Str16 str16_from_8(Alloc alloc, Str8 in)
 internal Str8 str8_from_32(Alloc alloc, Str32 in)
 {
     Str8 result = ZERO_STRUCT;
-    if(in.size)
+    if(in.length)
     {
-        uint64_t cap = in.size*4;
+        size_t cap = in.length*4;
         uint8_t *str = alloc_make(alloc, uint8_t, cap + 1);
         uint32_t *ptr = in.cstr;
-        uint32_t *opl = ptr + in.size;
-        uint64_t size = 0;
+        uint32_t *opl = ptr + in.length;
+        size_t length = 0;
         for(;ptr < opl; ptr += 1)
         {
-            size += utf8_encode(str + size, *ptr);
+            length += utf8_encode(str + length, *ptr);
         }
-        str[size] = 0;
-        alloc_free(alloc, str, (cap - size));
-        result = str8_init(str, size);
+        str[length] = 0;
+        alloc_free(alloc, str, (cap - length));
+        result = str8_init(str, length);
     }
     return result;
 }
@@ -845,23 +848,23 @@ internal Str8 str8_from_32(Alloc alloc, Str32 in)
 internal Str32 str32_from_8(Alloc alloc, Str8 in)
 {
     Str32 result = ZERO_STRUCT;
-    if(in.size)
+    if(in.length)
     {
-        uint64_t cap = in.size;
+        size_t cap = in.length;
         uint32_t *str = alloc_make(alloc, uint32_t, cap + 1);
         uint8_t *ptr = in.cstr;
-        uint8_t *opl = ptr + in.size;
-        uint64_t size = 0;
+        uint8_t *opl = ptr + in.length;
+        size_t length = 0;
         UnicodeDecode consume;
         for(;ptr < opl; ptr += consume.inc)
         {
             consume = utf8_decode(ptr, opl - ptr);
-            str[size] = consume.codepoint;
-            size += 1;
+            str[length] = consume.codepoint;
+            length += 1;
         }
-        str[size] = 0;
-        alloc_free(alloc, str, (cap - size)*4);
-        result = str32_init(str, size);
+        str[length] = 0;
+        alloc_free(alloc, str, (cap - length)*4);
+        result = str32_init(str, length);
     }
     return result;
 }
@@ -869,14 +872,14 @@ internal Str32 str32_from_8(Alloc alloc, Str8 in)
 // String Hash
 //=============================================================================
 
-internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 string)
+internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 str)
 {
-    uint64_t result = XXH3_64bits_withSeed(string.cstr, string.size, seed);
+    uint64_t result = XXH3_64bits_withSeed(str.cstr, str.length, seed);
     return result;
 }
 
-internal uint64_t str8_hash_u64(Str8 string)
+internal uint64_t str8_hash_u64(Str8 str)
 {
-    uint64_t result = str8_hash_u64_from_seed(5381, string);
+    uint64_t result = str8_hash_u64_from_seed(5381, str);
     return result;
 }
