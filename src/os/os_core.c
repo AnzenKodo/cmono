@@ -32,6 +32,11 @@ internal Str8Array *os_args_get(void)
     return &_os_core_state.args;
 }
 
+internal Str8 *os_program_path_get(void)
+{
+    return &_os_core_state.args.v[0];
+}
+
 internal void os_entry_point(void)
 {
     _os_core_state.log_context = log_init();

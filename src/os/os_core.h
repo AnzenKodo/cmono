@@ -87,6 +87,7 @@ internal void os_sleep_millisec(uint32_t millisec);
 // Command line arguments =====================================================
 
 internal Str8List *os_agrs_get(void);
+internal Str8 *os_program_path_get(void);
 
 // Environment Variable =======================================================
 
