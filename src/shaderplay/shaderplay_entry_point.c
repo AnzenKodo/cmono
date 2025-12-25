@@ -9,6 +9,25 @@
 #include "../window_layer/window_layer_include.c"
 #include "../render/render_include.c"
 
+#define VERSION "0.1"
+
+internal void print_help_message(Flags_Context *context)
+{
+    term_style_start(TERM_UNDERLINE);
+    fmt_println("USAGE:");
+    term_style_end();
+    Str8 *program_name = os_program_path_get();
+    fmt_printfln("   %s [OPTIONS] <shader_file_name.frag>", program_name->cstr);
+    term_style_start(TERM_UNDERLINE);
+    fmt_println("OPTIONS:");
+    term_style_end();
+    flags_print_help(context);
+    term_style_start(TERM_UNDERLINE);
+    fmt_println("VERSION:");
+    term_style_end();
+    fmt_println("   "VERSION);
+}
+
 internal void entry_point(void)
 {
     uint64_t size = MB(10);
@@ -16,76 +35,53 @@ internal void entry_point(void)
     Alloc alloc = alloc_arena_init(buffer, size);
 
     // Command Line ===========================================================
-    Str8 frag_filepath;
-    // bool no_aot = false;
-    bool no_esc = false;
-    uint64_t fps = 60;
-    const char *help_message = PROGRAM_NAME": "PROGRAM_DESCRIPTION"\n"
-        "USAGE:\n"
-        "   "PROGRAM_CMD_NAME" [OPTIONS] <shader_file_name.frag>\n"
-        "OPTIONS:\n"
-        "   --fps           Set how many Frames Per Seconds window to render\n"
-        "                   (default: 60)\n"
-        "   --no-aot        Disable window Always On Top\n"
-        "   --no-esc        Disable `ESC` key close functionality\n"
-        "   --help -h       Print help message\n"
-        "   --version -v    Print version message\n"
-        "VERSION:\n"
-        "   "PROGRAM_VERSION;
-
     Flags_Context context = flags_init(alloc);
-    Str8Array *args = os_args_get();
-    Str8 name = ZERO_STRUCT;
-    Flags_Flag *flag = flags_string(&context, str8("name"), &name, str8("ram"), str8("Name of the program"));
-    flags_make_flag_required(flag);
+    Flags_Option *option = NULL;
+    Flags_Arg *farg = NULL;
 
+    Str8 frag_filepath;
+    farg = flags_arg_str(&context, &frag_filepath);
+    flags_make_arg_required(farg);
+    uint64_t fps = 60;
+    flags_option_uint(&context, str8("fps"), &fps, fps, str8("Set Framws-Per-Seconds for window"));
+    uint64_t height = 500;
+    option = flags_option_uint(&context, str8("height"), &fps, fps, str8("Set Framws-Per-Seconds for window"));
+    flags_add_option_shortname(option, str8("h"));
+    flags_add_option_value_hint(option, str8("<HEIGHT>"));
+    uint64_t width = 750;
+    option = flags_option_uint(&context, str8("width"), &fps, fps, str8("Set Framws-Per-Seconds for window"));
+    flags_add_option_shortname(option, str8("w"));
+    flags_add_option_value_hint(option, str8("<WIDTH>"));
+    bool no_aot = false;
+    flags_option_bool(&context, str8("no-aot"), &no_aot, no_aot, str8("Disable window Always-On-Top"));
+    bool help = false;
+    option = flags_option_bool(&context, str8("help"), &help, help, str8("Print help message"));
+    flags_add_option_shortname(option, str8("h"));
+    bool version = false;
+    option = flags_option_bool(&context, str8("version"), &version, version, str8("Print version message"));
+    flags_add_option_shortname(option, str8("v"));
+    flags_add_color_flags(&context);
+
+    Str8Array *args = os_args_get();
     if (!flags_parse(&context, args))
     {
         flags_print_error(&context);
-        // flags_print_help(&context);
+        print_help_message(&context);
         os_exit(1);
     }
-    // fmt_printf("%s", name.cstr);
-
-    return;
-    if (args->length >= 2)
+    if (help)
     {
-        Str8 arg1 = args->v[1];
-        for (uint8_t i = 1; i < args->length; i++)
-        {
-            Str8 arg = args->v[i];
-            if (str8_match(arg, str8("--help"), 0) || str8_match(arg, str8("-h"), 0))
-            {
-                fmt_print(help_message);
-                os_exit(0);
-            }
-            if (str8_match(arg, str8("--version"), 0) || str8_match(arg, str8("-v"), 0))
-            {
-                fmt_print("v"PROGRAM_VERSION);
-                os_exit(0);
-            }
-            if (str8_match(arg, str8("--fps"), 0))
-            {
-                // fps = args->v[i++];
-            }
-            if (str8_match(arg, str8("--no_aot"), 0))
-            {
-                // no_aot = true;
-            }
-            if (str8_match(arg, str8("--no_esc"), 0))
-            {
-                no_esc = true;
-            }
-            // if ()
-            {
-                frag_filepath = arg1;
-                break;
-            }
-        }
+        print_help_message(&context);
+        os_exit(0);
+    }
+    if (version)
+    {
+        fmt_print("v"VERSION);
+        os_exit(0);
     }
 
     // Program Init ===========================================================
-    wl_window_open(str8("Scuttle"), vec2_i32(750, 750));
+    wl_window_open(str8("Scuttle"), vec2_i32(width, height));
     render_init();
 
     char *vert_source = "in vec4 position;\n"
@@ -167,7 +163,7 @@ internal void entry_point(void)
 
         wl_set_fps(fps);
         wl_update_events();
-        if ((!no_esc && wl_is_key_pressed(Wl_Key_Esc)) ||
+        if ((wl_is_key_pressed(Wl_Key_Esc)) ||
             wl_is_event_happen(Wl_EventType_WindowClose)
         ) {
             wl_set_window_close();
