@@ -22,7 +22,7 @@ struct Alloc_Arena {
 // Macros
 //====================================================================
 
-#define alloc_make(a, T, n) ((T *)((a).alloc((a).context, sizeof(T)*n, AlignOf(T))))
+#define alloc_make(a, T, n) ((T *)((a).alloc)((a).context, sizeof(T)*n, AlignOf(T)))
 #define alloc_free(a, p, n) ((a).free((a).context, p, sizeof(*p)*n))
 #define alloc_arena_init(b, s) (Alloc){alloc_arena_push, alloc_arena_pop, &(Alloc_Arena){.buffer = b, .size = s}}
 

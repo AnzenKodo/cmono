@@ -162,9 +162,6 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 str);
 
 // String Arrays Construction Functions =======================================
 
-internal Str8Array str8_array_alloc(Alloc alloc, size_t size);
-internal Str8      *str8_array_append(Str8Array *array, Str8 str);
-internal Str8      *str8_array_get(Str8Array *array, size_t index);
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
 
 // String Split and Join ======================================================
