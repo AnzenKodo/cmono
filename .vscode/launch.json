@@ -7,6 +7,7 @@
             "program": "${workspaceFolder}/build/shaderpaly_debug",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
+            "arguments": "shaders/circles.frag",
             "preLaunchTask": "Build Program"
         },
         {
@@ -16,8 +17,7 @@
             "cwd": "${workspaceFolder}",
             "type": "gdb",
             "args": [ "build-run" ],
-            // "arguments": "build-run"
-            "arguments": "name"
+            "arguments": "build-run"
         },
         {
             "name": "Debug Program Windows",
