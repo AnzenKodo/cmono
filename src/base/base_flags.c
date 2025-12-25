@@ -141,15 +141,15 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
             Str8 option_name = _flags_get_options_from_arg(arg);
             option = _flags_get_option(context, option_name);
             if (option == NULL) {
-                _flags_add_option_error(context, _Flags_Error_Kind_UnknownFlag, option_name);
+                _flags_add_option_error(context, _Flags_Error_Kind_UnknownOption, option_name);
             }
             else
             {
                 if (option->assigned)
                 {
-                    _flags_add_option_error(context, _Flags_Error_Kind_DuplicateFlag, option_name);
+                    _flags_add_option_error(context, _Flags_Error_Kind_DuplicateOption, option_name);
                 }
-                Str8 arg_next = *str8_array_get(args, index+1);
+                Str8 arg_next = *array_get(args, index+1);
                 bool is_arg_next_option = _flags_is_arg_option(arg_next);
                 if ((is_arg_next_option || arg_next.length == 0) && option->kind == _Flags_Option_Kind_Bool) {
                     *option->result_value.bool_value = true;
@@ -214,7 +214,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                     }
                     else
                     {
-                        _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidFloatFlag, option->name, arg);
+                        _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidFloatOption, option->name, arg);
                     }
                 }
                 break;
@@ -476,7 +476,7 @@ internal void flags_print_error(Flags_Context *context)
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
-            case _Flags_Error_Kind_UnknownFlag:
+            case _Flags_Error_Kind_UnknownOption:
             {
                 log_error(context->log_context, "opiton '%.*s' is invalid.", str8_varg(error->flag_name));
             }
@@ -488,7 +488,7 @@ internal void flags_print_error(Flags_Context *context)
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
-            case _Flags_Error_Kind_DuplicateFlag:
+            case _Flags_Error_Kind_DuplicateOption:
             {
                 log_error(context->log_context, "option '%.*s' was specified multiple times.", str8_varg(error->flag_name));
             }

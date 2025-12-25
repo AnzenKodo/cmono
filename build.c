@@ -341,7 +341,9 @@ internal void entry_point()
             should_print_help = true;
             os_exit(1);
         }
-    } else {
+    }
+    else
+    {
         should_print_help = true;
     }
     if (str8_match(args->v[2], str8("mingw"), 0))

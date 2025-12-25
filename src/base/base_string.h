@@ -103,6 +103,7 @@ internal bool    char_is_space(uint8_t c);
 internal bool    char_is_upper(uint8_t c);
 internal bool    char_is_lower(uint8_t c);
 internal bool    char_is_alpha(uint8_t c);
+internal bool    char_is_digit(uint8_t c, uint32_t base);
 internal bool    char_is_slash(uint8_t c);
 internal uint8_t char_to_lower(uint8_t c);
 internal uint8_t char_to_upper(uint8_t c);

@@ -276,12 +276,12 @@ int main(int argc, char *argv[])
     uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
     Alloc alloc = alloc_arena_init(buffer, size);
-    _os_core_state.args = str8_array_alloc(alloc, argc);
+    _os_core_state.args = array_alloc(alloc, Str8Array, argc);
     _os_core_state.alloc = alloc;
     for(int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);
-        str8_array_append(&_os_core_state.args, str);
+        array_append(&_os_core_state.args, str);
     }
     os_entry_point();
 }

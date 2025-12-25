@@ -5,14 +5,6 @@ internal bool char_is_space(uint8_t c)
 {
     return(c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f' || c == '\v');
 }
-internal uint8_t char_to_correct_slash(uint8_t c)
-{
-    if(char_is_slash(c))
-    {
-        c = '/';
-    }
-    return(c);
-}
 
 internal bool char_is_upper(uint8_t c)
 {
@@ -26,6 +18,19 @@ internal bool char_is_lower(uint8_t c)
 internal bool char_is_alpha(uint8_t c)
 {
     return(char_is_upper(c) || char_is_lower(c));
+}
+internal bool char_is_digit(uint8_t c, uint32_t base)
+{
+    bool result = 0;
+    if(0 < base && base <= 16)
+    {
+        uint8_t val = integer_symbol_reverse[c];
+        if(val < base)
+        {
+            result = 1;
+        }
+    }
+    return result;
 }
 
 internal bool char_is_slash(uint8_t c)
@@ -50,18 +55,13 @@ internal uint8_t char_to_upper(uint8_t c)
     return(c);
 }
 
-internal bool char_is_digit(uint8_t c, uint32_t base)
+internal uint8_t char_to_correct_slash(uint8_t c)
 {
-    bool result = 0;
-    if(0 < base && base <= 16)
+    if(char_is_slash(c))
     {
-        uint8_t val = integer_symbol_reverse[c];
-        if(val < base)
-        {
-            result = 1;
-        }
+        c = '/';
     }
-    return result;
+    return(c);
 }
 
 // C-String Measurement
@@ -171,7 +171,8 @@ internal bool str8_ends_with(Str8 str, Str8 end)
     return is_match;
 }
 
-internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags) {
+internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags)
+{
     uint8_t *p = str.cstr + start_pos;
     size_t stop_offset = Max(str.length + 1, substr.length) - substr.length;
     uint8_t *stop_p = str.cstr + stop_offset;
@@ -209,7 +210,8 @@ internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMat
     return result;
 }
 
-internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags) {
+internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags)
+{
     size_t result = 0;
     for(int64_t i = str.length - start_pos - substr.length; i >= 0; --i)
     {
@@ -496,34 +498,9 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 str)
     return node;
 }
 
-// String Arrays
+// String Arrays Construction Functions
 // ==============================================================
 
-internal Str8Array str8_array_alloc(Alloc alloc, size_t size)
-{
-    Str8Array arr;
-    arr.size = size;
-    arr.length = 0;
-    arr.v = alloc_make(alloc, Str8, size);
-    return arr;
-}
-internal Str8 *str8_array_append(Str8Array *array, Str8 str)
-{
-    Str8 *result = NULL;
-    array->v[array->length] = str;
-    result = &array->v[array->length];
-    array->length++;
-    return result;
-}
-internal Str8 *str8_array_get(Str8Array *array, size_t index)
-{
-    Str8 *result = NULL;
-    if (array->length >= index)
-    {
-        result = &array->v[index];
-    }
-    return result;
-}
 internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 {
     Str8Array array;
