@@ -9,8 +9,6 @@
 #include "../window_layer/window_layer_include.c"
 #include "../render/render_include.c"
 
-#define VERSION "0.1"
-
 internal void print_help_message(Flags_Context *context)
 {
     term_style_start(TERM_UNDERLINE);
@@ -25,7 +23,7 @@ internal void print_help_message(Flags_Context *context)
     term_style_start(TERM_UNDERLINE);
     fmt_println("VERSION:");
     term_style_end();
-    fmt_println("   "VERSION);
+    fmt_println("   "PROGRAM_VERSION);
 }
 
 internal void entry_point(void)
@@ -38,7 +36,6 @@ internal void entry_point(void)
     Flags_Context context = flags_init(alloc);
     Flags_Option *option = NULL;
     Flags_Arg *farg = NULL;
-
     Str8 frag_filepath;
     farg = flags_arg_str(&context, &frag_filepath);
     flags_make_arg_required(farg);
@@ -61,7 +58,6 @@ internal void entry_point(void)
     option = flags_option_bool(&context, str8("version"), &version, version, str8("Print version message"));
     flags_add_option_shortname(option, str8("v"));
     flags_add_color_flags(&context);
-
     Str8Array *args = os_args_get();
     if (!flags_parse(&context, args))
     {
@@ -82,13 +78,12 @@ internal void entry_point(void)
 
     // Program Init ===========================================================
     wl_window_open(str8("Scuttle"), vec2_i32(width, height));
+    wl_window_icon_set_raw((void *)SHADERPLAY_LOGO, SHADERPLAY_LOGO_HEIGHT, SHADERPLAY_LOGO_WIDTH);
     render_init();
-
     char *vert_source = "in vec4 position;\n"
         "void main() {\n"
         "    gl_Position = position;\n"
         "}\n";
-
     char *shader_init_code = "out vec4 fragColor;\n"
         "uniform float iTime;\n"
         "uniform vec2  iResolution;\n"
@@ -111,7 +106,6 @@ internal void entry_point(void)
         // "   mainSound(time);\n"
         // "   mainVR(fragColor, gl_FragCoord.xy, in vec3 fragRayOri, in vec3 fragRayDir);\n"
         "}\n";
-
     uint32_t shader_id, i_time, i_resolution;
     // uint32_t i_time_delta, i_frame, i_channel_time, i_mouse, i_date, i_samplerate, i_channel_resolution, i_channel_0, i_channel_1, i_channel_2, i_channel_3;
     DenseTime old_modified = 0;
