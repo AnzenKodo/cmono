@@ -72,7 +72,7 @@ internal void entry_point(void)
     }
     if (version)
     {
-        fmt_print("v"VERSION);
+        fmt_print("v"PROGRAM_VERSION);
         os_exit(0);
     }
 
