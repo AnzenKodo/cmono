@@ -546,11 +546,44 @@ internal void wl_set_window_pos(Vec2_I32 win_pos)
     );
 }
 
-internal void wl_window_icon_set(uint32_t *icon_data, uint32_t width, uint32_t height)
+internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32_t height)
 {
-    Unused(icon_data);
-    Unused(width);
-    Unused(height);
+    static HICON current_icon = NULL;
+    if (current_icon) {
+        DestroyIcon(current_icon);
+        current_icon = NULL;
+    }
+
+    HDC hdc = GetDC(NULL);
+    if (!hdc) return;
+
+    BITMAPINFO bmi = {0};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = (LONG)width;
+    bmi.bmiHeader.biHeight = -(LONG)height;  // Top-down DIB
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    void *pBits = NULL;
+    HBITMAP hBitmap = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &pBits, NULL, 0);
+    ReleaseDC(NULL, hdc);
+
+    if (!hBitmap || !pBits) return;
+
+    // The icon_data is ARGB in uint32_t, which in little-endian memory is BGRA byte order,
+    // matching Windows 32bpp DIB exactly. Direct copy.
+    memcpy(pBits, icon_data, width * height * sizeof(uint32_t));
+
+    HICON hIcon = CopyImage(hBitmap, IMAGE_ICON, (int)width, (int)height, LR_DEFAULTCOLOR);
+    DeleteObject(hBitmap);
+
+    if (hIcon) {
+        HWND hwnd = _win32_state.window;  // Assuming similar global state
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        current_icon = hIcon;
+    }
 }
 
 // Software Render
