@@ -235,16 +235,16 @@ CheckNil(nil,p) ? \
 // Asserts ====================================================================
 
 #if COMPILER_MSVC
-#   define TRAP() __debugbreak()
+#   define Trap() __debugbreak()
 #elif COMPILER_CLANG || COMPILER_GCC
-#   define TRAP() __builtin_trap()
+#   define Trap() __builtin_trap()
 #elif COMPILER_TCC
-#   define TRAP() asm volatile("ud2");
+#   define Trap() asm volatile("ud2");
 #else
 #   error Unknown trap intrinsic for this compiler.
 #endif
 
-#define AssertAlways(x) do{if(!(x)) {TRAP();}}while(0)
+#define AssertAlways(x) do{if(!(x)) {Trap();}}while(0)
 #if BUILD_DEBUG
 #   define Assert(x) AssertAlways(x)
 #else

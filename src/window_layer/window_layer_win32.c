@@ -235,7 +235,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         {
             _wl_win32_state.window_close = true;
         } break;
-        // // Window Resize ======================================================
+        // Window Resize ======================================================
         case WM_ENTERSIZEMOVE:
         {
             // event.type = Wl_EventType_WindowResize;
@@ -292,10 +292,6 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         // {
         // } break;
         //
-        //     //- rjf: [file drop]
-        // case WM_DROPFILES:
-        // {
-        // } break;
         //     //- rjf: [custom border]
         // case WM_NCPAINT:
         // {
@@ -530,6 +526,9 @@ internal Wl_Event wl_get_event(void)
             case WM_QUIT:
             {
                 event.type = Wl_EventType_WindowClose;
+            } break;
+            case WM_DROPFILES:
+            {
             } break;
         }
     }

@@ -335,7 +335,7 @@ internal void wl_set_window_pos(Vec2_I32 win_pos)
     );
 }
 
-internal void wl_window_icon_set(uint32_t *icon_data, uint32_t width, uint32_t height)
+internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height)
 {
     uint32_t data[2 + width * height];
     data[0] = width;
