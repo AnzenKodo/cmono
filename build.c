@@ -281,7 +281,7 @@ internal void entry_point()
     Build_Info info = ZERO_STRUCT;
     info.name = str8(PROGRAM_NAME);
     info.cmd_name = str8(PROGRAM_CMD_NAME);
-    info.entry_point = str8("src/shaderplay/shaderplay_entry_point.c");
+    info.entry_point = str8("src/scuttle/scuttle_entry_point.c");
     info.dir = str8("build");
     info.os = Context_Os_CURRENT;
     info.log_context = log_init();
