@@ -42,15 +42,6 @@ cc build.c -o build
 
 ## Reference
 
-- [Handmade Hero](https://github.com/cj1128/handmade-hero)
-- [OpenGL Xlib Example](https://github.com/vbsw/opengl-xlib-example)
-- [Create an OpenGL context using Xlib and EGL](https://gist.github.com/pedrominicz/2d81559c5fb66d23d6bb627570956605)
-
-### Articles/Posts
-
-- [Pre-defined C/C++ Compiler Macros](https://github.com/cpredef/predef)
-- [The Arena - Custom Memory Allocators in C](https://www.bytesbeneath.com/p/the-arena-custom-memory-allocators)
-
 ### Lib
 
 - [stb](https://github.com/nothings/stb)
@@ -62,4 +53,17 @@ cc build.c -o build
 
 ### Projects
 
+- [Handmade Hero](https://github.com/cj1128/handmade-hero
 - [RAD Debugger](https://github.com/EpicGamesExt/raddebugger)
+
+### Articles/Posts
+
+- [Pre-defined C/C++ Compiler Macros](https://github.com/cpredef/predef)
+- [The Arena - Custom Memory Allocators in C](https://www.bytesbeneath.com/p/the-arena-custom-memory-allocators)
+
+## Examples
+
+- [OpenGL Xlib Example](https://github.com/vbsw/opengl-xlib-example)
+- [Create an OpenGL context using Xlib and EGL](https://gist.github.com/pedrominicz/2d81559c5fb66d23d6bb627570956605)
+
+
