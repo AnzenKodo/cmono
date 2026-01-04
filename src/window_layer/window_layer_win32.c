@@ -325,7 +325,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2_I32 win_size)
+internal void wl_window_open(Str8 title, Vec2_U64 win_size)
 {
     HINSTANCE instance = GetModuleHandleW(NULL);
     WNDCLASSEXW wc = ZERO_STRUCT;
@@ -535,10 +535,10 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
-// Set window property
+// Window property
 // ============================================================================
 
-internal void wl_set_window_pos(Vec2_I32 win_pos)
+internal void wl_window_pos_set(Vec2_U64 win_pos)
 {
     SetWindowPos(
         _wl_win32_state.handle, NULL, win_pos.x, win_pos.y, 0, 0,
@@ -580,10 +580,29 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
 
     if (hIcon) {
         HWND hwnd = _win32_state.window;  // Assuming similar global state
-        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        SendMessage(_win32_state.window, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(_win32_state.window, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
         current_icon = hIcon;
     }
+}
+
+internal void win32_window_border_set(bool enable)
+{
+    // Get current window style
+    LONG_PTR style = GetWindowLongPtr(_win32_state.window, GWL_STYLE);
+    if (!enable)
+    {
+        // Borderless window
+        style = WS_POPUP | WS_VISIBLE;
+    }
+    // Apply the new style
+    SetWindowLongPtr(_win32_state.window, GWL_STYLE, style);
+    // NOTE(aman.v): Force Windows to recalculate the window frame and client area
+    // Without this, the non-client area (border/title) may not update properly
+    SetWindowPos(_win32_state.window,
+         NULL,
+         0, 0, 0, 0,
+         SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 }
 
 // Software Render

@@ -189,7 +189,6 @@ enum Wl_Key
     Wl_Key_COUNT,
 };
 
-
 typedef struct Wl_Event Wl_Event;
 struct Wl_Event {
     Wl_ModKey mod_key;
@@ -202,9 +201,9 @@ struct Wl_Event {
 typedef struct _Wl_Core_State _Wl_Core_State;
 struct _Wl_Core_State {
     Wl_Event event;
-    Vec2_I32 win_size;
-    Vec2_I32 display_size;
-    bool win_should_close;
+    Vec2_U64 win_size;
+    Vec2_U64 display_size;
+    bool     win_should_close;
     uint64_t frame_prev_time;
     uint32_t frame_count;
     uint32_t fps;
@@ -215,7 +214,7 @@ struct _Wl_Core_State {
 
 // Basic window functions =====================================================
 
-internal void wl_window_open(Str8 title, Vec2_I32 win_size);
+internal void wl_window_open(Str8 title, Vec2_U64 win_size);
 internal void wl_window_close(void);
 
 // Window close functions =====================================================
@@ -229,17 +228,13 @@ internal void wl_update_events(void);
 internal Wl_Event wl_get_event(void);
 internal bool wl_is_key_pressed(Wl_Key key);
 
-// Set window property ========================================================
+// Window property ========================================================
 
-internal void wl_set_window_pos(Vec2_I32 win_pos);
+internal Vec2_U64 wl_window_size_get(void);
+internal Vec2_U64 wl_display_size_get(void);
+internal void wl_window_pos_set(Vec2_U64 win_pos);
 internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height);
-
-// Get window property ========================================================
-
-internal uint32_t wl_get_display_width(void);
-internal uint32_t wl_get_display_height(void);
-internal uint32_t wl_get_window_width(void);
-internal uint32_t wl_get_window_height(void);
+internal void wl_window_border_set(bool enable);
 
 // Software render ============================================================
 

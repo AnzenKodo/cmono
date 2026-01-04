@@ -1,11 +1,11 @@
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2_I32 win_size)
+internal void wl_window_open(Str8 title, Vec2_U64 win_size)
 {
-    xcb_connection_t *connection = xcb_connect(NULL, NULL);
-    xcb_window_t window = xcb_generate_id(connection);
-    xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(connection)).data;
+    _wl_x11_state.connection = xcb_connect(NULL, NULL);
+    xcb_window_t window = xcb_generate_id(_wl_x11_state.connection);
+    xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(_wl_x11_state.connection)).data;
     // Create Window ==========================================================
     uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32_t value_list[] = {
@@ -18,41 +18,33 @@ internal void wl_window_open(Str8 title, Vec2_I32 win_size)
         XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
     };
     xcb_create_window(
-        connection, XCB_COPY_FROM_PARENT, window, screen->root,
+        _wl_x11_state.connection, XCB_COPY_FROM_PARENT, window, screen->root,
         0, 0, win_size.x, win_size.y, 0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, mask, value_list
     );
     // Set Window Title =======================================================
     xcb_change_property(
-        connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME,
+        _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME,
         XCB_ATOM_STRING, 8, title.length, title.cstr
     );
     xcb_change_property(
-        connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_ICON_NAME,
+        _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_ICON_NAME,
         XCB_ATOM_STRING, 8, title.length, title.cstr
     );
     // xcb_change_property(
-    //     connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS,
+    //     _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS,
     //     XCB_ATOM_STRING, 8, sizeof("title""\0""Title"), "title\0Title"
     // );
     // Handle Close Event =====================================================
-    xcb_intern_atom_reply_t* wm_protocols_reply = xcb_intern_atom_reply(
-        connection, xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS"), NULL
-    );
-    xcb_intern_atom_reply_t* wm_delete_window_reply = xcb_intern_atom_reply(
-        connection, xcb_intern_atom(connection, 1, 16,"WM_DELETE_WINDOW"), NULL
-    );
+    WlX11LoadAtom(WM_PROTOCOLS);
+    WlX11LoadAtom(WM_DELETE_WINDOW);
     xcb_change_property(
-        connection, XCB_PROP_MODE_REPLACE, window, wm_protocols_reply->atom,
-        XCB_ATOM_ATOM, 32, 1, &wm_delete_window_reply->atom
-    );
-    // Handle Window Icon =====================================================
-    xcb_intern_atom_reply_t* wm_icon_reply = xcb_intern_atom_reply(
-        connection, xcb_intern_atom(connection, 1, 12, "_NET_WM_ICON"), NULL
+        _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, WM_PROTOCOLS,
+        XCB_ATOM_ATOM, 32, 1, &WM_DELETE_WINDOW
     );
     // Map Window =============================================================
-    xcb_map_window(connection, window);
-    xcb_flush(connection);
+    xcb_map_window(_wl_x11_state.connection, window);
+    xcb_flush(_wl_x11_state.connection);
     // Get Display Size ===============================================================
     _wl_core_state.display_size.x = screen->width_in_pixels;
     _wl_core_state.display_size.y = screen->height_in_pixels;
@@ -60,15 +52,9 @@ internal void wl_window_open(Str8 title, Vec2_I32 win_size)
     _wl_core_state.win_size.y = win_size.y;
     _wl_core_state.frame_prev_time = os_now_microsec();
     // Window Layer State ====================================================
-    _wl_x11_state.connection = connection;
     _wl_x11_state.screen = screen;
     _wl_x11_state.window = window;
-    _wl_x11_state.wm_delete_window = wm_delete_window_reply->atom;
-    _wl_x11_state.wm_icon = wm_icon_reply->atom;
-    // Free ===================================================================
-    free(wm_delete_window_reply);
-    free(wm_protocols_reply);
-    free(wm_icon_reply);
+    _wl_x11_state.wm_delete_window = WM_DELETE_WINDOW;
 }
 
 internal void wl_window_close(void)
@@ -323,37 +309,55 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
-// Set window property
+// Window property
 // ============================================================================
 
-internal void wl_set_window_pos(Vec2_I32 win_pos)
+internal void wl_window_pos_set(Vec2_U64 win_pos)
 {
     xcb_configure_window(
         _wl_x11_state.connection, _wl_x11_state.window,
         XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
         (int[2]){ win_pos.x, win_pos.y }
     );
+    xcb_flush(_wl_x11_state.connection);
 }
 
 internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height)
 {
+    WlX11LoadAtom(_NET_WM_ICON);
     uint32_t data[2 + width * height];
     data[0] = width;
     data[1] = height;
     mem_copy(data + 2, icon_data, width * height * sizeof(uint32_t));
     xcb_change_property(
         _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, _wl_x11_state.window,
-        _wl_x11_state.wm_icon, XCB_ATOM_CARDINAL, 32,
+        _NET_WM_ICON, XCB_ATOM_CARDINAL, 32,
         2 + width * height, data
     );
 }
 
+internal void wl_window_border_set(bool enable)
+{
+    WlX11LoadAtom(_MOTIF_WM_HINTS);
+	struct {
+        uint32_t flags;
+        uint32_t functions;
+        uint32_t decorations;
+        int32_t  input_mode;
+        uint32_t status;
+    } hints = ZERO_STRUCT;
+	hints.flags = 2;
+	hints.decorations = enable;
+    xcb_change_property(_wl_x11_state.connection, XCB_PROP_MODE_REPLACE, _wl_x11_state.window, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32, 5, &hints);
+    xcb_flush(_wl_x11_state.connection);
+}
 
 // Software render
 // ============================================================================
 
 internal void wl_render_init(void *render_buffer)
 {
+    Vec2_U64 win_size = wl_display_size_get();
     _wl_x11_state.render_buffer = render_buffer;
     // Create pixmap format ===================================================
     _wl_x11_state.pixmap = xcb_generate_id(_wl_x11_state.connection);
@@ -374,7 +378,7 @@ internal void wl_render_init(void *render_buffer)
     xcb_create_pixmap(
         _wl_x11_state.connection, _wl_x11_state.screen->root_depth,
         _wl_x11_state.pixmap, _wl_x11_state.window,
-        wl_get_display_width(), wl_get_display_height()
+        win_size.x, win_size.y
     );
     // Create graphics context ================================================
     _wl_x11_state.gc = xcb_generate_id(_wl_x11_state.connection);
@@ -387,7 +391,7 @@ internal void wl_render_init(void *render_buffer)
     );
     // Create image ================================================
     _wl_x11_state.image = xcb_image_create(
-        wl_get_display_width(), wl_get_display_height(), XCB_IMAGE_FORMAT_Z_PIXMAP,
+        win_size.x, win_size.y, XCB_IMAGE_FORMAT_Z_PIXMAP,
         pixmap_format->scanline_pad, pixmap_format->depth,
         pixmap_format->bits_per_pixel, 0,
         xcb_get_setup(_wl_x11_state.connection)->image_byte_order,
@@ -414,9 +418,10 @@ internal void wl_render_end(void)
         _wl_x11_state.connection, _wl_x11_state.pixmap,
         _wl_x11_state.gc, _wl_x11_state.image, 0, 0, 0
     );
+    Vec2_U64 win_size = wl_display_size_get();
     xcb_copy_area(
         _wl_x11_state.connection, _wl_x11_state.pixmap, _wl_x11_state.window,
         _wl_x11_state.gc, 0, 0, 0, 0,
-        wl_get_window_width(), wl_get_window_height()
+        win_size.x, win_size.y
     );
 }
