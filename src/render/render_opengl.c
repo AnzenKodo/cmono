@@ -130,3 +130,21 @@ internal void render_shader_set_value(uint32_t value_index, const void *value, R
 {
     render_shader_set_value_vec(value_index, value, type, 1);
 }
+
+// Texture functions ==========================================================
+
+internal uint32_t render_tex2d_load_raw(const void *buffer, unsigned int width, unsigned int height)
+{
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    GLenum format = GL_RGBA;
+    // if (channels == 1) format = GL_RED;      // Requires OpenGL 3.0+ or extension
+    // else if (channels == 4) format = GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    return textureID;
+}

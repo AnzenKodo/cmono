@@ -37,15 +37,21 @@ typedef enum {
 // Functions
 //=============================================================================
 
+// Core functions =============================================================
 internal void render_init(void);
 internal void render_begin(void);
 internal void render_end(void);
 internal void render_deinit(void);
+
+// Shader functions ===========================================================
 internal uint32_t render_shader_load_multi(char **vert_sources, uint32_t vert_source_num, char **frag_sources, uint32_t frag_source_num);
 internal uint32_t render_shader_load(Str8 vert_source, Str8 frag_source);
 internal void render_shader_unload(uint32_t id);
 internal uint32_t render_shader_get_value(uint32_t shader_id, Str8 name);
 internal void render_shader_set_value_vec(uint32_t value_index, const void *value, Render_Shader type, int32_t count);
 internal void render_shader_set_value(uint32_t value_index, const void *value, Render_Shader type);
+
+// Texture functions ==========================================================
+
 
 #endif // RENDER_CORE_H
