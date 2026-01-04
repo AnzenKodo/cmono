@@ -235,16 +235,16 @@ CheckNil(nil,p) ? \
 // Asserts ====================================================================
 
 #if COMPILER_MSVC
-#   define Trap() __debugbreak()
+#   define Break() __debugbreak()
 #elif COMPILER_CLANG || COMPILER_GCC
-#   define Trap() __builtin_trap()
+#   define Break() __builtin_trap()
 #elif COMPILER_TCC
-#   define Trap() asm volatile("ud2");
+#   define Break() asm volatile("ud2");
 #else
 #   error Unknown trap intrinsic for this compiler.
 #endif
 
-#define AssertAlways(x) do{if(!(x)) {Trap();}}while(0)
+#define AssertAlways(x) do{if(!(x)) {Break();}}while(0)
 #if BUILD_DEBUG
 #   define Assert(x) AssertAlways(x)
 #else
@@ -252,5 +252,10 @@ CheckNil(nil,p) ? \
 #endif
 #define INVALID_CODE_PATH Assert(!"Invalid Path!")
 #define NOT_IMPLEMENTED   Assert(!"Not Implemented!")
+
+// Functions
+// ============================================================================
+
+internal void entry_point(void);
 
 #endif // BASE_CORE_H
