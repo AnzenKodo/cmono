@@ -5,7 +5,7 @@
 #include "src/os/os_include.h"
 #include "src/base/base_include.c"
 #include "src/os/os_include.c"
-#include "src/shaderplay/shaderplay_core.h"
+#include "src/cope/cope_core.h"
 
 // Defines
 // ============================================================================
@@ -265,14 +265,6 @@ internal void build_run(Build_Info *info)
         build_cmd_append(info, "WINEARCH=win64 wine ");
     }
     build_cmd_append_output(info);
-    if (info->os == Context_Os_Windows)
-    {
-        build_cmd_append(info, " shaders\\circles.frag");
-    }
-    else
-    {
-        build_cmd_append(info, " shaders/circles.frag");
-    }
     build_cmd_finish(info);
 }
 
@@ -281,7 +273,7 @@ internal void entry_point()
     Build_Info info = ZERO_STRUCT;
     info.name = str8(PROGRAM_NAME);
     info.cmd_name = str8(PROGRAM_CMD_NAME);
-    info.entry_point = str8("src/scuttle/scuttle_entry_point.c");
+    info.entry_point = str8("src/cope/cope_entry_point.c");
     info.dir = str8("build");
     info.os = Context_Os_CURRENT;
     info.log_context = log_init();

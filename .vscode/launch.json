@@ -4,10 +4,10 @@
         {
             "name": "Debug Program",
             "request": "launch",
-            "program": "${workspaceFolder}/build/shaderpaly_debug",
+            "program": "${workspaceFolder}/build/cope_debug",
             "cwd": "${workspaceFolder}",
             "type": "gdb",
-            "arguments": "shaders/circles.frag",
+            // "arguments": "shaders/circles.frag",
             "preLaunchTask": "Build Program"
         },
         {
@@ -22,7 +22,7 @@
         {
             "name": "Debug Program Windows",
             "request": "launch",
-            "program": "${workspaceFolder}/build/shaderpaly_debug.exe",
+            "program": "${workspaceFolder}/build/cope_debug.exe",
             "cwd": "${workspaceFolder}",
             "type": "cppvsdbg",
             "preLaunchTask": "Build Program Windows"
