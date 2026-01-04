@@ -1,59 +1,6 @@
 // Vector Ops
 //=============================================================================
 
-// 2-Vectors ==================================================================
-
-internal Vec2_F32 vec2_f32(float x, float y)
-{
-    Vec2_F32 v = {x, y};
-    return v;
-}
-
-internal Vec2_I64 vec2_i64(int64_t x, int64_t y)
-{
-    Vec2_I64 v = {x, y};
-    return v;
-}
-
-internal Vec2_I32 vec2_i32(int32_t x, int32_t y)
-{
-    Vec2_I32 v = {x, y};
-    return v;
-}
-
-internal Vec2_I16 vec2_i16(int16_t x, int16_t y)
-{
-    Vec2_I16 v = {x, y};
-    return v;
-}
-
-// 3-Vectors ==================================================================
-
-internal Vec3_F32 vec3_f32(float x, float y, float z)
-{
-    Vec3_F32 v = {x, y, z};
-    return v;
-}
-internal Vec3_I32 vec3_i32(int32_t x, int32_t y, int32_t z)
-{
-    Vec3_I32 v = {x, y, z};
-    return v;
-}
-
-
-// 4-vectors ==================================================================
-
-internal Vec4_F32 vec4_f32(float x, float y, float z, float w)
-{
-    Vec4_F32 v = {x, y, z, w};
-    return v;
-}
-internal Vec4_I32 vec4_i32(int32_t x, int32_t y, int32_t z, int32_t w)
-{
-    Vec4_I32 v = {x, y, z, w};
-    return v;
-}
-
 // Range Ops
 //=============================================================================
 
@@ -172,7 +119,7 @@ internal Vec2_F32 dim2_f32(Rng2_F32 r)
 // Random Number
 //=============================================================================
 
-internal uint32_t math_random_u32(uint32_t seed) 
+internal uint32_t math_random_u32(uint32_t seed)
 {
     seed = (seed << 13) ^ seed;
     return ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 0x7fffffff);

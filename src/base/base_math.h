@@ -60,6 +60,39 @@ union Vec2_I16
     int16_t v[2];
 };
 
+typedef union Vec2_U64 Vec2_U64;
+union Vec2_U64
+{
+    struct
+    {
+        uint64_t x;
+        uint64_t y;
+    };
+    uint64_t v[2];
+};
+
+typedef union Vec2_U32 Vec2_U32;
+union Vec2_U32
+{
+    struct
+    {
+        uint32_t x;
+        uint32_t y;
+    };
+    uint32_t v[2];
+};
+
+typedef union Vec2_U16 Vec2_U16;
+union Vec2_U16
+{
+    struct
+    {
+        uint16_t x;
+        uint16_t y;
+    };
+    uint16_t v[2];
+};
+
 // 3-Vectors ==================================================================
 
 typedef union Vec3_F32 Vec3_F32;
@@ -340,22 +373,7 @@ union Rng2_I64
 // Vector Ops
 //=============================================================================
 
-// 2-Vectors ==================================================================
 
-internal Vec2_I16 vec2_i16(int16_t x, int16_t y);
-internal Vec2_I32 vec2_i32(int32_t x, int32_t y);
-internal Vec2_I64 vec2_i64(int64_t x, int64_t y);
-internal Vec2_F32 vec2_f32(float x, float y);
-
-// 3-Vectors ==================================================================
-
-internal Vec3_I32 vec3_i32(int32_t x, int32_t y, int32_t z);
-internal Vec3_F32 vec3_f32(float x, float y, float z);
-
-// 4-vectors ==================================================================
-
-internal Vec4_I32 vec4_i32(int32_t x, int32_t y, int32_t z, int32_t w);
-internal Vec4_F32 vec4_f32(float x, float y, float z, float w);
 
 // Range Ops
 //=============================================================================
