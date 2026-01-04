@@ -535,9 +535,14 @@ internal void flags_print_error(Flags_Context *context)
             break;
             case _Flags_Error_Kind_OutIndexArg:
             {
-                log_error(context->log_context,
-                    "command only accepts >= (less equal to) %zu arguments without options.",
-                    context->index_arg);
+                if (context->index_arg > 0) {
+                    log_error(context->log_context,
+                        "command only accepts >= (less equal to) %zu arguments without options.",
+                        context->index_arg);
+                } else {
+                    log_error(context->log_context,
+                        "command don't accepts any arguments without options.");
+                }
             }
             break;
             case _Flags_Error_Kind_RequireArg:
