@@ -33,26 +33,26 @@ internal void render_init(void)
     RenderOpenglXMacro
 #undef X
 
-    glGenVertexArrays(1, &_render_opengl_state.vertex_arrays);
-    glBindVertexArray(_render_opengl_state.vertex_arrays);
-
-    GLfloat vertices[] = {
-        -1.0f, -1.0f,
-         1.0f, -1.0f,
-        -1.0f,  1.0f,
-         1.0f,  1.0f
-    };
-    _render_opengl_state.array_buffer_size = sizeof(vertices);
-    glGenBuffers(1, &_render_opengl_state.array_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.array_buffer);
-    glBufferData(GL_ARRAY_BUFFER, _render_opengl_state.array_buffer_size, vertices, GL_STATIC_DRAW);
+    // glGenVertexArrays(1, &_render_opengl_state.vertex_arrays);
+    // glBindVertexArray(_render_opengl_state.vertex_arrays);
+    //
+    // GLfloat vertices[] = {
+    //     -1.0f, -1.0f,
+    //      1.0f, -1.0f,
+    //     -1.0f,  1.0f,
+    //      1.0f,  1.0f
+    // };
+    // _render_opengl_state.array_buffer_size = sizeof(vertices);
+    // glGenBuffers(1, &_render_opengl_state.array_buffer);
+    // glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.array_buffer);
+    // glBufferData(GL_ARRAY_BUFFER, _render_opengl_state.array_buffer_size, vertices, GL_STATIC_DRAW);
 }
 
 internal void render_deinit(void)
 {
     _render_opengl_deinit();
-    glDeleteVertexArrays(sizeof(&_render_opengl_state.vertex_arrays), &_render_opengl_state.vertex_arrays);
-    glDeleteBuffers(_render_opengl_state.array_buffer_size, &_render_opengl_state.array_buffer);
+    // glDeleteVertexArrays(sizeof(&_render_opengl_state.vertex_arrays), &_render_opengl_state.vertex_arrays);
+    // glDeleteBuffers(_render_opengl_state.array_buffer_size, &_render_opengl_state.array_buffer);
 }
 
 internal void render_begin(void)
