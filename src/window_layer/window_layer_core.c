@@ -42,13 +42,21 @@ internal bool wl_is_event_happen(Wl_EventType type)
 // Get Window Property
 //=============================================================================
 
-internal Vec2_U64 wl_display_size_get(void)
+internal unsigned int wl_display_width_get(void)
 {
-    return _wl_core_state.display_size;
+    return _wl_core_state.display_width;
 }
-internal Vec2_U64 wl_window_size_get(void)
+internal unsigned int wl_display_height_get(void)
 {
-   return _wl_core_state.win_size;
+    return _wl_core_state.display_height;
+}
+internal unsigned int wl_window_width_get(void)
+{
+   return _wl_core_state.win_width;
+}
+internal unsigned int wl_window_height_get(void)
+{
+   return _wl_core_state.win_height;
 }
 
 // FPS

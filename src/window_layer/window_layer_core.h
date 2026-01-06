@@ -201,12 +201,14 @@ struct Wl_Event {
 typedef struct _Wl_Core_State _Wl_Core_State;
 struct _Wl_Core_State {
     Wl_Event event;
-    Vec2_U64 win_size;
-    Vec2_U64 display_size;
+    unsigned int win_width;
+    unsigned int win_height;
+    unsigned int display_width;
+    unsigned int display_height;
     bool     win_should_close;
-    uint64_t frame_prev_time;
-    uint32_t frame_count;
-    uint32_t fps;
+    unsigned int frame_prev_time;
+    unsigned int frame_count;
+    unsigned int fps;
 };
 
 // Functions
@@ -214,7 +216,7 @@ struct _Wl_Core_State {
 
 // Basic window functions =====================================================
 
-internal void wl_window_open(Str8 title, Vec2_U64 win_size);
+internal void wl_window_open(Str8 title, unsigned int width, unsigned int height);
 internal void wl_window_close(void);
 
 // Window close functions =====================================================
@@ -232,7 +234,7 @@ internal bool wl_is_key_pressed(Wl_Key key);
 
 internal Vec2_U64 wl_window_size_get(void);
 internal Vec2_U64 wl_display_size_get(void);
-internal void wl_window_pos_set(Vec2_U64 win_pos);
+internal void wl_window_pos_set(int x, int y);
 internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height);
 internal void wl_window_border_set(bool enable);
 

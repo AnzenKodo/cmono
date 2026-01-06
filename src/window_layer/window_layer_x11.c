@@ -1,7 +1,7 @@
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2_U64 win_size)
+internal void wl_window_open(Str8 title, unsigned int width, unsigned int height)
 {
     _wl_x11_state.connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(_wl_x11_state.connection);
@@ -19,7 +19,7 @@ internal void wl_window_open(Str8 title, Vec2_U64 win_size)
     };
     xcb_create_window(
         _wl_x11_state.connection, XCB_COPY_FROM_PARENT, window, screen->root,
-        0, 0, win_size.x, win_size.y, 0,
+        0, 0, width, height, 0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, mask, value_list
     );
     // Set Window Title =======================================================
@@ -46,10 +46,10 @@ internal void wl_window_open(Str8 title, Vec2_U64 win_size)
     xcb_map_window(_wl_x11_state.connection, window);
     xcb_flush(_wl_x11_state.connection);
     // Get Display Size ===============================================================
-    _wl_core_state.display_size.x = screen->width_in_pixels;
-    _wl_core_state.display_size.y = screen->height_in_pixels;
-    _wl_core_state.win_size.x = win_size.x;
-    _wl_core_state.win_size.y = win_size.y;
+    _wl_core_state.display_width = screen->width_in_pixels;
+    _wl_core_state.display_height = screen->height_in_pixels;
+    _wl_core_state.win_width  = width;
+    _wl_core_state.win_height = height;
     _wl_core_state.frame_prev_time = os_now_microsec();
     // Window Layer State ====================================================
     _wl_x11_state.screen = screen;
@@ -296,8 +296,8 @@ internal Wl_Event wl_get_event(void)
             {
                 xcb_configure_notify_event_t *resize_event = (xcb_configure_notify_event_t *)xcb_event;
                 // Add to Event Variable
-                _wl_core_state.win_size.x = resize_event->width;
-                _wl_core_state.win_size.y = resize_event->height;
+                _wl_core_state.win_width  = resize_event->width;
+                _wl_core_state.win_height = resize_event->height;
                 event.type = Wl_EventType_WindowResize;
             }break;
             case XCB_EXPOSE:{
@@ -312,12 +312,12 @@ internal Wl_Event wl_get_event(void)
 // Window property
 // ============================================================================
 
-internal void wl_window_pos_set(Vec2_U64 win_pos)
+internal void wl_window_pos_set(int x, int y)
 {
     xcb_configure_window(
         _wl_x11_state.connection, _wl_x11_state.window,
         XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
-        (int[2]){ win_pos.x, win_pos.y }
+        (int[2]){ x, y }
     );
     xcb_flush(_wl_x11_state.connection);
 }
@@ -357,7 +357,6 @@ internal void wl_window_border_set(bool enable)
 
 internal void wl_render_init(void *render_buffer)
 {
-    Vec2_U64 win_size = wl_display_size_get();
     _wl_x11_state.render_buffer = render_buffer;
     // Create pixmap format ===================================================
     _wl_x11_state.pixmap = xcb_generate_id(_wl_x11_state.connection);
@@ -378,7 +377,7 @@ internal void wl_render_init(void *render_buffer)
     xcb_create_pixmap(
         _wl_x11_state.connection, _wl_x11_state.screen->root_depth,
         _wl_x11_state.pixmap, _wl_x11_state.window,
-        win_size.x, win_size.y
+        wl_display_width_get(), wl_display_height_get()
     );
     // Create graphics context ================================================
     _wl_x11_state.gc = xcb_generate_id(_wl_x11_state.connection);
@@ -391,7 +390,7 @@ internal void wl_render_init(void *render_buffer)
     );
     // Create image ================================================
     _wl_x11_state.image = xcb_image_create(
-        win_size.x, win_size.y, XCB_IMAGE_FORMAT_Z_PIXMAP,
+        wl_display_width_get(), wl_display_height_get(), XCB_IMAGE_FORMAT_Z_PIXMAP,
         pixmap_format->scanline_pad, pixmap_format->depth,
         pixmap_format->bits_per_pixel, 0,
         xcb_get_setup(_wl_x11_state.connection)->image_byte_order,
@@ -418,10 +417,9 @@ internal void wl_render_end(void)
         _wl_x11_state.connection, _wl_x11_state.pixmap,
         _wl_x11_state.gc, _wl_x11_state.image, 0, 0, 0
     );
-    Vec2_U64 win_size = wl_display_size_get();
     xcb_copy_area(
         _wl_x11_state.connection, _wl_x11_state.pixmap, _wl_x11_state.window,
         _wl_x11_state.gc, 0, 0, 0, 0,
-        win_size.x, win_size.y
+        wl_display_width_get(), wl_display_height_get()
     );
 }

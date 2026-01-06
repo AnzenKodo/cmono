@@ -223,8 +223,8 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         // Window Size ========================================================
         case WM_SIZE:
         {
-            _wl_core_state.win_size.x = LOWORD(l_param);
-            _wl_core_state.win_size.y = HIWORD(l_param);
+            _wl_core_state.win_width  = LOWORD(l_param);
+            _wl_core_state.win_height = HIWORD(l_param);
             _wl_win32_state.window_resize = true;
         } // fallthrough;
         case WM_PAINT:
@@ -325,7 +325,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, Vec2_U64 win_size)
+internal void wl_window_open(Str8 title, unsigned int width, unsigned int height)
 {
     HINSTANCE instance = GetModuleHandleW(NULL);
     WNDCLASSEXW wc = ZERO_STRUCT;
@@ -350,7 +350,7 @@ internal void wl_window_open(Str8 title, Vec2_U64 win_size)
         wc.lpszClassName, title16.cstr,
         WS_OVERLAPPEDWINDOW | WS_SIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        win_size.x, win_size.y,
+        width, height,
         0, 0,
         instance, 0
     );
@@ -538,10 +538,10 @@ internal Wl_Event wl_get_event(void)
 // Window property
 // ============================================================================
 
-internal void wl_window_pos_set(Vec2_U64 win_pos)
+internal void wl_window_pos_set(int x, int y)
 {
     SetWindowPos(
-        _wl_win32_state.handle, NULL, win_pos.x, win_pos.y, 0, 0,
+        _wl_win32_state.handle, NULL, x, y, 0, 0,
         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
     );
 }
