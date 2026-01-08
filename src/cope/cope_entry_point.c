@@ -73,7 +73,7 @@ internal void entry_point(void)
     wl_window_pos_set(0, 0);
     render_init();
 
-    // glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height);
     /* Red texture (full background) */
     GLuint tex_red;
     glGenTextures(1, &tex_red);
@@ -93,28 +93,13 @@ internal void entry_point(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     const char *vs_source =
-        "attribute vec4 pos;\n"
-        "attribute vec2 tc;\n"
+        "attribute vec4 position;\n"
+        "attribute vec2 texcoord;\n"
         "varying vec2 v_tc;\n"
         "void main() {\n"
-        "  gl_Position = pos;\n"
-        "  v_tc = tc;\n"
+        "  gl_Position = position;\n"
+        "  v_tc = texcoord;\n"
         "}\n";
-    static const GLfloat full_verts[8] = {
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
-        -1.0f,  1.0f,
-        1.0f,  1.0f
-    };
-    static const GLfloat full_texcoords[8] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f
-    };
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vs_source, NULL);
-    glCompileShader(vs);
     const char *fs_source =
         "precision mediump float;\n"
         "varying vec2 v_tc;\n"
@@ -134,18 +119,21 @@ internal void entry_point(void)
         0.0f, 1.0f,
         1.0f, 1.0f
     };
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fs_source, NULL);
-    glCompileShader(fs);
-    GLuint prog = glCreateProgram();
-    glAttachShader(prog, vs);
-    glAttachShader(prog, fs);
-    glBindAttribLocation(prog, 0, "pos");
-    glBindAttribLocation(prog, 1, "tc");
-    glLinkProgram(prog);
-    glUseProgram(prog);
-    GLint tex_loc = glGetUniformLocation(prog, "tex");
-    glUniform1i(tex_loc, 0);
+    static const GLfloat full_verts[8] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f,  1.0f,
+        1.0f,  1.0f
+    };
+    static const GLfloat full_texcoords[8] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f
+    };
+    uint32_t shader = render_shader_load(str8(vs_source), str8(fs_source));
+    uint32_t tex_loc = render_shader_value_loc(shader, str8("tex"));
+    render_shader_value_set(tex_loc, 0, Render_Shader_Uint);
     while (!wl_should_window_close())
     {
         wl_set_fps(60);
@@ -162,19 +150,17 @@ internal void entry_point(void)
             /* Draw full-screen red background */
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, tex_red);
-
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, full_verts);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, full_texcoords);
+            glEnableVertexAttribArray(Render_Vertex_Loc_Position);
+            glVertexAttribPointer(Render_Vertex_Loc_Position, 2, Render_Type_Float, false, 0, full_verts);
+            glEnableVertexAttribArray(Render_Vertex_Loc_Texcoord);
+            glVertexAttribPointer(Render_Vertex_Loc_Texcoord, 2, Render_Type_Float, false, 0, full_texcoords);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
             /* Draw smaller blue square in the center */
             glBindTexture(GL_TEXTURE_2D, tex_blue);
-
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, small_verts);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, small_texcoords);
+            glVertexAttribPointer(Render_Vertex_Loc_Position, 2, Render_Type_Float, false, 0, small_verts);
+            glVertexAttribPointer(Render_Vertex_Loc_Texcoord, 2, Render_Type_Float, false, 0, small_texcoords);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }

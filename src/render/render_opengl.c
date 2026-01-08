@@ -70,6 +70,8 @@ internal uint32_t render_shader_load_multi(char **vert_sources, uint32_t vert_so
     uint32_t program_id = glCreateProgram();
     uint32_t vert_id = _render_opengl_shader_compile(vert_sources, vert_source_num, GL_VERTEX_SHADER, program_id);
     uint32_t frag_id = _render_opengl_shader_compile(frag_sources, frag_source_num, GL_FRAGMENT_SHADER, program_id);
+    glBindAttribLocation(program_id, Render_Vertex_Loc_Position, "position");
+    glBindAttribLocation(program_id, Render_Vertex_Loc_Texcoord, "texcoord");
     glLinkProgram(program_id);
     GLint status;
     glGetProgramiv(program_id, GL_LINK_STATUS, &status);
@@ -88,14 +90,14 @@ internal uint32_t render_shader_load_multi(char **vert_sources, uint32_t vert_so
 internal uint32_t render_shader_load(Str8 vert_source, Str8 frag_source)
 {
     char* vert_sources[] = {
-        shader_source_header,
+        // shader_source_header,
         (char *)vert_source.cstr
     };
     char* frag_sources[] = {
-        shader_source_header,
+        // shader_source_header,
         (char *)frag_source.cstr
     };
-    return render_shader_load_multi(vert_sources, 2, frag_sources, 2);
+    return render_shader_load_multi(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
 }
 
 internal void render_shader_unload(uint32_t id)
@@ -103,32 +105,32 @@ internal void render_shader_unload(uint32_t id)
     glDeleteProgram(id);
 }
 
-internal uint32_t render_shader_get_value(uint32_t shader_id, Str8 name)
+internal uint32_t render_shader_value_loc(uint32_t shader_id, Str8 name)
 {
     return glGetUniformLocation(shader_id, (char *)name.cstr);
 }
 
-internal void render_shader_set_value_vec(uint32_t value_index, const void *value, Render_Shader type, int32_t count)
+internal void render_shader_set_value_vec(uint32_t loc, const void *value, Render_Shader type, int32_t count)
 {
     switch (type)
     {
-        case Render_Shader_Float:  glUniform1fv(value_index, count, (float *)value); break;
-        case Render_Shader_Vec2:   glUniform2fv(value_index, count, (float *)value); break;
-        case Render_Shader_Vec3:   glUniform3fv(value_index, count, (float *)value); break;
-        case Render_Shader_Vec4:   glUniform4fv(value_index, count, (float *)value); break;
-        case Render_Shader_Int:    glUniform1iv(value_index, count, (int32_t *)value); break;
-        case Render_Shader_Ivec2:  glUniform2iv(value_index, count, (int32_t *)value); break;
-        case Render_Shader_Ivec3:  glUniform3iv(value_index, count, (int32_t *)value); break;
-        case Render_Shader_Ivec4:  glUniform4iv(value_index, count, (int32_t *)value); break;
-        case Render_Shader_Uint:   glUniform1uv(value_index, count, (uint32_t *)value); break;
-        case Render_Shader_Uivec2: glUniform2uv(value_index, count, (uint32_t *)value); break;
-        case Render_Shader_Uivec3: glUniform3uv(value_index, count, (uint32_t *)value); break;
-        case Render_Shader_Uivec4: glUniform4uv(value_index, count, (uint32_t *)value); break;
+        case Render_Shader_Float:  glUniform1fv(loc, count, (float *)value); break;
+        case Render_Shader_Vec2:   glUniform2fv(loc, count, (float *)value); break;
+        case Render_Shader_Vec3:   glUniform3fv(loc, count, (float *)value); break;
+        case Render_Shader_Vec4:   glUniform4fv(loc, count, (float *)value); break;
+        case Render_Shader_Int:    glUniform1iv(loc, count, (int32_t *)value); break;
+        case Render_Shader_Ivec2:  glUniform2iv(loc, count, (int32_t *)value); break;
+        case Render_Shader_Ivec3:  glUniform3iv(loc, count, (int32_t *)value); break;
+        case Render_Shader_Ivec4:  glUniform4iv(loc, count, (int32_t *)value); break;
+        case Render_Shader_Uint:   glUniform1uv(loc, count, (uint32_t *)value); break;
+        case Render_Shader_Uivec2: glUniform2uv(loc, count, (uint32_t *)value); break;
+        case Render_Shader_Uivec3: glUniform3uv(loc, count, (uint32_t *)value); break;
+        case Render_Shader_Uivec4: glUniform4uv(loc, count, (uint32_t *)value); break;
     };
 }
-internal void render_shader_set_value(uint32_t value_index, const void *value, Render_Shader type)
+internal void render_shader_value_set(uint32_t loc, const void *value, Render_Shader type)
 {
-    render_shader_set_value_vec(value_index, value, type, 1);
+    render_shader_set_value_vec(loc, value, type, 1);
 }
 
 // Texture functions ==========================================================

@@ -34,6 +34,14 @@ typedef enum {
     Render_Shader_Uivec4,          // Shader uniform type: uivec4 (4 unsigned int)
 } Render_Shader;
 
+typedef enum Render_Vertex_Loc
+{
+    Render_Vertex_Loc_Position = 0,
+    Render_Vertex_Loc_Texcoord,
+} Render_Vertex_Loc;
+
+typedef enum Render_Type Render_Type;
+
 // Functions
 //=============================================================================
 
@@ -47,9 +55,9 @@ internal void render_deinit(void);
 internal uint32_t render_shader_load_multi(char **vert_sources, uint32_t vert_source_num, char **frag_sources, uint32_t frag_source_num);
 internal uint32_t render_shader_load(Str8 vert_source, Str8 frag_source);
 internal void render_shader_unload(uint32_t id);
-internal uint32_t render_shader_get_value(uint32_t shader_id, Str8 name);
-internal void render_shader_set_value_vec(uint32_t value_index, const void *value, Render_Shader type, int32_t count);
-internal void render_shader_set_value(uint32_t value_index, const void *value, Render_Shader type);
+internal uint32_t render_shader_value_loc(uint32_t shader_id, Str8 name);
+internal void render_shader_set_value_vec(uint32_t loc, const void *value, Render_Shader type, int32_t count);
+internal void render_shader_value_set(uint32_t loc, const void *value, Render_Shader type);
 
 // Texture functions ==========================================================
 
