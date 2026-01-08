@@ -96,7 +96,7 @@ struct F64Array
 //=============================================================================
 
 #define Swap(T,a,b)   do{T t__ = a; a = b; b = t__;}while(0)
-#define ArrayCount(a) (sizeof(a) / sizeof((a)[0]))
+#define ArrayLength(a) (sizeof(a) / sizeof((a)[0]))
 #define TypeOf(T)     __typeof__(T)
 
 #if LANG_CPP
@@ -134,7 +134,7 @@ struct F64Array
         .length = 0, \
         .v = alloc_make((a), TypeOf(((T){0}).v[0]), (s)) \
     }
-#define array_append(array, str) ((array)->v[(array)->length] = (str), &(array)->v[(array)->length++])
+#define array_append(array, data) ((array)->v[(array)->length] = (data), &(array)->v[(array)->length++])
 #define array_get(array, index) ((index) < (array)->length ? &(array)->v[(index)] : NULL)
 
 // Constants
