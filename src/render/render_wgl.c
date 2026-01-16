@@ -81,11 +81,7 @@ internal void _render_opengl_deinit(void)
     wglDeleteContext(_render_wgl_state.contex);
 }
 
-internal void _render_opengl_begin(void)
-{
-}
-
-internal void _render_opengl_end(void)
+internal void _render_opengl(void)
 {
     SwapBuffers(_render_wgl_state.hdc);
 }

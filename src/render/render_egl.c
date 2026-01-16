@@ -53,11 +53,7 @@ internal void _render_opengl_deinit(void)
     eglTerminate(_render_egl_state.display);
 }
 
-internal void _render_opengl_begin(void)
-{
-}
-
-internal void _render_opengl_end(void)
+internal void _render_opengl(void)
 {
     eglSwapBuffers(_render_egl_state.display, _render_egl_state.surface);
 }
