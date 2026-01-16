@@ -53,8 +53,9 @@ cc build.c -o build
 
 ### Projects
 
-- [Handmade Hero](https://github.com/cj1128/handmade-hero
+- [Handmade Hero](https://github.com/cj1128/handmade-hero)
 - [RAD Debugger](https://github.com/EpicGamesExt/raddebugger)
+- [4coder](https://github.com/4coder-archive/4coder)
 
 ### Articles/Posts
 
