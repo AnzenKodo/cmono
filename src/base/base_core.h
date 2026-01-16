@@ -253,9 +253,36 @@ CheckNil(nil,p) ? \
 #define INVALID_CODE_PATH Assert(!"Invalid Path!")
 #define NOT_IMPLEMENTED   Assert(!"Not Implemented!")
 
+// Image
+// ============================================================================
+
+typedef enum Img_Format
+{
+    Img_Format_R8,
+    Img_Format_RG8,
+    Img_Format_RGBA8,
+    Img_Format_BGRA8,
+    Img_Format_R16,
+    Img_Format_RGBA16,
+    Img_Format_R32,
+    Img_Format_RG32,
+    Img_Format_RGBA32,
+} Img_Format;
+
+typedef struct Img Img;
+struct Img
+{
+    void *pixels;
+    unsigned int width;
+    unsigned int height;
+    Img_Format format;
+};
+
 // Functions
 // ============================================================================
 
+typedef struct Alloc Alloc;
+internal Img img_alloc(Alloc alloc, unsigned int width, unsigned int height, Img_Format format);
 internal void entry_point(void);
 
 #endif // BASE_CORE_H
