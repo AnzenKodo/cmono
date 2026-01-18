@@ -16,6 +16,14 @@
 #endif
 #define LINE_NUMBER __LINE__
 
+#if COMPILER_MSVC
+#   define thread_static __declspec(thread)
+#elif COMPILER_CLANG || COMPILER_GCC
+#   define thread_static __thread
+#else
+#   error thread_static not defined for this compiler.
+#endif
+
 // Constants
 //=============================================================================
 
@@ -253,6 +261,25 @@ CheckNil(nil,p) ? \
 #define INVALID_CODE_PATH Assert(!"Invalid Path!")
 #define NOT_IMPLEMENTED   Assert(!"Not Implemented!")
 
+////////////////////////////////
+//~ rjf: Linkage Keyword Macros
+
+#if OS_WINDOWS
+# define shared_function C_LINKAGE __declspec(dllexport)
+#else
+# define shared_function C_LINKAGE
+#endif
+
+#if LANG_CPP
+# define C_LINKAGE_BEGIN extern "C"{
+# define C_LINKAGE_END }
+# define C_LINKAGE extern "C"
+#else
+# define C_LINKAGE_BEGIN
+# define C_LINKAGE_END
+# define C_LINKAGE
+#endif
+
 // Image
 // ============================================================================
 
@@ -281,8 +308,6 @@ struct Img
 // Functions
 // ============================================================================
 
-typedef struct Alloc Alloc;
-internal Img img_alloc(Alloc alloc, unsigned int width, unsigned int height, Img_Format format);
 internal void entry_point(void);
 
 #endif // BASE_CORE_H

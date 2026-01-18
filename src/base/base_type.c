@@ -27,14 +27,3 @@ internal uint32_t u32_from_u64_saturate(uint64_t x)
   uint32_t x32 = (x > max_u32)?max_u32:(uint32_t)x;
   return x32;
 }
-
-internal int32_t round_f32_to_i32(float a)
-{
-    int32_t result = (int32_t)(a + 0.5f);
-    return result;
-}
-internal uint32_t round_f32_to_u32(float a)
-{
-    uint32_t result = (uint32_t)(a + 0.5f);
-    return result;
-}
