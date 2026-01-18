@@ -50,8 +50,6 @@ internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint i
     Unused(source);
     Unused(type);
     Unused(severity);
-    Unused(length);
-    Unused(message);
     Unused(userParam);
     switch (id){
         case 131218:
@@ -60,7 +58,7 @@ internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint i
         }break;
         default:
         {
-            LogErrorLine(_os_core_state.log_context, "%s", message);
+            LogErrorLine(_os_core_state.log_context, "%.*s", length, message);
         }break;
     }
 }
@@ -85,8 +83,6 @@ internal GLenum _render_opengl_format_from_img_format(Img_Format format)
 
 // Core functions
 //=============================================================================
-
-GLuint tex = 0;
 
 internal void render_init(void)
 {
@@ -133,12 +129,14 @@ internal void render_init(void)
     };
     uint32_t shader_id = _render_opengl_shader_load(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
     // Texture Init ===========================================================
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    GLuint white_pixel = 0xffffffff;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &white_pixel);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glGenTextures(1, &tex);
+    // glBindTexture(GL_TEXTURE_2D, tex);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->width, img->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->pixels);
+    // glBindTexture(GL_TEXTURE_2D, 0);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 internal void render_deinit(void)
@@ -146,37 +144,38 @@ internal void render_deinit(void)
     _render_opengl_deinit();
 }
 
-internal void render(Img *img)
+internal void render(Draw_List *list)
 {
     glViewport(0, 0, wl_window_width_get(), wl_window_height_get());
     glClearColor(1.f, 0.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    for (size_t i = 0; i < list->length; i++)
+    {
+    }
     // Texture Render =========================================================
-    static const GLfloat full_verts[8] = {
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
-        -1.0f,  1.0f,
-        1.0f,  1.0f
-    };
-    static const GLfloat full_texcoords[8] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f
-    };
+    // static const GLfloat full_verts[8] = {
+    //     -1.0f, -1.0f,
+    //     1.0f, -1.0f,
+    //     -1.0f,  1.0f,
+    //     1.0f,  1.0f
+    // };
+    // static const GLfloat full_texcoords[8] = {
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     1.0f, 1.0f
+    // };
     // bind vertex input attribute
-    glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Position);
-    glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Position, 2, GL_FLOAT, false, 0, full_verts);
-    glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Texcoord);
-    glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Texcoord, 2, GL_FLOAT, false, 0, full_texcoords);
+    // glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Position);
+    // glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Position, 2, GL_FLOAT, false, 0, full_verts);
+    // glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Texcoord);
+    // glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Texcoord, 2, GL_FLOAT, false, 0, full_texcoords);
     // bind texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    GLenum format = _render_opengl_format_from_img_format(img->format);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->width, img->height, 0, format, GL_UNSIGNED_BYTE, img->pixels);
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, tex);
     // draw
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     // os internal opengl
     _render_opengl();
 }
