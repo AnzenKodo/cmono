@@ -45,7 +45,7 @@ internal void _flags_add_arg(Flags_Context *context, Flags_Arg *farg)
 
 internal void _flags_add_option_error(Flags_Context *context, _Flags_Error_Kind kind, Str8 name)
 {
-    _Flags_Error *error = alloc_make(context->alloc, _Flags_Error, 1);
+    _Flags_Error *error = arena_push(context->arena, _Flags_Error, 1);
     error->kind = kind;
     error->flag_name = name;
     SLLQueuePush(context->first_error, context->last_error, error);
@@ -53,7 +53,7 @@ internal void _flags_add_option_error(Flags_Context *context, _Flags_Error_Kind 
 }
 internal void _flags_add_option_error_value(Flags_Context *context, _Flags_Error_Kind kind, Str8 name, Str8 value)
 {
-    _Flags_Error *error = alloc_make(context->alloc, _Flags_Error, 1);
+    _Flags_Error *error = arena_push(context->arena, _Flags_Error, 1);
     error->kind = kind;
     error->flag_name = name;
     error->value = value;
@@ -62,7 +62,7 @@ internal void _flags_add_option_error_value(Flags_Context *context, _Flags_Error
 }
 internal void _flags_add_error_arg(Flags_Context *context, _Flags_Error_Kind kind, size_t index, Str8 value)
 {
-    _Flags_Error *error = alloc_make(context->alloc, _Flags_Error, 1);
+    _Flags_Error *error = arena_push(context->arena, _Flags_Error, 1);
     error->kind = kind;
     error->value = value;
     error->arg_index = index;
@@ -108,10 +108,10 @@ internal uint64_t _flags_get_values_count(Str8Array *args, uint64_t index)
 
 // Flags core functions =======================================================
 
-internal Flags_Context flags_init(Alloc alloc)
+internal Flags_Context flags_init(Arena *arena)
 {
     Flags_Context context = ZERO_STRUCT;
-    context.alloc = alloc;
+    context.arena = arena;
     context.has_program_name = true;
     context.log_context = log_init();
     return context;
@@ -234,7 +234,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 {
                     Str8Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, Str8, items_count);
+                    array.v = arena_push(context->arena, Str8, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -249,7 +249,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 {
                     I64Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, int64_t, items_count);
+                    array.v = arena_push(context->arena, int64_t, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -271,7 +271,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 {
                     U64Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, uint64_t, index);
+                    array.v = arena_push(context->arena, uint64_t, index);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -300,7 +300,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 {
                     F64Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = alloc_make(context->alloc, double, items_count);
+                    array.v = arena_push(context->arena, double, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -752,7 +752,7 @@ internal void flags_make_arg_required(Flags_Arg *farg)
 
 internal Flags_Option *flags_option_string(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Str;
     option->name = name;
     option->default_value.str_value = default_value;
@@ -763,7 +763,7 @@ internal Flags_Option *flags_option_string(Flags_Context *context, Str8 name, St
 }
 internal Flags_Option *flags_option_int(Flags_Context *context, Str8 name, int64_t *result_value, int64_t default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Int;
     option->name = name;
     option->default_value.int_value = default_value;
@@ -774,7 +774,7 @@ internal Flags_Option *flags_option_int(Flags_Context *context, Str8 name, int64
 }
 internal Flags_Option *flags_option_uint(Flags_Context *context, Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_UInt;
     option->name = name;
     option->default_value.uint_value = default_value;
@@ -785,7 +785,7 @@ internal Flags_Option *flags_option_uint(Flags_Context *context, Str8 name, uint
 }
 internal Flags_Option *flags_option_float(Flags_Context *context, Str8 name, double *result_value, double default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Float;
     option->name = name;
     option->default_value.float_value = default_value;
@@ -796,7 +796,7 @@ internal Flags_Option *flags_option_float(Flags_Context *context, Str8 name, dou
 }
 internal Flags_Option *flags_option_bool(Flags_Context *context, Str8 name, bool *result_value, bool default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Bool;
     option->name = name;
     option->default_value.bool_value = default_value;
@@ -808,7 +808,7 @@ internal Flags_Option *flags_option_bool(Flags_Context *context, Str8 name, bool
 
 internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, Str8Array *result_value, Str8Array *default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_StrArr;
     option->name = name;
     option->default_value.str_value_arr = default_value;
@@ -819,7 +819,7 @@ internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, S
 }
 internal Flags_Option *flags_option_int_arr(Flags_Context *context, Str8 name, I64Array *result_value, I64Array *default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_IntArr;
     option->name = name;
     option->default_value.int_value_arr = default_value;
@@ -830,7 +830,7 @@ internal Flags_Option *flags_option_int_arr(Flags_Context *context, Str8 name, I
 }
 internal Flags_Option *flags_option_uint_arr(Flags_Context *context, Str8 name, U64Array *result_value, U64Array *default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_UIntArr;
     option->name = name;
     option->default_value.uint_value_arr = default_value;
@@ -841,7 +841,7 @@ internal Flags_Option *flags_option_uint_arr(Flags_Context *context, Str8 name, 
 }
 internal Flags_Option *flags_option_float_arr(Flags_Context *context, Str8 name, F64Array *result_value, F64Array *default_value, Str8 description)
 {
-    Flags_Option *option = alloc_make(context->alloc, Flags_Option, 1);
+    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_FloatArr;
     option->name = name;
     option->default_value.float_value_arr = default_value;
@@ -856,7 +856,7 @@ internal Flags_Option *flags_option_float_arr(Flags_Context *context, Str8 name,
 
 internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *value)
 {
-    Flags_Arg *farg = alloc_make(context->alloc, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Str;
     farg->value.str_value = value;
     _flags_add_arg(context, farg);
@@ -864,7 +864,7 @@ internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *value)
 }
 internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *value)
 {
-    Flags_Arg *farg = alloc_make(context->alloc, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Int;
     farg->value.int_value = value;
     _flags_add_arg(context, farg);
@@ -872,7 +872,7 @@ internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *value)
 }
 internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *value)
 {
-    Flags_Arg *farg = alloc_make(context->alloc, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_UInt;
     farg->value.uint_value = value;
     _flags_add_arg(context, farg);
@@ -880,7 +880,7 @@ internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *value)
 }
 internal Flags_Arg *flags_arg_float(Flags_Context *context, double *value)
 {
-    Flags_Arg *farg = alloc_make(context->alloc, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Float;
     farg->value.float_value = value;
     _flags_add_arg(context, farg);

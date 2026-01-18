@@ -2,7 +2,7 @@
 #include "base_core.c"
 #include "base_time.c"
 #include "base_math.c"
-#include "base_alloc.c"
+#include "base_arena.c"
 #include "base_string.c"
 #include "base_mem.c"
 #include "base_term.c"

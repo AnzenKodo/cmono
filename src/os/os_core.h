@@ -48,7 +48,6 @@ enum
 typedef struct _Os_Core_State _Os_Core_State;
 struct _Os_Core_State {
     Str8Array args;
-    Arena *arena;
     Log_Context log_context;
 };
 

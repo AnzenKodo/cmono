@@ -16,19 +16,20 @@ internal uint64_t fmt_fprintln(Os_File file, const char *string)
 }
 internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args)
 {
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     uint64_t written = 0;
     va_list args_copy;
     va_copy(args_copy, args);
         int32_t needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 1;
     va_end(args_copy);
     if (needed > 0) {
-        char *buffer = alloc_make(_os_core_state.alloc, char, needed);
+        char *buffer = arena_push(scratch.arena, char, needed);
         va_copy(args_copy, args);
             written = fmt_vsprintf(buffer, format, args_copy);
         va_end(args_copy);
         fmt_fprint(file, buffer);
-        alloc_free(_os_core_state.alloc, buffer, needed);
     }
+    arena_scratch_end(scratch);
     return written;
 }
 internal uint64_t fmt_fprintf(Os_File file, const char *format, ...)
@@ -42,21 +43,22 @@ internal uint64_t fmt_fprintf(Os_File file, const char *format, ...)
 }
 internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args)
 {
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     uint64_t written = 0;
     va_list args_copy;
     va_copy(args_copy, args);
         int32_t needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 2;
     va_end(args_copy);
     if (needed > 0) {
-        char *buffer = alloc_make(_os_core_state.alloc, char, needed);
+        char *buffer = arena_push(scratch.arena, char, needed);
         va_copy(args_copy, args);
             written = fmt_vsprintf(buffer, format, args_copy);
         va_end(args_copy);
         buffer[written] = '\n';
         buffer[written+1] = '\0';
         fmt_fprint(file, buffer);
-        alloc_free(_os_core_state.alloc, buffer, needed);
     }
+    arena_scratch_end(scratch);
     return written;
 }
 internal uint64_t fmt_fprintfln(Os_File file, const char *format, ...)

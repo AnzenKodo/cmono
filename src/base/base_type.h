@@ -128,11 +128,11 @@ struct F64Array
 
 // Array Macros ===============================================================
 
-#define array_alloc(a, T, s) \
+#define array_push(a, T, s) \
     (T){ \
         .size = (s), \
         .length = 0, \
-        .v = alloc_make((a), TypeOf(((T){0}).v[0]), (s)) \
+        .v = arena_push((a), TypeOf(((T){0}).v[0]), (s)) \
     }
 #define array_append(array, data) ((array)->v[(array)->length] = (data), &(array)->v[(array)->length++])
 #define array_get(array, index) ((index) < (array)->length ? &(array)->v[(index)] : NULL)
@@ -181,7 +181,5 @@ internal uint16_t safe_cast_u16(uint32_t x);
 internal uint32_t safe_cast_u32(uint64_t x);
 internal int32_t  safe_cast_i32(int64_t x);
 internal uint32_t u32_from_u64_saturate(uint64_t x);
-internal int32_t  round_f32_to_i32(float a);
-internal uint32_t round_f32_to_u32(float a);
 
 #endif // BASE_TYPE_H

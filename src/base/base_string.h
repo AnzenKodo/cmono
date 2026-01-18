@@ -140,7 +140,7 @@ internal Str8 str8_substr(Str8 str, Rng1_U64 range);
 internal Str8 str8_postfix(Str8 str, size_t length);
 internal Str8 str8_prefix(Str8 str, size_t length);
 internal Str8 str8_skip(Str8 str, size_t amt);
-internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2);
+internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2);
 
 // String Conversions =========================================================
 
@@ -159,22 +159,22 @@ internal bool     str8_to_bool(Str8 str);
 
 // String List Construction Functions =========================================
 
-internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 str);
+internal Str8Node* str8_list_push(Arena *arena, Str8List *list, Str8 str);
 
 // String Arrays Construction Functions =======================================
 
-internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list);
+internal Str8Array str8_array_from_list(Arena *arena, Str8List *list);
 
 // String Split and Join ======================================================
 
-internal Str8List str8_split(Alloc alloc, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags);
-internal Str8     str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_params);
+internal Str8List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags);
+internal Str8     str8_list_join(Arena *arena, Str8List *list, StrJoin *optional_params);
 
 // String Formatting & Copying ================================================
 
-internal Str8 str8_copy(Alloc alloc, Str8 s);
-internal Str8 str8fv(Alloc alloc, char *fmt, va_list args);
-internal Str8 str8f(Alloc alloc, char *fmt, ...);
+internal Str8 str8_copy(Arena *arena, Str8 s);
+internal Str8 str8fv(Arena *arena, char *fmt, va_list args);
+internal Str8 str8f(Arena *arena, char *fmt, ...);
 
 // UTF-8 & UTF-16 Decoding/Encoding ===========================================
 
@@ -186,10 +186,10 @@ internal uint32_t      utf8_from_utf32_single(uint8_t *buffer, uint32_t characte
 
 // Unicode String Conversions =================================================
 
-internal Str8  str8_from_16(Alloc alloc, Str16 in);
-internal Str16 str16_from_8(Alloc alloc, Str8 in);
-internal Str8  str8_from_32(Alloc alloc, Str32 in);
-internal Str32 str32_from_8(Alloc alloc, Str8 in);
+internal Str8  str8_from_16(Arena *arena, Str16 in);
+internal Str16 str16_from_8(Arena *arena, Str8 in);
+internal Str8  str8_from_32(Arena *arena, Str32 in);
+internal Str32 str32_from_8(Arena *arena, Str8 in);
 
 // String Hash ================================================================
 

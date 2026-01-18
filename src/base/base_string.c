@@ -259,11 +259,11 @@ internal Str8 str8_skip(Str8 str, size_t amt)
     return str;
 }
 
-internal Str8 str8_cat(Alloc alloc, Str8 s1, Str8 s2)
+internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2)
 {
     Str8 str;
     str.length = s1.length + s2.length;
-    str.cstr = alloc_make(alloc, uint8_t, str.length + 1);
+    str.cstr = arena_push(arena, uint8_t, str.length + 1);
     mem_copy(str.cstr, s1.cstr, s1.length);
     mem_copy(str.cstr + s1.length, s2.cstr, s2.length);
     str.cstr[str.length] = 0;
@@ -488,9 +488,9 @@ internal bool str8_to_bool(Str8 str)
 // String List Construction Functions
 //=============================================================================
 
-internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 str)
+internal Str8Node* str8_list_push(Arena *arena, Str8List *list, Str8 str)
 {
-    Str8Node *node = alloc_make(alloc, Str8Node, 1);
+    Str8Node *node = arena_push(arena, Str8Node, 1);
     SLLQueuePush(list->first, list->last, node);
     list->length += 1;
     list->capacity += str.length;
@@ -501,12 +501,12 @@ internal Str8Node* str8_list_push(Alloc alloc, Str8List *list, Str8 str)
 // String Arrays Construction Functions
 // ==============================================================
 
-internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
+internal Str8Array str8_array_from_list(Arena *arena, Str8List *list)
 {
     Str8Array array;
     array.size = list->length;
     array.length = array.size;
-    array.v = alloc_make(alloc, Str8, array.size);
+    array.v = arena_push(arena, Str8, array.size);
     size_t idx = 0;
     for (Str8Node *n = list->first; n != 0; n = n->next, idx += 1)
     {
@@ -518,7 +518,7 @@ internal Str8Array str8_array_from_list(Alloc alloc, Str8List *list)
 // String Split and Join
 //=============================================================================
 
-internal Str8List str8_split(Alloc alloc, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags)
+internal Str8List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags)
 {
     Str8List list = ZERO_STRUCT;
     bool keep_empties = (flags & StrSplitFlag_KeepEmpties);
@@ -547,14 +547,14 @@ internal Str8List str8_split(Alloc alloc, Str8 str, uint8_t *split_chars, size_t
         Str8 node = str8_range(first, ptr, str);
         if (keep_empties || node.length > 0)
         {
-            str8_list_push(alloc, &list, node);
+            str8_list_push(arena, &list, node);
         }
         ptr += 1;
     }
   return list;
 }
 
-internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_params)
+internal Str8 str8_list_join(Arena *arena, Str8List *list, StrJoin *optional_params)
 {
     StrJoin join = {0};
     if (optional_params != 0)
@@ -568,7 +568,7 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
     }
     Str8 result;
     result.length = join.pre.length + join.post.length + sep_count*join.sep.length + list->capacity;
-    uint8_t *ptr = result.cstr = alloc_make(alloc, uint8_t, result.length + 1);
+    uint8_t *ptr = result.cstr = arena_push(arena, uint8_t, result.length + 1);
     mem_copy(ptr, join.pre.cstr, join.pre.length);
     ptr += join.pre.length;
     for (Str8Node *node = list->first; node != 0; node = node->next)
@@ -590,34 +590,34 @@ internal Str8 str8_list_join(Alloc alloc, Str8List *list, StrJoin *optional_para
 // String Formatting & Copying
 //=============================================================================
 
-internal Str8 str8_copy(Alloc alloc, Str8 s)
+internal Str8 str8_copy(Arena *arena, Str8 s)
 {
     Str8 str;
     str.length = s.length;
-    str.cstr = alloc_make(alloc, uint8_t, str.length + 1);
+    str.cstr = arena_push(arena, uint8_t, str.length + 1);
     mem_copy(str.cstr, s.cstr, s.length);
     str.cstr[str.length] = 0;
     return(str);
 }
 
-internal Str8 str8fv(Alloc alloc, char *fmt, va_list args)
+internal Str8 str8fv(Arena *arena, char *fmt, va_list args)
 {
     va_list args2;
     va_copy(args2, args);
     uint32_t needed_bytes = fmt_vsnprintf(0, 0, fmt, args) + 1;
     Str8 result = ZERO_STRUCT;
-    result.cstr = alloc_make(alloc, uint8_t, needed_bytes);
+    result.cstr = arena_push(arena, uint8_t, needed_bytes);
     result.length = fmt_vsnprintf((char*)result.cstr, needed_bytes, fmt, args2);
     result.cstr[result.length] = 0;
     va_end(args2);
     return result;
 }
 
-internal Str8 str8f(Alloc alloc, char *fmt, ...)
+internal Str8 str8f(Arena *arena, char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    Str8 result = str8fv(alloc, fmt, args);
+    Str8 result = str8fv(arena, fmt, args);
     va_end(args);
     return result;
 }
@@ -755,13 +755,13 @@ internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character)
 // Unicode String Conversions
 //=============================================================================
 
-internal Str8 str8_from_16(Alloc alloc, Str16 in)
+internal Str8 str8_from_16(Arena *arena, Str16 in)
 {
     Str8 result = ZERO_STRUCT;
     if(in.length)
     {
         size_t cap = in.length*3;
-        uint8_t *str = alloc_make(alloc, uint8_t, cap + 1);
+        uint8_t *str = arena_push(arena, uint8_t, cap + 1);
         uint16_t *ptr = in.cstr;
         uint16_t *opl = ptr + in.length;
         size_t length = 0;
@@ -772,19 +772,19 @@ internal Str8 str8_from_16(Alloc alloc, Str16 in)
             length += utf8_encode(str + length, consume.codepoint);
         }
         str[length] = 0;
-        // alloc_free(alloc, str, (cap - length));
+        arena_pop(arena, (cap - length));
         result = str8_init(str, length);
     }
     return result;
 }
 
-internal Str16 str16_from_8(Alloc alloc, Str8 in)
+internal Str16 str16_from_8(Arena *arena, Str8 in)
 {
     Str16 result = ZERO_STRUCT;
     if(in.length)
     {
         size_t cap = in.length*2;
-        uint16_t *str = alloc_make(alloc, uint16_t, cap + 1);
+        uint16_t *str = arena_push(arena, uint16_t, cap + 1);
         uint8_t *ptr = in.cstr;
         uint8_t *opl = ptr + in.length;
         size_t length = 0;
@@ -795,19 +795,19 @@ internal Str16 str16_from_8(Alloc alloc, Str8 in)
             length += utf16_encode(str + length, consume.codepoint);
         }
         str[length] = 0;
-        // alloc_free(alloc, str, (cap - length)*2);
+        arena_pop(arena, (cap - length)*2);
         result = str16_init(str, length);
     }
     return result;
 }
 
-internal Str8 str8_from_32(Alloc alloc, Str32 in)
+internal Str8 str8_from_32(Arena *arena, Str32 in)
 {
     Str8 result = ZERO_STRUCT;
     if(in.length)
     {
         size_t cap = in.length*4;
-        uint8_t *str = alloc_make(alloc, uint8_t, cap + 1);
+        uint8_t *str = arena_push(arena, uint8_t, cap + 1);
         uint32_t *ptr = in.cstr;
         uint32_t *opl = ptr + in.length;
         size_t length = 0;
@@ -816,19 +816,19 @@ internal Str8 str8_from_32(Alloc alloc, Str32 in)
             length += utf8_encode(str + length, *ptr);
         }
         str[length] = 0;
-        alloc_free(alloc, str, (cap - length));
+        arena_pop(arena, (cap - length));
         result = str8_init(str, length);
     }
     return result;
 }
 
-internal Str32 str32_from_8(Alloc alloc, Str8 in)
+internal Str32 str32_from_8(Arena *arena, Str8 in)
 {
     Str32 result = ZERO_STRUCT;
     if(in.length)
     {
         size_t cap = in.length;
-        uint32_t *str = alloc_make(alloc, uint32_t, cap + 1);
+        uint32_t *str = arena_push(arena, uint32_t, cap + 1);
         uint8_t *ptr = in.cstr;
         uint8_t *opl = ptr + in.length;
         size_t length = 0;
@@ -840,7 +840,7 @@ internal Str32 str32_from_8(Alloc alloc, Str8 in)
             length += 1;
         }
         str[length] = 0;
-        alloc_free(alloc, str, (cap - length)*4);
+        arena_pop(arena, (cap - length)*4);
         result = str32_init(str, length);
     }
     return result;
