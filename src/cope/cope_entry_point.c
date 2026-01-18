@@ -1,12 +1,14 @@
 #include "../base/base_include.h"
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
+#include "../draw/draw.h"
 #include "../render/render_include.h"
 #include "./cope_core.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
+#include "../draw/draw.c"
 #include "../render/render_include.c"
 
 internal void print_help_message(Flags_Context *context)
@@ -30,9 +32,10 @@ internal void entry_point(void)
 {
     uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
+    Arena *arena = arena_alloc(MB(10), MB(1));
 
-    Flags_Context context = flags_init(alloc);
+    Arena_Temp temp = arena_temp_begin(arena);
+    Flags_Context context = flags_begin(temp.arena);
     Flags_Option *option = NULL;
 
     bool help = false;
@@ -59,19 +62,16 @@ internal void entry_point(void)
         fmt_print("v"PROGRAM_VERSION);
         os_exit(0);
     }
+    arena_temp_end(temp);
 
     // Program Init ===========================================================
-    int width = 100;
-    int height = 200;
+    int width = 150;
+    int height = 300;
     wl_window_open(str8(PROGRAM_NAME), width, height);
-    // wl_window_border_set(false);
-    wl_window_pos_set(0, 0);
-    Img img = img_alloc(alloc, width, height, Img_Format_RGBA8);
+    wl_window_border_set(false);
+    wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
-    uint8_t red_pixel[4] = {255, 0, 255, 255};           // R,G,B
-    for (size_t i = 0; i < img.width * img.height * 4; i += 4) {
-        mem_copy(img.pixels + i, red_pixel, 4);
-    }
+    Draw_List list = ZERO_STRUCT;
 
     while (!wl_should_window_close())
     {
@@ -82,10 +82,11 @@ internal void entry_point(void)
         ) {
             wl_set_window_close();
         }
-        render(&img);
+        render(&list);
     }
 
     // Free Everything ========================================================
     wl_window_close();
-    os_memory_free(buffer, size);
+    os_memory_release(buffer, size);
+    render_deinit();
 }

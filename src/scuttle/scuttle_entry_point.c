@@ -65,8 +65,8 @@ entry_point(char *argv[])
     wl_window_icon_set(cast(uint32_t *)ICON, ICON_WIDTH, ICON_HEIGHT);
     uint64_t size = MB(10);
     void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-    Draw_Buffer draw_buffer = render_init(alloc);
+    Arena *arena = alloc_arena_init(buffer, size);
+    Draw_Buffer draw_buffer = render_init(arena);
 
     // Tilemap Init ===========================================================
     uint32_t tile_height = 20;
@@ -146,6 +146,6 @@ entry_point(char *argv[])
 
     // Free Everything ========================================================
     render_deinit();
-    os_memory_free(buffer, size);
+    os_memory_release(buffer, size);
     wl_window_close();
 }
