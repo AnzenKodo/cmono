@@ -114,7 +114,6 @@ struct Flags_Arg
 typedef struct Flags_Context Flags_Context;
 struct Flags_Context
 {
-    Arena *arena;
     Arena_Temp temp;
     Flags_Option *first_option;
     Flags_Option *last_option;
@@ -147,7 +146,8 @@ internal uint64_t _flags_get_values_count(Str8Array *args, uint64_t index);
 
 // Flags core functions =======================================================
 
-internal Flags_Context flags_init(Arena *arena);
+internal Flags_Context flags_begin(Arena *arena);
+internal void flags_end(Flags_Context *context);
 internal bool flags_parse(Flags_Context *context, Str8Array *args);
 
 internal void flags_print_error(Flags_Context *context);
