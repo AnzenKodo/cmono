@@ -23,7 +23,7 @@ enum
 typedef struct Os_FileProperties Os_FileProperties;
 struct Os_FileProperties
 {
-    uint64_t size;
+    size_t size;
     DenseTime modified;
     DenseTime created;
     FilePropertyFlags flags;
@@ -48,7 +48,7 @@ enum
 typedef struct _Os_Core_State _Os_Core_State;
 struct _Os_Core_State {
     Str8Array args;
-    Alloc alloc;
+    Arena *arena;
     Log_Context log_context;
 };
 
@@ -57,19 +57,20 @@ struct _Os_Core_State {
 
 // Memory Allocation ==========================================================
 
-internal void *os_memory_create(uint64_t size);
-internal bool os_memory_commit(void *ptr, uint64_t size);
-internal void os_memory_decommit(void *ptr, uint64_t size);
-internal void *os_memory_alloc(uint64_t size);
-internal void os_memory_free(void *ptr, uint64_t size);
+internal void *os_memory_alloc(size_t size);
+internal void *os_memory_reserve(size_t size);
+internal bool os_memory_release(void *ptr, size_t size);
+internal bool os_memory_commit(void *ptr, size_t size);
+internal bool os_memory_decommit(void *ptr, size_t size);
+internal size_t os_pagesize_get(void);
 
 // File System ================================================================
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags);
 internal void os_file_close(Os_File file);
 internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data);
-internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Alloc alloc);
-internal Str8 os_file_read_str_full(Os_File file, Alloc alloc);
+internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena);
+internal Str8 os_file_read_str_full(Os_File file, Arena *arena);
 internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data);
 internal Os_FileProperties os_file_properties(Os_File file);
 internal bool os_dir_make(Str8 path);

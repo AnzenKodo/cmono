@@ -41,32 +41,37 @@ internal Os_FileProperties _os_linux_file_properties_from_stat(struct stat *s)
     return props;
 }
 
-
 // Memory Allocation
 //=============================================================================
 
-internal void *os_memory_create(uint64_t size)
+internal void *os_memory_reserve(size_t size)
 {
     void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(result == MAP_FAILED) { result = 0; }
     return result;
 }
-
-internal bool os_memory_commit(void *ptr, uint64_t size)
+internal bool os_memory_commit(void *ptr, size_t size)
 {
-    mprotect(ptr, size, PROT_READ|PROT_WRITE);
-    return true;
+    int result = mprotect(ptr, size, PROT_READ|PROT_WRITE);
+    return result == 0;
 }
 
-internal void os_memory_decommit(void *ptr, uint64_t size)
+internal bool os_memory_decommit(void *ptr, size_t size)
 {
-    madvise(ptr, size, MADV_DONTNEED);
-    mprotect(ptr, size, PROT_NONE);
+    int result1 = madvise(ptr, size, MADV_DONTNEED);
+    int result2 = mprotect(ptr, size, PROT_NONE);
+    return result1 == 0 && result2 == 0;
+}
+internal bool os_memory_release(void *ptr, size_t size)
+{
+    int result = munmap(ptr, size);
+    return result == 0;
 }
 
-internal void os_memory_free(void *ptr, uint64_t size)
+internal size_t os_pagesize_get(void)
 {
-    munmap(ptr, size);
+    size_t result = sysconf(_SC_PAGESIZE);
+    return result;
 }
 
 // File System
@@ -273,11 +278,8 @@ internal Str8 os_env_get(Str8 name)
 
 int main(int argc, char *argv[])
 {
-    uint64_t size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
-    _os_core_state.args = array_alloc(alloc, Str8Array, argc);
-    _os_core_state.alloc = alloc;
+    Arena_Temp temp = arena_scratch_begin(NULL, 0);
+    _os_core_state.args = array_push(temp.arena, Str8Array, argc);
     for(int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);

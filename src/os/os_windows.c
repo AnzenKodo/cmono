@@ -45,27 +45,33 @@ internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
 // Memory Allocation
 //=============================================================================
 
-internal void *os_memory_create(uint64_t size)
+internal void *os_memory_reserve(size_t size)
 {
     void *result = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
     return result;
 }
 
-internal bool os_memory_commit(void *ptr, uint64_t size)
+internal bool os_memory_commit(void *ptr, size_t size)
 {
-    bool result = (VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE) != 0);
-    return result;
+    bool result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
+    return result != NULL;
 }
 
-internal void os_memory_decommit(void *ptr, uint64_t size)
+internal bool os_memory_decommit(void *ptr, size_t size)
 {
-    VirtualFree(ptr, size, MEM_DECOMMIT);
+    return VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
-internal void os_memory_free(void *ptr, uint64_t size)
+internal bool os_memory_release(void *ptr, size_t size)
 {
-    Unused(size);
-    VirtualFree(ptr, 0, MEM_RELEASE);
+    return VirtualFree(ptr, size, MEM_RELEASE);
+}
+
+internal size_t os_pagesize_get(void)
+{
+    SYSTEM_INFO sysinfo = { 0 };
+    GetSystemInfo(&sysinfo);
+    return sysinfo.dwPageSize;
 }
 
 // File System
@@ -117,7 +123,7 @@ internal void os_file_close(Os_File file)
 
 internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
-    uint64_t size = 0;
+    size_t size = 0;
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
     Rng1_U64 rng_clamped  = rng1_u64(Min(rng.min, size), Min(rng.max, size));
     uint64_t total_read_size = 0;
@@ -279,18 +285,18 @@ internal Str8 os_env_get(Str8 name)
 int main(void)
 {
     // Allocating core memory
-    uint64_t size = MB(10);
+    size_t size = MB(10);
     void *buffer = os_memory_alloc(size);
-    Alloc alloc = alloc_arena_init(buffer, size);
+    Arena *arena = alloc_arena_init(buffer, size);
     // Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
-    _os_core_state.args = str8_array_alloc(alloc, args_count);
+    _os_core_state.args = str8_array_alloc(arena, args_count);
     _os_core_state.alloc = alloc;
     for(int i = 0; i < args_count; i++)
     {
         Str16 str16 = str16_from_cstr(args[i]);
-        Str8 str = str8_from_16(alloc, str16);
+        Str8 str = str8_from_16(arena, str16);
         str8_array_append(&_os_core_state.args, str);
     }
     // NOTE(AnzenKodo): we need this to set now time.

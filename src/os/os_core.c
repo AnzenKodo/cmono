@@ -1,29 +1,30 @@
-internal void * os_memory_alloc(uint64_t size)
+internal void * os_memory_alloc(size_t size)
 {
-    void *result = os_memory_create(size);
+    void *result = os_memory_reserve(size);
     os_memory_commit(result, size);
     return result;
 }
 
-internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Alloc alloc)
+internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 {
+    size_t pre_pos = arena_pos(arena);
     Str8 result;
     result.length = dim1_u64(range);
-    result.cstr = alloc_make(alloc, uint8_t, result.length);
+    result.cstr = arena_push(arena, uint8_t, result.length);
     uint64_t actual_read_size = os_file_read(file, range, result.cstr);
     if(actual_read_size < result.length)
     {
-        alloc_free(alloc, result.cstr, result.length);
+        arena_pop_to(arena, pre_pos + actual_read_size);
         result.length = actual_read_size;
     }
     return result;
 }
 
-internal Str8 os_file_read_str_full(Os_File file, Alloc alloc)
+internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
 {
     Str8 result;
     Os_FileProperties prop = os_file_properties(file);
-    result = os_file_read_str(file, rng1_u64(0, prop.size), alloc);
+    result = os_file_read_str(file, rng1_u64(0, prop.size), arena);
     return result;
 }
 
