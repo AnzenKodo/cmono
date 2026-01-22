@@ -42,19 +42,19 @@ internal bool wl_is_event_happen(Wl_EventType type)
 // Get Window Property
 //=============================================================================
 
-internal unsigned int wl_display_width_get(void)
+internal uint32_t wl_display_width_get(void)
 {
     return _wl_core_state.display_width;
 }
-internal unsigned int wl_display_height_get(void)
+internal uint32_t wl_display_height_get(void)
 {
     return _wl_core_state.display_height;
 }
-internal unsigned int wl_window_width_get(void)
+internal uint32_t wl_window_width_get(void)
 {
    return _wl_core_state.win_width;
 }
-internal unsigned int wl_window_height_get(void)
+internal uint32_t wl_window_height_get(void)
 {
    return _wl_core_state.win_height;
 }

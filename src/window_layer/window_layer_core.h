@@ -201,14 +201,14 @@ struct Wl_Event {
 typedef struct _Wl_Core_State _Wl_Core_State;
 struct _Wl_Core_State {
     Wl_Event event;
-    unsigned int win_width;
-    unsigned int win_height;
-    unsigned int display_width;
-    unsigned int display_height;
+    uint32_t win_width;
+    uint32_t win_height;
+    uint32_t display_width;
+    uint32_t display_height;
     bool     win_should_close;
-    unsigned int frame_prev_time;
-    unsigned int frame_count;
-    unsigned int fps;
+    uint32_t frame_prev_time;
+    uint32_t frame_count;
+    uint32_t fps;
 };
 
 // Functions
@@ -216,7 +216,7 @@ struct _Wl_Core_State {
 
 // Basic window functions =====================================================
 
-internal void wl_window_open(Str8 title, unsigned int width, unsigned int height);
+internal void wl_window_open(Str8 title, uint32_t width, uint32_t height);
 internal void wl_window_close(void);
 
 // Window close functions =====================================================

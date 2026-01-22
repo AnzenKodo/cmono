@@ -1,7 +1,7 @@
 // Basic window functions
 //=============================================================================
 
-internal void wl_window_open(Str8 title, unsigned int width, unsigned int height)
+internal void wl_window_open(Str8 title, uint32_t width, uint32_t height)
 {
     _wl_x11_state.connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(_wl_x11_state.connection);
