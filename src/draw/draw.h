@@ -30,7 +30,6 @@ struct Draw_List
 {
     Draw_Node *first;
     Draw_Node *last;
-    size_t    length;
 };
 
 // Functions

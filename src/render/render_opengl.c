@@ -27,8 +27,7 @@ internal uint32_t _render_opengl_shader_load(char **vert_sources, uint32_t vert_
     uint32_t program_id = glCreateProgram();
     uint32_t vert_id = _render_opengl_shader_compile(vert_sources, vert_source_num, GL_VERTEX_SHADER, program_id);
     uint32_t frag_id = _render_opengl_shader_compile(frag_sources, frag_source_num, GL_FRAGMENT_SHADER, program_id);
-    glBindAttribLocation(program_id, _Render_Opengl_Vertex_Loc_Position, "position");
-    glBindAttribLocation(program_id, _Render_Opengl_Vertex_Loc_Texcoord, "texcoord");
+    glBindAttribLocation(program_id, _Render_Opengl_Vertex_Loc_Pos, "pos");
     glLinkProgram(program_id);
     glValidateProgram(program_id);
     GLint status;
@@ -83,7 +82,6 @@ internal GLenum _render_opengl_format_from_img_format(Img_Format format)
 
 // Core functions
 //=============================================================================
-
 internal void render_init(void)
 {
     _render_opengl_init();
@@ -104,39 +102,51 @@ internal void render_init(void)
     }
 #endif
     // Shader Init ============================================================
-    char *vs_source =
-        "attribute vec4 position;\n"
-        "attribute vec2 texcoord;\n"
-        "varying vec2 v_tc;\n"
-        "void main() {\n"
-        "  gl_Position = position;\n"
-        "  v_tc = texcoord;\n"
+    const char *vs_source =
+        "#version 330 core\n"
+        "layout(location = 0) in vec2 pos;\n"
+        "uniform vec2 uResolution;\n"
+        "uniform vec2 uOffset;\n"
+        "uniform vec2 uSize;\n"
+        "void main()\n"
+        "{\n"
+        "    vec2 rect_pos = pos * uSize + uOffset;\n"
+        "    vec2 clip = (rect_pos / uResolution) * 2.0 - 1.0;\n"
+        "    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);\n"
         "}\n";
-    char *fs_source =
-        "precision mediump float;\n"
-        "varying vec2 v_tc;\n"
-        "uniform sampler2D tex;\n"
-        "void main() {\n"
-        "  gl_FragColor = texture2D(tex, v_tc);\n"
+    const char *fs_source =
+        "#version 330 core\n"
+        "uniform vec4 uColor;\n"
+        "out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "    FragColor = uColor;\n"
         "}\n";
     char* vert_sources[] = {
-        // shader_source_header,
         vs_source,
     };
     char* frag_sources[] = {
-        // shader_source_header,
         fs_source,
     };
-    uint32_t shader_id = _render_opengl_shader_load(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
-    // Texture Init ===========================================================
-    // glGenTextures(1, &tex);
-    // glBindTexture(GL_TEXTURE_2D, tex);
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->width, img->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->pixels);
-    // glBindTexture(GL_TEXTURE_2D, 0);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    _render_opengl_state.shader = _render_opengl_shader_load(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
+    // generate vertex storage
+    glGenVertexArrays(1, &_render_opengl_state.vao);
+    glGenBuffers(1, &_render_opengl_state.vbo);
+    // bind vertex input attribute
+    glBindVertexArray(_render_opengl_state.vao);
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.vbo);
+        float vertices[] = {
+            0.0f, 0.0f,   // top-left
+            0.0f, 1.0f,   // bottom-left
+            1.0f, 0.0f,   // top-right
+            1.0f, 1.0f    // bottom-right
+        };
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), vertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Pos);
+        glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Pos, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    }
+    glBindVertexArray(0);
 }
 
 internal void render_deinit(void)
@@ -149,33 +159,20 @@ internal void render(Draw_List *list)
     glViewport(0, 0, wl_window_width_get(), wl_window_height_get());
     glClearColor(1.f, 0.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    for (size_t i = 0; i < list->length; i++)
+    // start shader program
+    glUseProgram(_render_opengl_state.shader);
+    glBindVertexArray(_render_opengl_state.vao);
+    for (Draw_Node *node = list->first; node != NULL; node = node->next)
     {
+        switch (node->type)
+        {
+            case Draw_Type_Rect:
+            {
+            } break;
+        }
     }
-    // Texture Render =========================================================
-    // static const GLfloat full_verts[8] = {
-    //     -1.0f, -1.0f,
-    //     1.0f, -1.0f,
-    //     -1.0f,  1.0f,
-    //     1.0f,  1.0f
-    // };
-    // static const GLfloat full_texcoords[8] = {
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     1.0f, 1.0f
-    // };
-    // bind vertex input attribute
-    // glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Position);
-    // glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Position, 2, GL_FLOAT, false, 0, full_verts);
-    // glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Texcoord);
-    // glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Texcoord, 2, GL_FLOAT, false, 0, full_texcoords);
-    // bind texture
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, tex);
-    // draw
-    // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+    glUseProgram(0);
     // os internal opengl
     _render_opengl();
 }

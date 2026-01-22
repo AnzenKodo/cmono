@@ -22,6 +22,5 @@ struct _Render_Egl_State
 //=============================================================================
 
 global _Render_Egl_State _render_egl_state = ZERO_STRUCT;
-global char* shader_source_header = "#version 300 es\nprecision highp float;\n";
 
 #endif // RENDER_EGL_H

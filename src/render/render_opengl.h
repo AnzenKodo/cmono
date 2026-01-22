@@ -11,16 +11,15 @@
 
 typedef enum _Render_Opengl_Vertex_Loc
 {
-    _Render_Opengl_Vertex_Loc_Position = 0,
-    _Render_Opengl_Vertex_Loc_Texcoord,
+    _Render_Opengl_Vertex_Loc_Pos = 0,
 } _Render_Opengl_Vertex_Loc;
 
 typedef struct _Render_Opengl_State _Render_Opengl_State;
 struct _Render_Opengl_State
 {
-    GLuint  vertex_arrays;
-    GLuint  array_buffer;
-    GLsizei array_buffer_size;
+    GLuint shader;
+    GLuint vao;
+    GLuint vbo;
 };
 
 // X Macro

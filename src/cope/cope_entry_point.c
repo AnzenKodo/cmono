@@ -34,10 +34,9 @@ internal void entry_point(void)
     void *buffer = os_memory_alloc(size);
     Arena *arena = arena_alloc(MB(10), MB(1));
 
-    Arena_Temp temp = arena_temp_begin(arena);
-    Flags_Context context = flags_begin(temp.arena);
+    // Command Line ===========================================================
+    Flags_Context context = flags_begin(arena);
     Flags_Option *option = NULL;
-
     bool help = false;
     option = flags_option_bool(&context, str8("help"), &help, help, str8("Print help message"));
     flags_add_option_shortname(option, str8("h"));
@@ -62,7 +61,7 @@ internal void entry_point(void)
         fmt_print("v"PROGRAM_VERSION);
         os_exit(0);
     }
-    arena_temp_end(temp);
+    flags_end(&context);
 
     // Program Init ===========================================================
     int width = 150;
@@ -72,9 +71,9 @@ internal void entry_point(void)
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
     Draw_List list = ZERO_STRUCT;
-
     while (!wl_should_window_close())
     {
+        Arena_Temp temp = arena_temp_begin(arena);
         wl_set_fps(60);
         wl_update_events();
         if ((wl_is_key_pressed(Wl_Key_Esc)) ||
@@ -82,7 +81,9 @@ internal void entry_point(void)
         ) {
             wl_set_window_close();
         }
+        draw_rect_push(temp.arena, &list, (Vec4_F32) { 0.1, 0.2, 0.32, 1 }, (Vec4_F32) { 255, 255, 255, 255 });
         render(&list);
+        arena_temp_end(temp);
     }
 
     // Free Everything ========================================================
