@@ -38,7 +38,6 @@ internal uint32_t _render_opengl_shader_load(char **vert_sources, uint32_t vert_
         glGetProgramInfoLog(program_id, 512, NULL, log);
         LogErrorLine(_os_core_state.log_context, "%s", log);
     }
-    glUseProgram(program_id);
     glDeleteShader(vert_id);
     glDeleteShader(frag_id);
     return program_id;
@@ -102,30 +101,30 @@ internal void render_init(void)
     }
 #endif
     // Shader Init ============================================================
-    const char *vs_source =
-        "#version 330 core\n"
+    char *vs_source =
         "layout(location = 0) in vec2 pos;\n"
-        "uniform vec2 uResolution;\n"
-        "uniform vec2 uOffset;\n"
-        "uniform vec2 uSize;\n"
+        "uniform vec2 u_resolution;\n"
+        "uniform vec2 u_offset;\n"
+        "uniform vec2 u_size;\n"
         "void main()\n"
         "{\n"
-        "    vec2 rect_pos = pos * uSize + uOffset;\n"
-        "    vec2 clip = (rect_pos / uResolution) * 2.0 - 1.0;\n"
+        "    vec2 rect_pos = pos * u_size + u_offset;\n"
+        "    vec2 clip = (rect_pos / u_resolution) * 2.0 - 1.0;\n"
         "    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);\n"
         "}\n";
-    const char *fs_source =
-        "#version 330 core\n"
-        "uniform vec4 uColor;\n"
+    char *fs_source =
+        "uniform vec4 u_color;\n"
         "out vec4 FragColor;\n"
         "void main()\n"
         "{\n"
-        "    FragColor = uColor;\n"
+        "    FragColor = u_color;\n"
         "}\n";
     char* vert_sources[] = {
+        shader_source_header,
         vs_source,
     };
     char* frag_sources[] = {
+        shader_source_header,
         fs_source,
     };
     _render_opengl_state.shader = _render_opengl_shader_load(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
@@ -142,7 +141,7 @@ internal void render_init(void)
             1.0f, 0.0f,   // top-right
             1.0f, 1.0f    // bottom-right
         };
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Pos);
         glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Pos, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     }
@@ -151,23 +150,39 @@ internal void render_init(void)
 
 internal void render_deinit(void)
 {
+    glDeleteVertexArrays(1, &_render_opengl_state.vao);
+    glDeleteBuffers(1, &_render_opengl_state.vbo);
     _render_opengl_deinit();
 }
 
 internal void render(Draw_List *list)
 {
-    glViewport(0, 0, wl_window_width_get(), wl_window_height_get());
+    uint32_t win_width = wl_window_width_get();
+    uint32_t win_height = wl_window_height_get();
+    glViewport(0, 0, win_width, win_height);
     glClearColor(1.f, 0.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
     // start shader program
     glUseProgram(_render_opengl_state.shader);
     glBindVertexArray(_render_opengl_state.vao);
+    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_resolution"), win_width, win_height);
     for (Draw_Node *node = list->first; node != NULL; node = node->next)
     {
         switch (node->type)
         {
             case Draw_Type_Rect:
             {
+                Draw_Rect rect = node->param_rect;
+                float x = rect.dst.x;
+                float y = rect.dst.y;
+                float width = rect.dst.z;
+                float height = rect.dst.w;
+                Vec4_F32 color = rect.color;
+                // Fill
+                glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"), x, y);
+                glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),   width, height);
+                glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),  color.x, color.y, color.z, color.w);
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             } break;
         }
     }
@@ -175,9 +190,4 @@ internal void render(Draw_List *list)
     glUseProgram(0);
     // os internal opengl
     _render_opengl();
-}
-
-internal void render_shader_unload(uint32_t id)
-{
-    glDeleteProgram(id);
 }

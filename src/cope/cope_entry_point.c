@@ -67,7 +67,7 @@ internal void entry_point(void)
     int width = 150;
     int height = 300;
     wl_window_open(str8(PROGRAM_NAME), width, height);
-    wl_window_border_set(false);
+    // wl_window_border_set(false);
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
     Draw_List list = ZERO_STRUCT;
@@ -81,7 +81,7 @@ internal void entry_point(void)
         ) {
             wl_set_window_close();
         }
-        draw_rect_push(temp.arena, &list, (Vec4_F32) { 0.1, 0.2, 0.32, 1 }, (Vec4_F32) { 255, 255, 255, 255 });
+        draw_rect_push(temp.arena, &list, (Vec4_F32) { 0.0, 0.0, 100.0f, 100.0f }, (Vec4_F32) { 1, 1, 1, 1 });
         render(&list);
         arena_temp_end(temp);
     }
