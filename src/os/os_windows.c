@@ -53,7 +53,7 @@ internal void *os_memory_reserve(size_t size)
 
 internal bool os_memory_commit(void *ptr, size_t size)
 {
-    bool result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
+    LPVOID result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
     return result != NULL;
 }
 
@@ -79,7 +79,8 @@ internal size_t os_pagesize_get(void)
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
-    Str16 path16 = str16_from_8(_os_core_state.alloc, path);
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    Str16 path16 = str16_from_8(scratch.arena, path);
     DWORD access_flags = 0;
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
@@ -113,6 +114,7 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
         (WCHAR *)path16.cstr, access_flags, share_mode, &security_attributes,
         creation_disposition, FILE_ATTRIBUTE_NORMAL, 0
     );
+    arena_scratch_end(scratch);
     return (Os_File)handle;
 }
 
@@ -198,8 +200,9 @@ internal Os_FileProperties os_file_properties(Os_File file)
 
 internal bool os_dir_make(Str8 path)
 {
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
     bool result = false;
-    Str16 path16 = str16_from_8(_os_core_state.alloc, path);
+    Str16 path16 = str16_from_8(scratch.arena, path);
     WIN32_FILE_ATTRIBUTE_DATA attributes = {0};
     GetFileAttributesExW((WCHAR*)path16.cstr, GetFileExInfoStandard, &attributes);
     if(attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -207,6 +210,7 @@ internal bool os_dir_make(Str8 path)
     } else if(CreateDirectoryW((WCHAR*)path16.cstr, 0)) {
         result = true;
     }
+    arena_scratch_end(scratch);
     return(result);
 }
 
@@ -259,22 +263,26 @@ internal void os_sleep_millisec(uint32_t millisec)
 
 internal bool os_env_is_set(Str8 name)
 {
-    Str16 name16 = str16_from_8(_os_core_state.alloc, name);
+
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    Str16 name16 = str16_from_8(scratch.arena, name);
     DWORD len = GetEnvironmentVariableW(name16.cstr, NULL, 0);
+    arena_scratch_end(scratch);
     return len;
 }
 
 internal Str8 os_env_get(Str8 name)
 {
     Str8 result = ZERO_STRUCT;
-    Str16 name16 = str16_from_8(_os_core_state.alloc, name);
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    Str16 name16 = str16_from_8(scratch.arena, name);
     DWORD len = GetEnvironmentVariableW(name16.cstr, NULL, 0);
     if (len > 0) {
-        uint16_t* value_buf = alloc_make(_os_core_state.alloc, uint16_t, len);
+        uint16_t* value_buf = arena_push(scratch.arena, uint16_t, len);
         GetEnvironmentVariableW(name16.cstr, value_buf, len);
         Str16 value16 = str16_from_cstr(value_buf);
-        alloc_free(_os_core_state.alloc, value_buf, len);
-        result = str8_from_16(_os_core_state.alloc, value16);
+        arena_scratch_end(scratch);
+        result = str8_from_16(scratch.arena, value16);
     }
     return result;
 }
@@ -284,20 +292,16 @@ internal Str8 os_env_get(Str8 name)
 
 int main(void)
 {
-    // Allocating core memory
-    size_t size = MB(10);
-    void *buffer = os_memory_alloc(size);
-    Arena *arena = alloc_arena_init(buffer, size);
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     // Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
-    _os_core_state.args = str8_array_alloc(arena, args_count);
-    _os_core_state.alloc = alloc;
+    _os_core_state.args = array_push(scratch.arena, Str8Array, args_count);
     for(int i = 0; i < args_count; i++)
     {
         Str16 str16 = str16_from_cstr(args[i]);
-        Str8 str = str8_from_16(arena, str16);
-        str8_array_append(&_os_core_state.args, str);
+        Str8 str = str8_from_16(scratch.arena, str16);
+        array_append(&_os_core_state.args, str);
     }
     // NOTE(AnzenKodo): we need this to set now time.
     {
@@ -310,4 +314,5 @@ int main(void)
     }
     // Go to default OS entry point
     os_entry_point();
+    arena_scratch_end(scratch);
 }

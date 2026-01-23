@@ -56,7 +56,7 @@
     X(glUniform1iv, void, (GLint location, GLsizei count, const GLint *value))\
     X(glUniform2iv, void, (GLint location, GLsizei count, const GLint *value))\
     X(glUniform3iv, void, (GLint location, GLsizei count, const GLint *value))\
-    X(glUniform4iv, void, (GLint location, GLsizei count, const GLint *value))\
+    X(glUniform4iv, void, (GLint location, GLsizei count, const GLint *value))
 
 // OpenGL setup function pointers
 //=============================================================================
