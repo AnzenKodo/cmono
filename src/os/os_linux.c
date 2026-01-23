@@ -278,12 +278,13 @@ internal Str8 os_env_get(Str8 name)
 
 int main(int argc, char *argv[])
 {
-    Arena_Temp temp = arena_scratch_begin(NULL, 0);
-    _os_core_state.args = array_push(temp.arena, Str8Array, argc);
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    _os_core_state.args = array_push(scratch.arena, Str8Array, argc);
     for(int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);
         array_append(&_os_core_state.args, str);
     }
     os_entry_point();
+    arena_scratch_end(scratch);
 }
