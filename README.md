@@ -57,6 +57,11 @@ cc build.c -o build
 - [RAD Debugger](https://github.com/EpicGamesExt/raddebugger)
 - [4coder](https://github.com/4coder-archive/4coder)
 
+### Guide
+
+- [docs.gl](https://docs.gl/)
+- [GL Constants Translator](https://javagl.github.io/GLConstantsTranslator/GLConstantsTranslator.html)
+
 ### Articles/Posts
 
 - [Pre-defined C/C++ Compiler Macros](https://github.com/cpredef/predef)
