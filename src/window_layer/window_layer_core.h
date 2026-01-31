@@ -206,7 +206,7 @@ struct _Wl_Core_State {
     uint32_t display_width;
     uint32_t display_height;
     bool     win_should_close;
-    uint32_t frame_prev_time;
+    uint64_t frame_prev_time;
     uint32_t frame_count;
     uint32_t fps;
 };

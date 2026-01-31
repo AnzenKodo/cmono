@@ -327,6 +327,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
 
 internal void wl_window_open(Str8 title, unsigned int width, unsigned int height)
 {
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     HINSTANCE instance = GetModuleHandleW(NULL);
     WNDCLASSEXW wc = ZERO_STRUCT;
     wc.cbSize = sizeof(WNDCLASSEXW);
@@ -344,7 +345,7 @@ internal void wl_window_open(Str8 title, unsigned int width, unsigned int height
         );
         os_exit(1);
     }
-    Str16 title16 = str16_from_8(_os_core_state.alloc, title);
+    Str16 title16 = str16_from_8(scratch.arena, title);
     _wl_win32_state.handle = CreateWindowExW(
         WS_EX_APPWINDOW,
         wc.lpszClassName, title16.cstr,
@@ -362,8 +363,9 @@ internal void wl_window_open(Str8 title, unsigned int width, unsigned int height
     ShowWindow(_wl_win32_state.handle, SW_SHOW);
     UpdateWindow(_wl_win32_state.handle);
     // Get Display Size =======================================================
-    _wl_core_state.display_size.x = GetSystemMetrics(SM_CXSCREEN);
-    _wl_core_state.display_size.y = GetSystemMetrics(SM_CYSCREEN);
+    _wl_core_state.display_width = GetSystemMetrics(SM_CXSCREEN);
+    _wl_core_state.display_height = GetSystemMetrics(SM_CYSCREEN);
+    arena_scratch_end(scratch);
 }
 
 internal void wl_window_close(void)
@@ -510,7 +512,7 @@ internal Wl_Event wl_get_event(void)
                 ScreenToClient(_wl_win32_state.handle, &p);
                 event.pos.x = (float)p.x;
                 event.pos.y = (float)p.y;
-                event.delta = vec2_f32(0.f, -(float)wheel_delta);
+                event.delta = (Vec2_F32){0.f, -(float)wheel_delta};
             } break;
             case WM_MOUSEHWHEEL:
             {
@@ -521,7 +523,7 @@ internal Wl_Event wl_get_event(void)
                 ScreenToClient(_wl_win32_state.handle, &p);
                 event.pos.x = (float)p.x;
                 event.pos.y = (float)p.y;
-                event.delta = vec2_f32((float)wheel_delta, 0.f);
+                event.delta = (Vec2_F32){(float)wheel_delta, 0.f};
             } break;
             case WM_QUIT:
             {
@@ -579,9 +581,8 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
     DeleteObject(hBitmap);
 
     if (hIcon) {
-        HWND hwnd = _win32_state.window;  // Assuming similar global state
-        SendMessage(_win32_state.window, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-        SendMessage(_win32_state.window, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        SendMessage(_wl_win32_state.handle, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(_wl_win32_state.handle, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
         current_icon = hIcon;
     }
 }
@@ -589,17 +590,17 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
 internal void win32_window_border_set(bool enable)
 {
     // Get current window style
-    LONG_PTR style = GetWindowLongPtr(_win32_state.window, GWL_STYLE);
+    LONG_PTR style = GetWindowLongPtr(_wl_win32_state.handle, GWL_STYLE);
     if (!enable)
     {
         // Borderless window
         style = WS_POPUP | WS_VISIBLE;
     }
     // Apply the new style
-    SetWindowLongPtr(_win32_state.window, GWL_STYLE, style);
+    SetWindowLongPtr(_wl_win32_state.handle, GWL_STYLE, style);
     // NOTE(aman.v): Force Windows to recalculate the window frame and client area
     // Without this, the non-client area (border/title) may not update properly
-    SetWindowPos(_win32_state.window,
+    SetWindowPos(_wl_win32_state.handle,
          NULL,
          0, 0, 0, 0,
          SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
@@ -615,8 +616,8 @@ internal void wl_render_init(void *render_buffer)
     _wl_win32_state.bitmap_info.bmiHeader.biPlanes = 1;
     _wl_win32_state.bitmap_info.bmiHeader.biBitCount = 32;
     _wl_win32_state.bitmap_info.bmiHeader.biCompression = BI_RGB;
-    _wl_win32_state.bitmap_info.bmiHeader.biWidth = wl_get_display_width();
-    _wl_win32_state.bitmap_info.bmiHeader.biHeight = -wl_get_display_height();
+    _wl_win32_state.bitmap_info.bmiHeader.biWidth = wl_display_width_get();
+    _wl_win32_state.bitmap_info.bmiHeader.biHeight = wl_display_height_get();
 }
 
 internal void wl_render_deinit(void)
@@ -632,8 +633,8 @@ internal void wl_render_end(void)
 {
     StretchDIBits(
         _wl_win32_state.hdc,
-        0, 0, wl_get_display_width(), wl_get_display_height(),
-        0, 0, wl_get_display_width(), wl_get_display_height(),
+        0, 0, wl_display_width_get(), wl_display_height_get(),
+        0, 0, wl_display_width_get(), wl_display_height_get(),
         _wl_win32_state.render_buffer, &_wl_win32_state.bitmap_info,
         DIB_RGB_COLORS, SRCCOPY
     );
