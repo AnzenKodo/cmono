@@ -47,7 +47,7 @@
     X(glGetAttribLocation, GLint, (GLuint program, char *name))\
     X(glEnableVertexAttribArray, void, (GLuint index))\
     X(glVertexAttribPointer, void, (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer))\
-    X(glBufferData, void, (GLenum target, ptrdiff_t size, void *data, GLenum usage))\
+    X(glBufferData, void, (GLenum target, GLsizei size, void *data, GLenum usage))\
     X(glDeleteProgram, void, (GLuint program))\
     X(glUniform1fv, void, (GLint location, GLsizei count, const GLfloat *value))\
     X(glUniform2fv, void, (GLint location, GLsizei count, const GLfloat *value))\
@@ -56,7 +56,11 @@
     X(glUniform1iv, void, (GLint location, GLsizei count, const GLint *value))\
     X(glUniform2iv, void, (GLint location, GLsizei count, const GLint *value))\
     X(glUniform3iv, void, (GLint location, GLsizei count, const GLint *value))\
-    X(glUniform4iv, void, (GLint location, GLsizei count, const GLint *value))
+    X(glUniform4iv, void, (GLint location, GLsizei count, const GLint *value))\
+    X(glBindAttribLocation, void, (GLuint programObj, GLuint index, char *name))\
+    X(glValidateProgram, void, (GLuint program))\
+    X(glUniform2f, void, (GLint location, GLfloat v0, GLfloat v1))\
+    X(glUniform4f, void, (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3))
 
 // OpenGL setup function pointers
 //=============================================================================

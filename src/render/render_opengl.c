@@ -70,11 +70,7 @@ internal GLenum _render_opengl_format_from_img_format(Img_Format format)
         case Img_Format_RG8:    { result = GL_RG;   }break;
         case Img_Format_RGBA8:  { result = GL_RGBA; }break;
         case Img_Format_BGRA8:  { result = GL_BGRA; }break;
-        case Img_Format_R16:    { result = GL_RED;  }break;
-        case Img_Format_RGBA16: { result = GL_RGBA; }break;
-        case Img_Format_R32:    { result = GL_RED;  }break;
-        case Img_Format_RG32:   { result = GL_RG;   }break;
-        case Img_Format_RGBA32: { result = GL_RGBA; }break;
+        default:  { result = GL_RGBA; }break;
     }
     return result;
 };
@@ -165,7 +161,7 @@ internal void render(Draw_List *list)
     // start shader program
     glUseProgram(_render_opengl_state.shader);
     glBindVertexArray(_render_opengl_state.vao);
-    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_resolution"), win_width, win_height);
+    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_resolution"), (GLfloat)win_width, (GLfloat)win_height);
     for (Draw_Node *node = list->first; node != NULL; node = node->next)
     {
         switch (node->type)

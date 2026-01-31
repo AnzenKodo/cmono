@@ -38,7 +38,7 @@ struct _Render_Opengl_State
     X(glUniform3uv, void, (GLint location, GLsizei count, const GLuint *value))\
     X(glUniform4uv, void, (GLint location, GLsizei count, const GLuint *value))\
     X(glDebugMessageControl, void, (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled))\
-    X(glDebugMessageCallback, void, (void (*)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam), void *user_data))\
+    X(glDebugMessageCallback, void, (void (*)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *message, const void *userParam), const void *userParam))\
     RenderOpenglXMacroWGL
 
 #define X(name, r, p) typedef r name##_FunctionType p;
@@ -58,6 +58,18 @@ struct _Render_Opengl_State
 #define GL_DEBUG_SEVERITY_LOW           0x9148
 #define GL_DEBUG_SEVERITY_NOTIFICATION  0x826B
 
+#define GL_COMPILE_STATUS               0x8B81
+#define GL_LINK_STATUS                  0x8b82
+
+#define GL_FRAGMENT_SHADER              0x8B30
+#define GL_VERTEX_SHADER                0x8B31
+
+#define GL_ARRAY_BUFFER                 0x8892
+#define GL_STATIC_DRAW                  0x88E4
+
+#define GL_RG                           0x8227
+#define GL_BGRA                         0x80e1
+
 // Functions
 //=============================================================================
 
@@ -66,7 +78,7 @@ struct _Render_Opengl_State
 internal Void_Proc *_render_opengl_load_procedure(char *name);
 internal uint32_t _render_opengl_shader_compile(char **source, uint32_t source_num, GLenum type, uint32_t program_id);
 internal uint32_t _render_opengl_shader_load(char **vert_sources, uint32_t vert_source_num, char **frag_sources, uint32_t frag_source_num);
-internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);
+internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *message, const void *userParam);
 
 // Internal OpneGL functions ==================================================
 
