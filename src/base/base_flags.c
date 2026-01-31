@@ -391,61 +391,61 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
         }
     }
     // Assign defaults and handle require
-    for (Flags_Option *option = context->first_option; option != NULL; option = option->next)
+    for (Flags_Option *foption = context->first_option; foption != NULL; foption = foption->next)
     {
-        if (!option->assigned)
+        if (!foption->assigned)
         {
-            if (option->required)
+            if (foption->required)
             {
-                _flags_add_option_error(context, _Flags_Error_Kind_RequireOption, option->name);
+                _flags_add_option_error(context, _Flags_Error_Kind_RequireOption, foption->name);
             }
             else
             {
-                switch (option->kind)
+                switch (foption->kind)
                 {
                     case _Flags_Option_Kind_Str:
                     {
-                        *option->result_value.str_value = option->default_value.str_value;
+                        *foption->result_value.str_value = foption->default_value.str_value;
                     }
                     break;
                     case _Flags_Option_Kind_Bool:
                     {
-                        *option->result_value.bool_value = option->default_value.bool_value;
+                        *foption->result_value.bool_value = foption->default_value.bool_value;
                     }
                     break;
                     case _Flags_Option_Kind_Int:
                     {
-                        *option->result_value.int_value = option->default_value.int_value;
+                        *foption->result_value.int_value = foption->default_value.int_value;
                     }
                     break;
                     case _Flags_Option_Kind_UInt:
                     {
-                        *option->result_value.uint_value = option->default_value.uint_value;
+                        *foption->result_value.uint_value = foption->default_value.uint_value;
                     }
                     break;
                     case _Flags_Option_Kind_Float:
                     {
-                        *option->result_value.float_value = option->default_value.float_value;
+                        *foption->result_value.float_value = foption->default_value.float_value;
                     }
                     break;
                     case _Flags_Option_Kind_StrArr:
                     {
-                        option->result_value.str_value_arr = option->default_value.str_value_arr;
+                        foption->result_value.str_value_arr = foption->default_value.str_value_arr;
                     }
                     break;
                     case _Flags_Option_Kind_IntArr:
                     {
-                        option->result_value.int_value_arr = option->default_value.int_value_arr;
+                        foption->result_value.int_value_arr = foption->default_value.int_value_arr;
                     }
                     break;
                     case _Flags_Option_Kind_UIntArr:
                     {
-                        option->result_value.uint_value_arr = option->default_value.uint_value_arr;
+                        foption->result_value.uint_value_arr = foption->default_value.uint_value_arr;
                     }
                     break;
                     case _Flags_Option_Kind_FloatArr:
                     {
-                        option->result_value.float_value_arr = option->default_value.float_value_arr;
+                        foption->result_value.float_value_arr = foption->default_value.float_value_arr;
                     }
                     break;
                 }
@@ -586,8 +586,6 @@ internal void flags_print_help(Flags_Context *context)
 {
     for (Flags_Option *option = context->first_option; option != NULL; option = option->next)
     {
-        Str8 value_syntex = ZERO_STRUCT;
-        Str8 required_syntex = ZERO_STRUCT;
         term_style_start(TERM_BOLD);
         fmt_printf("    %s%s%s%s--%.*s",
             option->shortname.length > 0 ? "-" : "",

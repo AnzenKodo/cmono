@@ -1,8 +1,12 @@
 internal char *_log_get_level_string(Log_Level level)
 {
-    char *level_string;
+    char *level_string = "";
     switch (level)
     {
+        case Log_Level_None:
+        {
+            level_string = "";
+        } break;
         case Log_Level_Info:
         {
             level_string = "[INFO]";
@@ -19,9 +23,6 @@ internal char *_log_get_level_string(Log_Level level)
         {
             level_string = "[ERROR]";
         } break;
-        default:
-        {
-        }
     }
     return level_string;
 }

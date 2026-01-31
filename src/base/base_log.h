@@ -7,7 +7,6 @@ typedef enum Log_Level {
     Log_Level_Debug,
     Log_Level_Warn,
     Log_Level_Error,
-    Log_Level_COUNT,
 } Log_Level;
 
 typedef struct Log_Context Log_Context;
