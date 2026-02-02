@@ -9,7 +9,7 @@ internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 {
     size_t pre_pos = arena_pos(arena);
     Str8 result;
-    result.length = dim1_u64(range);
+    result.length = rng1_dim_u64(range);
     result.cstr = arena_push(arena, uint8_t, result.length);
     uint64_t actual_read_size = os_file_read(file, range, result.cstr);
     if(actual_read_size < result.length)
@@ -24,7 +24,7 @@ internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
 {
     Str8 result;
     Os_FileProperties prop = os_file_properties(file);
-    result = os_file_read_str(file, rng1_u64(0, prop.size), arena);
+    result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
     return result;
 }
 

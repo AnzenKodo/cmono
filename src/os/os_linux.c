@@ -130,7 +130,7 @@ internal void os_file_close(Os_File file)
 
 internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
-    uint64_t total_num_bytes_to_read = dim1_u64(rng);
+    uint64_t total_num_bytes_to_read = rng1_dim_u64(rng);
     uint64_t total_num_bytes_read = 0;
     uint64_t total_num_bytes_left_to_read = total_num_bytes_to_read;
     for(;total_num_bytes_left_to_read > 0;)
@@ -154,7 +154,7 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 
 internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
 {
-    uint64_t total_num_bytes_to_write = dim1_u64(rng);
+    uint64_t total_num_bytes_to_write = rng1_dim_u64(rng);
     uint64_t total_num_bytes_written = 0;
     if (file == OS_STDOUT || file == OS_STDIN || file == OS_STDERR)
     {

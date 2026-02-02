@@ -1,6 +1,11 @@
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 
+// NOTE(anzenkodo): the code reference taken from:
+// - https://github.com/gingerBill/gb/blob/master/gb_math.h
+// - https://github.com/HandmadeMath/HandmadeMath
+// - https://github.com/EpicGamesExt/raddebugger
+
 // Base
 //=============================================================================
 
@@ -368,7 +373,172 @@ union Rng2_I64
 // Constants
 //=============================================================================
 
-#define MATH_PI           3.14159265358979323846264338327950288f
+#define EPSILON_F32      1.19209290e-7f
+#define ZERO_F32         0.0f
+#define ONE_F32          1.0f
+#define TWO_THIRDS_F32   0.666666666666666666666666666666666666667f
+#define TAU_F32          6.28318530717958647692528676655900576f
+#define PI_F32           3.14159265358979323846264338327950288f
+#define ONE_OVER_TAU_F32 0.159154943091895335768883763372514362f
+#define ONE_OVER_PI_F32  0.318309886183790671537767526745028724f
+#define TAU_OVER_2_F32   3.14159265358979323846264338327950288f
+#define TAU_OVER_4_F32   1.570796326794896619231321691639751442f
+#define TAU_OVER_8_F32   0.785398163397448309615660845819875721f
+#define E_F32            2.7182818284590452353602874713526625f
+#define SQRT_TWO_F32     1.41421356237309504880168872420969808f
+#define SQRT_THREE_F32   1.73205080756887729352744634150587236f
+#define SQRT_FIVE_F32    2.23606797749978969640917366873127623f
+#define LOG_TWO_F32      0.693147180559945309417232121458176568f
+#define LOG_TEN_F32      2.30258509299404568401799145468436421f
+
+#define EPSILON_F64      1.19209290e-7
+#define ZERO_F64         0.0
+#define ONE_F64          1.0
+#define TWO_THIRDS_F64   0.666666666666666666666666666666666666667
+#define TAU_F64          6.28318530717958647692528676655900576
+#define PI_F64           3.14159265358979323846264338327950288
+#define ONE_OVER_TAU_F64 0.159154943091895335768883763372514362
+#define ONE_OVER_PI_F64  0.318309886183790671537767526745028724
+#define TAU_OVER_2_F64   3.14159265358979323846264338327950288
+#define TAU_OVER_4_F64   1.570796326794896619231321691639751442
+#define TAU_OVER_8_F64   0.785398163397448309615660845819875721
+#define E_F64            2.7182818284590452353602874713526625
+#define SQRT_TWO_F64     1.41421356237309504880168872420969808
+#define SQRT_THREE_F64   1.73205080756887729352744634150587236
+#define SQRT_FIVE_F64    2.23606797749978969640917366873127623
+#define LOG_TWO_F64      0.693147180559945309417232121458176568
+#define LOG_TEN_F64      2.30258509299404568401799145468436421
+
+// Scalar Math Ops
+//=============================================================================
+
+#define IsPow2(x)      ((x != 0) && ((x & (x - 1)) == 0))
+#define Min(A,B)       (((A)<(B))?(A):(B))
+#define Max(A,B)       (((A)>(B))?(A):(B))
+#define Min3(a, b, c)  Min(Min(a, b), c)
+#define Max3(a, b, c)  Max(Max(a, b), c)
+#define Clamp(A,X,B)   (((X)<(A))?(A):((X)>(B))?(B):(X))
+#define Square(x)      ((x)*(x))
+#define Cube(x)        ((x)*(x)*(x))
+#define Abs(x)         ((x) > 0 ? (x) : -(x))
+#define Sign(x)        ((x) >= 0 ? 1 : -1)
+#define Mod(a, m)      (((a) % (m)) >= 0 ? ((a) % (m)) : (((a) % (m)) + (m)))
+
+// NOTE(aman.v): function list comes: https://en.wikipedia.org/wiki/C_mathematical_functions
+
+internal float remainder_f32(float x, float y);
+internal float fmod_f32(float x, float y);
+
+internal double remainder_f64(double x, double y);
+internal double fmod_f64(double x, double y);
+
+// TODO(anzenkodo): more scalar math ops functions
+// - div       computes the quotient and remainder of integer division
+// - remquo    signed remainder as well as the three last bits of the division operation
+// - fma       fused multiply-add operation
+// - fdim      positive difference of two floating-point values
+
+// Exponential functions ======================================================
+
+internal float exp_f32(float a);
+internal float exp2_f32(float x);
+internal float log_f32(float a);
+internal float log2_f32(float x);
+
+internal double exp_f64(double a);
+internal double exp2_f64(double x);
+internal double log_f64(double a);
+internal double log2_f64(double x);
+
+// TODO(anzenkodo): more exponential functions
+// - expm1	returns e raised to the given power, minus one
+// - log10	computes common logarithm (to base 10)
+// - log1p	computes natural logarithm (to base e) of 1 plus the given number
+// - ilogb	extracts exponent of the number
+// - logb	extracts exponent of the number
+
+// Power functions ============================================================
+
+internal float sqrt_f32(float number);
+internal float rsqrt_f32(float a);
+internal float pow_f32(float a, float b);
+
+internal double sqrt_f64(double number);
+internal double rsqrt_f64(double a);
+internal double pow_f64(double a, double b);
+
+// TODO(anzenkodo): more power functions
+// - cbrt
+// - hypot
+
+// Trigonometric functions ====================================================
+
+internal float sin_f32(float a);
+internal float cos_f32(float a);
+internal float tan_f32(float radians);
+internal float asin_f32(float a);
+internal float acos_f32(float a);
+internal float atan_f32(float a);
+internal float atan2_f32(float y, float x);
+
+internal double sin_f64(double a);
+internal double cos_f64(double a);
+internal double tan_f64(double radians);
+internal double asin_f64(double a);
+internal double acos_f64(double a);
+internal double atan_f64(double a);
+internal double atan2_f64(double y, double x);
+
+// Hyperbolic functions =======================================================
+
+// TODO(anzenkodo): more hyperbolic functions
+// - sinh	computes hyperbolic sine
+// - cosh	computes hyperbolic cosine
+// - tanh	computes hyperbolic tangent
+// - asinh	computes hyperbolic arc sine
+// - acosh	computes hyperbolic arc cosine
+// - atanh	computes hyperbolic arc tangent
+
+// Gamma functions ============================================================
+
+// TODO(anzenkodo): more gamma functions
+// - lgamma	computes natural logarithm of the absolute value of the gamma function
+// - tgamma	computes gamma function
+
+// Nearest integer floating-point operations ==================================
+
+internal float round_f32(float x);
+internal float floor_f32(float x);
+internal float ceil_f32(float x);
+
+internal double round_f64(double x);
+internal double floor_f64(double x);
+internal double ceil_f64(double x);
+
+// TODO(anzenkodo): more nearest integer floating-point operations functions
+// - trunc     returns the nearest integer not greater in magnitude than the given value
+// - nearbyint returns the nearest integer using current rounding mode
+// - rint      returns the nearest integer using current rounding mode with exception if the result differs
+
+// Floating-point manipulation functions ======================================
+
+internal float copysign_f32(float x, float y);
+
+internal double copysign_f64(double x, double y);
+
+// TODO(anzenkodo): more floating-point manipulation functions functions
+// - frexp	decomposes a number into significand and a power of 2
+// - ldexp	multiplies a number by 2 raised to a power
+// - modf	decomposes a number into integer and fractional parts
+// - scalbn
+// - scalbln	multiplies a number by FLT_RADIX raised to a power
+// - nextafter
+// - nexttoward	returns next representable floating-point value towards the given value
+
+// Random-number generation
+//=============================================================================
+
+internal uint32_t rand_u32(uint32_t seed);
 
 // Vector Ops
 //=============================================================================
@@ -380,38 +550,17 @@ union Rng2_I64
 
 // 1 Range ====================================================================
 
-internal Rng1_I32 rng1_i32(int32_t min, int32_t max);
-internal Rng1_I64 rng1_i64(int64_t min, int64_t max);
-internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max);
-internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max);
-internal Rng1_F32 rng1_f32(float min, float max);
-
-internal int32_t  dim1_i32(Rng1_I32 r);
-internal int64_t  dim1_i64(Rng1_I64 r);
-internal uint32_t dim1_u32(Rng1_U32 r);
-internal uint64_t dim1_u64(Rng1_U64 r);
-internal float    dim1_f32(Rng1_F32 r);
+internal int32_t  rng1_dim_i32(Rng1_I32 r);
+internal int64_t  rng1_dim_i64(Rng1_I64 r);
+internal uint32_t rng1_dim_u32(Rng1_U32 r);
+internal uint64_t rng1_dim_u64(Rng1_U64 r);
+internal float    rng1_dim_f32(Rng1_F32 r);
 
 // 2 Range (Rectangles) =======================================================
 
-internal Rng2_I16 rng2_i16(Vec2_I16 min, Vec2_I16 max);
-internal Rng2_I32 rng2_i32(Vec2_I32 min, Vec2_I32 max);
-internal Rng2_I64 rng2_i64(Vec2_I64 min, Vec2_I64 max);
-internal Rng2_F32 rng2_f32(Vec2_F32 min, Vec2_F32 max);
+internal Vec2_I16 rng2_dim_i16(Rng2_I16 r);
+internal Vec2_I32 rng2_dim_i32(Rng2_I32 r);
+internal Vec2_I64 rng2_dim_i64(Rng2_I64 r);
+internal Vec2_F32 rng2_dim_f32(Rng2_F32 r);
 
-#define rng2_i16_p(x, y, z, w) rng2_i16(vec2_i16((x), (y)), vec2_i16((z), (w)))
-#define rng2_i32_p(x, y, z, w) rng2_i32(vec2_i32((x), (y)), vec2_i32((z), (w)))
-#define rng2_i64_p(x, y, z, w) rng2_i64(vec2_i64((x), (y)), vec2_i64((z), (w)))
-#define rng2_f32_p(x, y, z, w) rng2_f32(vec2_f32((x), (y)), vec2_f32((z), (w)))
-
-internal Vec2_I16 dim2_i16(Rng2_I16 r);
-internal Vec2_I32 dim2_i32(Rng2_I32 r);
-internal Vec2_I64 dim2_i64(Rng2_I64 r);
-internal Vec2_F32 dim2_f32(Rng2_F32 r);
-
-// Random Number
-//=============================================================================
-
-internal uint32_t math_random_u32(uint32_t seed);
-
-#endif // BASE_MATH_H
+#endif // BASE_H

@@ -4,7 +4,7 @@
 internal uint64_t fmt_fprint(Os_File file, const char *string)
 {
     uint64_t length = cstr8_length((uint8_t *)string);
-    os_file_write(file, rng1_u64(0, length), (char *)string);
+    os_file_write(file, (Rng1_U64){0, length}, (char *)string);
     return length;
 }
 internal uint64_t fmt_fprintln(Os_File file, const char *string)
