@@ -4,7 +4,6 @@
 // External Includes
 //=============================================================================
 
-#define STB_SPRINTF_IMPLEMENTATION
 #define STB_SPRINTF_DECORATE(name) fmt_##name
 #define STB_SPRINTF_STATIC
 #include "../external/stb_sprintf.h"

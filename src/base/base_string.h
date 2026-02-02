@@ -4,12 +4,9 @@
 // External Include
 //=============================================================================
 
-#if !defined(XXH_IMPLEMENTATION)
-#   define XXH_INLINE_ALL
-#   define XXH_IMPLEMENTATION
-#   define XXH_STATIC_LINKING_ONLY
-#   include "../external/xxhash.h"
-#endif
+#define XXH_INLINE_ALL
+#define XXH_STATIC_LINKING_ONLY
+#include "../external/xxhash.h"
 
 // Types
 //=============================================================================

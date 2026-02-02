@@ -1,5 +1,11 @@
-#ifndef DRAW_CORE_H
-#define DRAW_CORE_H
+#ifndef DRAW_H
+#define DRAW_H
+
+// External Includes
+//=============================================================================
+
+#define STBTT_STATIC
+#include "../external/stb_truetype.h"
 
 // Types
 // ============================================================================
@@ -46,4 +52,4 @@ struct Draw_List
 // Functions
 // ============================================================================
 
-#endif // DRAW_CORE_H
+#endif // DRAW_H

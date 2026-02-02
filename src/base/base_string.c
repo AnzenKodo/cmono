@@ -1,3 +1,11 @@
+// External Include
+//=============================================================================
+
+#if !defined(XXH_IMPLEMENTATION)
+#   define XXH_IMPLEMENTATION
+#   include "../external/xxhash.h"
+#endif
+
 // Character Classification & Conversion Functions
 //=============================================================================
 
@@ -215,7 +223,7 @@ internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr
     size_t result = 0;
     for(int64_t i = str.length - start_pos - substr.length; i >= 0; --i)
     {
-        Str8 haystack = str8_substr(str, rng1_u64(i, i + substr.length));
+        Str8 haystack = str8_substr(str, (Rng1_U64){i, i + substr.length});
         if(str8_match(haystack, substr, flags))
         {
             result = (size_t)i + substr.length;
@@ -233,7 +241,7 @@ internal Str8 str8_substr(Str8 str, Rng1_U64 range)
     range.min = Min(range.min, str.length);
     range.max = Min(range.max, str.length);
     str.cstr += range.min;
-    str.length = dim1_u64(range);
+    str.length = rng1_dim_u64(range);
     return(str);
 }
 

@@ -1,5 +1,12 @@
+// External Includes
+//=============================================================================
+
+#define STB_SPRINTF_IMPLEMENTATION
+#include "../external/stb_sprintf.h"
+
 // FPrint
 // ============================================================================
+
 
 internal uint64_t fmt_fprint(Os_File file, const char *string)
 {
