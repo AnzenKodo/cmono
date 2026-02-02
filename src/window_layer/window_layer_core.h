@@ -230,7 +230,7 @@ internal void wl_update_events(void);
 internal Wl_Event wl_get_event(void);
 internal bool wl_is_key_pressed(Wl_Key key);
 
-// Window property ========================================================
+// Window property ============================================================
 
 internal Vec2_U64 wl_window_size_get(void);
 internal Vec2_U64 wl_display_size_get(void);
