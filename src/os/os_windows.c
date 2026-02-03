@@ -127,11 +127,11 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
     size_t size = 0;
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
-    Rng1_U64 rng_clamped  = rng1_u64(Min(rng.min, size), Min(rng.max, size));
+    Rng1_U64 rng_clamped  = (Rng1_U64){Min(rng.min, size), Min(rng.max, size)};
     uint64_t total_read_size = 0;
     // read loop
     {
-        uint64_t to_read = dim1_u64(rng_clamped);
+        uint64_t to_read = rng1_dim_u64(rng_clamped);
         for(uint64_t off = rng.min; total_read_size < to_read;)
         {
             uint64_t amt64 = to_read - total_read_size;
@@ -156,7 +156,7 @@ internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
 {
     uint64_t src_off = 0;
     uint64_t dst_off = rng.min;
-    uint64_t total_write_size = dim1_u64(rng);
+    uint64_t total_write_size = rng1_dim_u64(rng);
     for(;;)
     {
         void *bytes_src = (uint8_t *)data + src_off;

@@ -82,7 +82,7 @@ internal void entry_point(void)
         ) {
             wl_set_window_close();
         }
-        draw_rect_push(temp.arena, &list, (Vec4_F32) { 0.0, 0.0, width, row_height }, (Vec4_F32) { 1, 1, 1, 1 });
+        draw_rect_push(temp.arena, &list, (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height }, (Vec4_F32) { 1, 1, 1, 1 });
         render(&list);
         arena_temp_end(temp);
     }

@@ -86,11 +86,11 @@ internal float sqrt_f32(float number)
     {
         return number;
     }
-    float guess = number / 2.0;
-    float tolerance = 0.00001;
+    float guess = number / 2.0f;
+    float tolerance = 0.00001f;
     while (Abs((guess * guess) - number) > tolerance)
     {
-        guess = 0.5 * (guess + number / guess);
+        guess = 0.5f * (guess + number / guess);
     }
 
     return guess;
@@ -245,7 +245,7 @@ internal float asin_f32(float a)
 }
 internal float acos_f32(float a)
 {
-    return atan2_f64(sqrt_f32((1.0f + a) * (1.0 - a)), a);
+    return atan2_f32(sqrt_f32((1.0f + a) * (1.0f - a)), a);
 }
 internal float atan_f32(float a)
 {

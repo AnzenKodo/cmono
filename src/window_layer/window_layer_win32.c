@@ -587,7 +587,7 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
     }
 }
 
-internal void win32_window_border_set(bool enable)
+internal void wl_window_border_set(bool enable)
 {
     // Get current window style
     LONG_PTR style = GetWindowLongPtr(_wl_win32_state.handle, GWL_STYLE);
