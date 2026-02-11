@@ -60,7 +60,6 @@ cc build.c -o build
 ### Guide
 
 - [docs.gl](https://docs.gl/)
-- [GL Constants Translator](https://javagl.github.io/GLConstantsTranslator/GLConstantsTranslator.html)
 
 ### Articles/Posts
 
