@@ -67,10 +67,11 @@ internal size_t os_pagesize_get(void);
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags);
 internal void os_file_close(Os_File file);
-internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data);
+internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data);
+internal size_t os_file_read_full(Os_File file, void *out_data);
 internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena);
 internal Str8 os_file_read_str_full(Os_File file, Arena *arena);
-internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data);
+internal size_t os_file_write(Os_File file, Rng1_U64 rng, void *data);
 internal Os_FileProperties os_file_properties(Os_File file);
 internal bool os_dir_make(Str8 path);
 
