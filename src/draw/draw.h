@@ -1,12 +1,6 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-// External Includes
-//=============================================================================
-
-#define STBTT_STATIC
-#include "../external/stb_truetype.h"
-
 // Types
 // ============================================================================
 
@@ -30,6 +24,7 @@ struct Draw_Rect
     Vec4_F32 dst;
     Vec4_F32 border_color;
     float    border_size;
+    uint32_t texture;
 };
 
 typedef struct Draw_Node Draw_Node;
