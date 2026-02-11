@@ -3,12 +3,14 @@
 #include "../window_layer/window_layer_include.h"
 #include "../draw/draw.h"
 #include "../render/render_include.h"
+#include "../font/font.h"
 #include "./cope_core.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
 #include "../draw/draw.c"
+#include "../font/font.c"
 #include "../render/render_include.c"
 
 internal void print_help_message(Flags_Context *context)
@@ -30,8 +32,6 @@ internal void print_help_message(Flags_Context *context)
 
 internal void entry_point(void)
 {
-    uint64_t size = MB(10);
-    void *buffer = os_memory_alloc(size);
     Arena *arena = arena_alloc(MB(10), MB(1));
 
     // Command Line ===========================================================
@@ -63,6 +63,14 @@ internal void entry_point(void)
     }
     flags_end(&context);
 
+    Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), 20, 200, 200, arena);
+    stbtt_aligned_quad q;
+    const char *text = "Hello OpenGL!  Привіт!  こんにちは";
+    float x = 100.0f, y = 200.0f;
+    stbtt_GetPackedQuad(font.data, font.atlas_width, font.atlas_height, *text - 32, &x, &y, &q, 1);
+    font_write(font, x, y);
+    vertices.push_back({q.x0, q.y0, q.s0, q.t0, 1,1,1,1});
+
     // Program Init ===========================================================
     int width = 150;
     int height = 300;
@@ -82,13 +90,12 @@ internal void entry_point(void)
         ) {
             wl_set_window_close();
         }
-        draw_rect_push(temp.arena, &list, (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height }, (Vec4_F32) { 1, 1, 1, 1 });
+        draw_rect_push(temp.arena, &list, (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height }, (Vec4_F32) { .52f, .53f, 1.0f, 1.0f });
         render(&list);
         arena_temp_end(temp);
     }
 
     // Free Everything ========================================================
     wl_window_close();
-    os_memory_release(buffer, size);
     render_deinit();
 }
