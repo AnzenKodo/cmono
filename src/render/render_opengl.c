@@ -102,19 +102,43 @@ internal void render_init(void)
         "uniform vec2 u_resolution;\n"
         "uniform vec2 u_offset;\n"
         "uniform vec2 u_size;\n"
+        "out vec2 v_uv;\n"
         "void main()\n"
         "{\n"
         "    vec2 rect_pos = pos * u_size + u_offset;\n"
         "    vec2 clip = (rect_pos / u_resolution) * 2.0 - 1.0;\n"
         "    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);\n"
+        "    v_uv = pos;\n"                     // Pass UV (matches unit quad)
         "}\n";
+
     char *fs_source =
         "uniform vec4 u_color;\n"
+        "uniform sampler2D u_tex;\n"
+        "in vec2 v_uv;\n"
         "out vec4 FragColor;\n"
         "void main()\n"
         "{\n"
-        "    FragColor = u_color;\n"
+        "    vec4 tex_color = texture(u_tex, v_uv);\n"
+        "    FragColor = tex_color * u_color;\n"
         "}\n";
+    // char *vs_source =
+    //     "layout(location = 0) in vec2 pos;\n"
+    //     "uniform vec2 u_resolution;\n"
+    //     "uniform vec2 u_offset;\n"
+    //     "uniform vec2 u_size;\n"
+    //     "void main()\n"
+    //     "{\n"
+    //     "    vec2 rect_pos = pos * u_size + u_offset;\n"
+    //     "    vec2 clip = (rect_pos / u_resolution) * 2.0 - 1.0;\n"
+    //     "    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);\n"
+    //     "}\n";
+    // char *fs_source =
+    //     "uniform vec4 u_color;\n"
+    //     "out vec4 FragColor;\n"
+    //     "void main()\n"
+    //     "{\n"
+    //     "    FragColor = u_color;\n"
+    //     "}\n";
     char* vert_sources[] = {
         shader_source_header,
         vs_source,
@@ -124,10 +148,18 @@ internal void render_init(void)
         fs_source,
     };
     _render_opengl_state.shader = _render_opengl_shader_load(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
-    // generate vertex storage
+    // anzenkodo: Create 1x1 white texture for solid color fills
+    glGenTextures(1, &_render_opengl_state.default_texture);
+    glBindTexture(GL_TEXTURE_2D, _render_opengl_state.default_texture);
+    uint8_t white[4] = {255, 255, 255, 255};
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // anzenkodo: Generate vertex storage (unit quad)
     glGenVertexArrays(1, &_render_opengl_state.vao);
     glGenBuffers(1, &_render_opengl_state.vbo);
-    // bind vertex input attribute
     glBindVertexArray(_render_opengl_state.vao);
     {
         glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.vbo);
@@ -137,9 +169,10 @@ internal void render_init(void)
             1.0f, 0.0f,   // top-right
             1.0f, 1.0f    // bottom-right
         };
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Pos);
         glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Pos, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     glBindVertexArray(0);
 }
@@ -168,6 +201,10 @@ internal void render(Draw_List *list)
         {
             case Draw_Type_Rect:
             {
+                glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.vbo);
+                // for (){
+                //     glBufferSubData(GL_ARRAY_BUFFER, off, batch_n->v.byte_count, batch_n->v.v);
+                // }
                 Draw_Rect rect = node->param_rect;
                 float x = rect.dst.x;
                 float y = rect.dst.y;
@@ -178,6 +215,7 @@ internal void render(Draw_List *list)
                 glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"), x, y);
                 glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),   width, height);
                 glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),  color.x, color.y, color.z, color.w);
+                glBindTexture(GL_TEXTURE_2D, _render_opengl_state.default_texture);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             } break;
         }

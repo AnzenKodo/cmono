@@ -20,6 +20,7 @@ struct _Render_Opengl_State
     GLuint shader;
     GLuint vao;
     GLuint vbo;
+    GLuint default_texture;
 };
 
 // X Macro
@@ -51,6 +52,8 @@ struct _Render_Opengl_State
 // Defines
 // ============================================================================
 
+// NOTE(anzenkodo): below constants list taken from: [GL Constants Translator](https://javagl.github.io/GLConstantsTranslator/GLConstantsTranslator.html)
+
 #define GL_DEBUG_OUTPUT                 0x92E0
 #define GL_DEBUG_OUTPUT_SYNCHRONOUS     0x8242
 #define GL_DEBUG_SEVERITY_HIGH          0x9146
@@ -66,6 +69,7 @@ struct _Render_Opengl_State
 
 #define GL_ARRAY_BUFFER                 0x8892
 #define GL_STATIC_DRAW                  0x88E4
+#define GL_DYNAMIC_DRAW                 0x88e8
 
 #define GL_RG                           0x8227
 #define GL_BGRA                         0x80e1
