@@ -14,6 +14,7 @@ typedef struct Font Font;
 struct Font
 {
     stbtt_packedchar data[256];
+    void *pixels;
     unsigned char atlas_width;
     unsigned char atlas_height;
 };

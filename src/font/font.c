@@ -18,17 +18,17 @@ typedef int32_t  stbtt_int32;
 #define STBTT_assert(x)    Assert(x)
 #define STBTT_strlen(x)    cstr8_length((uint8_t* )x)
 #define STBTT_memcpy       mem_copy
-// TODO(ak): Fix mem_set function
-// #define STBTT_memset       mem_set
+#define STBTT_memset       mem_set
 #include "./external/stb_truetype.h"
 
 internal Font font_load(Str8 name, float font_size, unsigned char atlas_width, unsigned char atlas_height, Arena *arena)
 {
-    Arena_Temp temp = arena_temp_begin(arena);
     Font font = ZERO_STRUCT;
     font.atlas_width = atlas_width;
     font.atlas_height = atlas_height;
+    font.pixels = arena_push(arena, unsigned char, atlas_width * atlas_height);
     // ak: Load font file
+    Arena_Temp temp = arena_temp_begin(arena);
     unsigned char *ttf_buffer = arena_push(temp.arena, unsigned char, MB(1));
     Os_File font_file = os_file_open(name, OS_AccessFlag_Read);
     os_file_read_full(font_file, ttf_buffer);
@@ -36,8 +36,7 @@ internal Font font_load(Str8 name, float font_size, unsigned char atlas_width, u
     stbtt_fontinfo font_info;
     stbtt_InitFont(&font_info, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
     stbtt_pack_context pc;
-    unsigned char *pixels = arena_push(temp.arena, unsigned char, atlas_width * atlas_height);
-    stbtt_PackBegin(&pc, pixels, atlas_width, atlas_height, 0, 1, NULL);
+    stbtt_PackBegin(&pc, font.pixels, atlas_width, atlas_height, 0, 1, NULL);
     {
         stbtt_PackFontRange(&pc, ttf_buffer, 0, font_size, 32, 224, font.data);
     }
