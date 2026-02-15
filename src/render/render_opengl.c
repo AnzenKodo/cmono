@@ -77,6 +77,9 @@ internal GLenum _render_opengl_format_from_img_format(Img_Format format)
 
 // Core functions
 //=============================================================================
+
+global Font temp_font = {0};
+global GLuint temp_texture = {0};
 internal void render_init(void)
 {
     _render_opengl_init();
@@ -96,21 +99,21 @@ internal void render_init(void)
         glDebugMessageCallback(_render_opengl_error_callback, 0);
     }
 #endif
-    // Shader Init ============================================================
     char *vs_source =
         "layout(location = 0) in vec2 pos;\n"
-        "uniform vec2 u_resolution;\n"
         "uniform vec2 u_offset;\n"
         "uniform vec2 u_size;\n"
+        "uniform vec2 u_uv_offset;\n"
+        "uniform vec2 u_uv_size;\n"
+        "uniform vec2 u_resolution;\n"
         "out vec2 v_uv;\n"
         "void main()\n"
         "{\n"
         "    vec2 rect_pos = pos * u_size + u_offset;\n"
         "    vec2 clip = (rect_pos / u_resolution) * 2.0 - 1.0;\n"
         "    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);\n"
-        "    v_uv = pos;\n"                     // Pass UV (matches unit quad)
+        "    v_uv = pos * u_uv_size + u_uv_offset;\n"
         "}\n";
-
     char *fs_source =
         "uniform vec4 u_color;\n"
         "uniform sampler2D u_tex;\n"
@@ -118,27 +121,9 @@ internal void render_init(void)
         "out vec4 FragColor;\n"
         "void main()\n"
         "{\n"
-        "    vec4 tex_color = texture(u_tex, v_uv);\n"
-        "    FragColor = tex_color * u_color;\n"
+        "    float alpha = texture(u_tex, v_uv).r;\n"
+        "    FragColor = vec4(u_color.rgb, u_color.a * alpha);\n"
         "}\n";
-    // char *vs_source =
-    //     "layout(location = 0) in vec2 pos;\n"
-    //     "uniform vec2 u_resolution;\n"
-    //     "uniform vec2 u_offset;\n"
-    //     "uniform vec2 u_size;\n"
-    //     "void main()\n"
-    //     "{\n"
-    //     "    vec2 rect_pos = pos * u_size + u_offset;\n"
-    //     "    vec2 clip = (rect_pos / u_resolution) * 2.0 - 1.0;\n"
-    //     "    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);\n"
-    //     "}\n";
-    // char *fs_source =
-    //     "uniform vec4 u_color;\n"
-    //     "out vec4 FragColor;\n"
-    //     "void main()\n"
-    //     "{\n"
-    //     "    FragColor = u_color;\n"
-    //     "}\n";
     char* vert_sources[] = {
         shader_source_header,
         vs_source,
@@ -169,12 +154,24 @@ internal void render_init(void)
             1.0f, 0.0f,   // top-right
             1.0f, 1.0f    // bottom-right
         };
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, KB(64), 0, GL_DYNAMIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
         glEnableVertexAttribArray(_Render_Opengl_Vertex_Loc_Pos);
         glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Pos, 2, GL_FLOAT, GL_FALSE, 0, NULL);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     glBindVertexArray(0);
+    glGenTextures(1, &temp_texture);
+    glBindTexture(GL_TEXTURE_2D, temp_texture);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, temp_font.atlas_width, temp_font.atlas_height, 0, GL_RED, GL_UNSIGNED_BYTE, temp_font.pixels);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 internal void render_deinit(void)
@@ -212,6 +209,7 @@ internal void render(Draw_List *list)
                 float height = rect.dst.w;
                 Vec4_F32 color = rect.color;
                 // Fill
+                // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
                 glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"), x, y);
                 glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),   width, height);
                 glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),  color.x, color.y, color.z, color.w);
@@ -219,7 +217,37 @@ internal void render(Draw_List *list)
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             } break;
         }
+
     }
+
+    float cx = 20.0f;
+    float cy = 20.0f;
+    char *text = "Hello World \n New Texes";
+    glBindTexture(GL_TEXTURE_2D, temp_texture);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_2D, temp_texture);
+    for (char *c = text; *c; ++c)
+    {
+        if (*c < 32 || *c > 126)
+        {
+            if (*c == '\n')
+            {
+                cy += 24.0f;
+                cx = 20.0f;
+            }
+            continue;
+        }
+        stbtt_aligned_quad q;
+        stbtt_GetPackedQuad(temp_font.data, temp_font.atlas_width, temp_font.atlas_height, *c - 32, &cx, &cy, &q, true);
+        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"),    q.x0, q.y0);
+        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),      q.x1-q.x0, q.y1-q.y0);
+        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_uv_offset"), q.s0, q.t0);
+        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_uv_size"),   q.s1-q.s0, q.t1-q.t0);
+        glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),     2.0f, 0.0f, 0.0f, 1.0f);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glBindVertexArray(0);
     glUseProgram(0);
     // os internal opengl

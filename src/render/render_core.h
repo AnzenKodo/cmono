@@ -1,6 +1,17 @@
 #ifndef RENDER_CORE_H
 #define RENDER_CORE_H
 
+// Types
+//=============================================================================
+
+struct Render_Vertex Render_Vertex;
+struct Render_Vertex
+{
+    Vec2_F32 offset;
+    Vec2_F32 size;
+    Vec4_F32 color;
+};
+
 // Define Render Backends
 //=============================================================================
 

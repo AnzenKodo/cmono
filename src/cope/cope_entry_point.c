@@ -63,13 +63,7 @@ internal void entry_point(void)
     }
     flags_end(&context);
 
-    Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), 20, 200, 200, arena);
-    stbtt_aligned_quad q;
-    const char *text = "Hello OpenGL!  Привіт!  こんにちは";
-    float x = 100.0f, y = 200.0f;
-    stbtt_GetPackedQuad(font.data, font.atlas_width, font.atlas_height, *text - 32, &x, &y, &q, 1);
-    font_write(font, x, y);
-    vertices.push_back({q.x0, q.y0, q.s0, q.t0, 1,1,1,1});
+    temp_font = font_load(str8("./assets/font/VendSans-Regular.ttf"), 30, 200, 200, arena);
 
     // Program Init ===========================================================
     int width = 150;
