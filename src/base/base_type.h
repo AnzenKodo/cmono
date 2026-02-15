@@ -106,13 +106,7 @@ struct F64Array
 #endif
 
 #define PtrFromInt(i) (void*)((uint8_t*)0 + (i))
-#if ARCH_64BIT
-#   define IntFromPtr(ptr) ((uint64_t)(ptr))
-#elif ARCH_32BIT
-#   define IntFromPtr(ptr) ((uint32_t)(ptr))
-#else
-#   error Missing pointer-to-integer cast for this architecture.
-#endif
+#define IntFromPtr(ptr) ((uintptr_t)(ptr))
 
 #define internal        static
 #define global          static
