@@ -52,7 +52,7 @@ struct _Render_Opengl_State
 // Defines
 // ============================================================================
 
-// NOTE(anzenkodo): below constants list taken from: [GL Constants Translator](https://javagl.github.io/GLConstantsTranslator/GLConstantsTranslator.html)
+// NOTE(ak): below constants list taken from: [GL Constants Translator](https://javagl.github.io/GLConstantsTranslator/GLConstantsTranslator.html)
 
 #define GL_DEBUG_OUTPUT                 0x92E0
 #define GL_DEBUG_OUTPUT_SYNCHRONOUS     0x8242
@@ -62,17 +62,14 @@ struct _Render_Opengl_State
 #define GL_DEBUG_SEVERITY_NOTIFICATION  0x826B
 
 #define GL_COMPILE_STATUS               0x8B81
-#define GL_LINK_STATUS                  0x8b82
 
 #define GL_FRAGMENT_SHADER              0x8B30
 #define GL_VERTEX_SHADER                0x8B31
 
 #define GL_ARRAY_BUFFER                 0x8892
 #define GL_STATIC_DRAW                  0x88E4
-#define GL_DYNAMIC_DRAW                 0x88e8
 
 #define GL_RG                           0x8227
-#define GL_BGRA                         0x80e1
 
 // Functions
 //=============================================================================

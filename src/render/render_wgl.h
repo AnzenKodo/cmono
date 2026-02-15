@@ -61,6 +61,12 @@
     X(glValidateProgram, void, (GLuint program))\
     X(glUniform2f, void, (GLint location, GLfloat v0, GLfloat v1))\
     X(glUniform4f, void, (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3))
+// Defines
+// ============================================================================
+
+#define GL_LINK_STATUS                  0x8b82
+#define GL_DYNAMIC_DRAW                 0x88e8
+#define GL_BGRA                         0x80e1
 
 // OpenGL setup function pointers
 //=============================================================================
