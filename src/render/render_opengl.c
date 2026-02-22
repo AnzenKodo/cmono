@@ -61,25 +61,84 @@ internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint i
     }
 }
 
-internal GLenum _render_opengl_format_from_img_format(Img_Format format)
+internal Render_Handle _render_handle_from_opengl_tex2d(_Render_Opengl_Tex2D *tex2d)
 {
-    GLenum result = 0;
+    Render_Handle handle = {(uintptr_t)tex2d};
+    return handle;
+}
+
+internal _Render_Opengl_Tex2D *_render_opengl_tex2d_from_handle(Render_Handle handle)
+{
+  _Render_Opengl_Tex2D *tex2d = (_Render_Opengl_Tex2D *)handle.u64[0];
+  return tex2d;
+}
+
+internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex2D_Format format)
+{
+    _Render_Opengl_FormatInfo result = {0};
     switch (format)
     {
-        case Img_Format_R8:     { result = GL_RED;  }break;
-        case Img_Format_RG8:    { result = GL_RG;   }break;
-        case Img_Format_RGBA8:  { result = GL_RGBA; }break;
-        case Img_Format_BGRA8:  { result = GL_BGRA; }break;
-        default:  { result = GL_RGBA; }break;
+        case Render_Tex2D_Format_R8:
+        {
+            result.internal_format = GL_R8;
+            result.format = GL_RED;
+            result.base_type = GL_UNSIGNED_BYTE;
+        } break;
+        case Render_Tex2D_Format_RG8:
+        {
+            result.internal_format = GL_RG8;
+            result.format = GL_RG;
+            result.base_type = GL_UNSIGNED_BYTE;
+        } break;
+        case Render_Tex2D_Format_RGBA8:
+        {
+            result.internal_format = GL_RGBA8;
+            result.format = GL_RGBA;
+            result.base_type = GL_UNSIGNED_BYTE;
+        } break;
+        case Render_Tex2D_Format_BGRA8:
+        {
+            result.internal_format = GL_RGBA8;
+            result.format = GL_BGRA;
+            result.base_type = GL_UNSIGNED_BYTE;
+        } break;
+        case Render_Tex2D_Format_R16:
+        {
+            result.internal_format = GL_R16;
+            result.format = GL_RED;
+            result.base_type = GL_UNSIGNED_SHORT;
+        } break;
+        case Render_Tex2D_Format_RGBA16:
+        {
+            result.internal_format = GL_RGBA16;
+            result.format = GL_RGBA;
+            result.base_type = GL_UNSIGNED_SHORT;
+        } break;
+        case Render_Tex2D_Format_R32:
+        {
+            result.internal_format = GL_R32F;
+            result.format = GL_RED;
+            result.base_type = GL_FLOAT;
+        } break;
+        case Render_Tex2D_Format_RG32:
+        {
+            result.internal_format = GL_RG32F;
+            result.format = GL_RG;
+            result.base_type = GL_FLOAT;
+        } break;
+        case Render_Tex2D_Format_RGBA32:
+        {
+            result.internal_format = GL_RGBA32F;
+            result.format = GL_RGBA;
+            result.base_type = GL_FLOAT;
+        } break;
     }
     return result;
-};
+}
 
 // Core functions
 //=============================================================================
 
-global Font temp_font = {0};
-global GLuint temp_texture = {0};
 internal void render_init(void)
 {
     _render_opengl_init();
@@ -160,16 +219,6 @@ internal void render_init(void)
         glVertexAttribPointer(_Render_Opengl_Vertex_Loc_Pos, 2, GL_FLOAT, GL_FALSE, 0, NULL);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
-    glBindVertexArray(0);
-    glGenTextures(1, &temp_texture);
-    glBindTexture(GL_TEXTURE_2D, temp_texture);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, temp_font.atlas_width, temp_font.atlas_height, 0, GL_RED, GL_UNSIGNED_BYTE, temp_font.pixels);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -181,7 +230,7 @@ internal void render_deinit(void)
     _render_opengl_deinit();
 }
 
-internal void render(Draw_List *list)
+internal void render(Render_Draw_List *list)
 {
     uint32_t win_width = wl_window_width_get();
     uint32_t win_height = wl_window_height_get();
@@ -192,64 +241,84 @@ internal void render(Draw_List *list)
     glUseProgram(_render_opengl_state.shader);
     glBindVertexArray(_render_opengl_state.vao);
     glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_resolution"), (GLfloat)win_width, (GLfloat)win_height);
-    for (Draw_Node *node = list->first; node != NULL; node = node->next)
+    for (Render_Draw_Node *node = list->first; node != NULL; node = node->next)
     {
         switch (node->type)
         {
-            case Draw_Type_Rect:
+            case Render_Draw_Type_Rect:
             {
                 glBindBuffer(GL_ARRAY_BUFFER, _render_opengl_state.vbo);
-                // for (){
-                //     glBufferSubData(GL_ARRAY_BUFFER, off, batch_n->v.byte_count, batch_n->v.v);
-                // }
-                Draw_Rect rect = node->param_rect;
+                Render_Draw_Rect rect = node->param_rect;
                 float x = rect.dst.x;
                 float y = rect.dst.y;
                 float width = rect.dst.z;
                 float height = rect.dst.w;
                 Vec4_F32 color = rect.color;
-                // Fill
-                // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-                glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"), x, y);
-                glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),   width, height);
-                glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),  color.x, color.y, color.z, color.w);
-                glBindTexture(GL_TEXTURE_2D, _render_opengl_state.default_texture);
+                //~ ak: bind texture
+                {
+                    GLuint texture_id = _render_opengl_state.default_texture;
+                    _Render_Opengl_Tex2D *tex2d = _render_opengl_tex2d_from_handle(rect.texture);
+                    if (tex2d != 0)
+                    {
+                        texture_id = tex2d->id;
+                    }
+                    glBindTexture(GL_TEXTURE_2D, texture_id);
+                }
+                //~ ak: fill shader location
+                {
+                    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"), x, y);
+                    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),   width, height);
+                    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_uv_offset"), rect.src.x, rect.src.y);
+                    glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_uv_size"),   rect.src.z, rect.src.w);
+                    glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),  color.x, color.y, color.z, color.w);
+                }
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+                glBindTexture(GL_TEXTURE_2D, 0);
             } break;
         }
-
     }
-
-    float cx = 20.0f;
-    float cy = 20.0f;
-    char *text = "Hello World \n New Texes";
-    glBindTexture(GL_TEXTURE_2D, temp_texture);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindTexture(GL_TEXTURE_2D, temp_texture);
-    for (char *c = text; *c; ++c)
-    {
-        if (*c < 32 || *c > 126)
-        {
-            if (*c == '\n')
-            {
-                cy += 24.0f;
-                cx = 20.0f;
-            }
-            continue;
-        }
-        stbtt_aligned_quad q;
-        stbtt_GetPackedQuad(temp_font.data, temp_font.atlas_width, temp_font.atlas_height, *c - 32, &cx, &cy, &q, true);
-        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_offset"),    q.x0, q.y0);
-        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_size"),      q.x1-q.x0, q.y1-q.y0);
-        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_uv_offset"), q.s0, q.t0);
-        glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_uv_size"),   q.s1-q.s0, q.t1-q.t0);
-        glUniform4f(glGetUniformLocation(_render_opengl_state.shader, "u_color"),     2.0f, 0.0f, 0.0f, 1.0f);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     glBindVertexArray(0);
     glUseProgram(0);
-    // os internal opengl
+    //~ ak: os internal opengl
     _render_opengl();
 }
+
+//~ ak: Texture functions
+//=============================================================================
+
+internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2D_Format format, size_t width, size_t height, void *data, Arena *arena)
+{
+    _Render_Opengl_Tex2D *tex2d = arena_push(arena, _Render_Opengl_Tex2D, 1);
+    //~ ak: map kind/format -> gl counterparts
+    _Render_Opengl_FormatInfo format_info = _render_opengl_format_info_from_tex2d_format(format);
+    //~ ak: allocate GL texture
+    glGenTextures(1, &tex2d->id);
+    glBindTexture(GL_TEXTURE_2D, tex2d->id);
+    {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexImage2D(GL_TEXTURE_2D, 0, format_info.internal_format, width, height, 0, format_info.format, format_info.base_type, data);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+    //~ ak: fill texture data
+    tex2d->resource_kind = kind;
+    tex2d->format = format;
+    tex2d->width = width;
+    tex2d->height = height;
+    //~ ak: bundle & return
+    Render_Handle result = _render_handle_from_opengl_tex2d(tex2d);
+    return result;
+}
+
+internal void render_tex2d_free(Render_Handle handle)
+{
+    _Render_Opengl_Tex2D *tex2d = _render_opengl_tex2d_from_handle(handle);
+    if (tex2d != 0)
+    {
+        glDeleteTextures(1, &tex2d->id);
+    }
+}
+

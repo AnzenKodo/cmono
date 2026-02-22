@@ -12,7 +12,26 @@
 typedef enum _Render_Opengl_Vertex_Loc
 {
     _Render_Opengl_Vertex_Loc_Pos = 0,
-} _Render_Opengl_Vertex_Loc;
+}
+_Render_Opengl_Vertex_Loc;
+
+typedef struct _Render_Opengl_Tex2D _Render_Opengl_Tex2D;
+struct _Render_Opengl_Tex2D
+{
+    GLuint id;
+    Render_Resource_Kind resource_kind;
+    Render_Tex2D_Format format;
+    size_t width;
+    size_t height;
+};
+
+typedef struct _Render_Opengl_FormatInfo _Render_Opengl_FormatInfo;
+struct _Render_Opengl_FormatInfo
+{
+    GLint internal_format;
+    GLenum format;
+    GLenum base_type;
+};
 
 typedef struct _Render_Opengl_State _Render_Opengl_State;
 struct _Render_Opengl_State
@@ -76,10 +95,16 @@ struct _Render_Opengl_State
 
 // OpenGL helper functions ====================================================
 
+//~ ak: General relper functions
 internal Void_Proc *_render_opengl_load_procedure(char *name);
+internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *message, const void *userParam);
+//~ ak: Shader helper functions
 internal uint32_t _render_opengl_shader_compile(char **source, uint32_t source_num, GLenum type, uint32_t program_id);
 internal uint32_t _render_opengl_shader_load(char **vert_sources, uint32_t vert_source_num, char **frag_sources, uint32_t frag_source_num);
-internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *message, const void *userParam);
+//~ ak: Texture helper functions
+internal Render_Handle _render_handle_from_opengl_tex2d(_Render_Opengl_Tex2D *tex2d);
+internal _Render_Opengl_Tex2D *_render_opengl_tex2d_from_handle(Render_Handle handle);
+internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex2D_Format format);
 
 // Internal OpneGL functions ==================================================
 
