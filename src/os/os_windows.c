@@ -303,7 +303,7 @@ int main(void)
         Str8 str = str8_from_16(scratch.arena, str16);
         array_append(&_os_core_state.args, str);
     }
-    // NOTE(AnzenKodo): we need this to set now time.
+    // NOTE(ak): we need this to set now time.
     {
         _os_win32_state.microsecond_resolution  = 1;
         LARGE_INTEGER large_int_resolution;

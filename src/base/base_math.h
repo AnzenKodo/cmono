@@ -1,7 +1,7 @@
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 
-// NOTE(anzenkodo): the code reference taken from:
+// NOTE(ak): the code reference taken from:
 // - https://github.com/gingerBill/gb/blob/master/gb_math.h
 // - https://github.com/HandmadeMath/HandmadeMath
 // - https://github.com/EpicGamesExt/raddebugger
@@ -432,7 +432,7 @@ internal float fmod_f32(float x, float y);
 internal double remainder_f64(double x, double y);
 internal double fmod_f64(double x, double y);
 
-// TODO(anzenkodo): more scalar math ops functions
+// TODO(ak): more scalar math ops functions
 // - div       computes the quotient and remainder of integer division
 // - remquo    signed remainder as well as the three last bits of the division operation
 // - fma       fused multiply-add operation
@@ -450,7 +450,7 @@ internal double exp2_f64(double x);
 internal double log_f64(double a);
 internal double log2_f64(double x);
 
-// TODO(anzenkodo): more exponential functions
+// TODO(ak): more exponential functions
 // - expm1	returns e raised to the given power, minus one
 // - log10	computes common logarithm (to base 10)
 // - log1p	computes natural logarithm (to base e) of 1 plus the given number
@@ -467,7 +467,7 @@ internal double sqrt_f64(double number);
 internal double rsqrt_f64(double a);
 internal double pow_f64(double a, double b);
 
-// TODO(anzenkodo): more power functions
+// TODO(ak): more power functions
 // - cbrt
 // - hypot
 
@@ -491,7 +491,7 @@ internal double atan2_f64(double y, double x);
 
 // Hyperbolic functions =======================================================
 
-// TODO(anzenkodo): more hyperbolic functions
+// TODO(ak): more hyperbolic functions
 // - sinh	computes hyperbolic sine
 // - cosh	computes hyperbolic cosine
 // - tanh	computes hyperbolic tangent
@@ -501,7 +501,7 @@ internal double atan2_f64(double y, double x);
 
 // Gamma functions ============================================================
 
-// TODO(anzenkodo): more gamma functions
+// TODO(ak): more gamma functions
 // - lgamma	computes natural logarithm of the absolute value of the gamma function
 // - tgamma	computes gamma function
 
@@ -515,7 +515,7 @@ internal double round_f64(double x);
 internal double floor_f64(double x);
 internal double ceil_f64(double x);
 
-// TODO(anzenkodo): more nearest integer floating-point operations functions
+// TODO(ak): more nearest integer floating-point operations functions
 // - trunc     returns the nearest integer not greater in magnitude than the given value
 // - nearbyint returns the nearest integer using current rounding mode
 // - rint      returns the nearest integer using current rounding mode with exception if the result differs
@@ -526,7 +526,7 @@ internal float copysign_f32(float x, float y);
 
 internal double copysign_f64(double x, double y);
 
-// TODO(anzenkodo): more floating-point manipulation functions functions
+// TODO(ak): more floating-point manipulation functions functions
 // - frexp	decomposes a number into significand and a power of 2
 // - ldexp	multiplies a number by 2 raised to a power
 // - modf	decomposes a number into integer and fractional parts

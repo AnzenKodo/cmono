@@ -52,7 +52,7 @@ internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint i
     switch (id){
         case 131218:
         {
-            // NOTE(aman.v): performance warning, do nothing.
+            // NOTE(ak): performance warning, do nothing.
         }break;
         default:
         {
@@ -133,7 +133,7 @@ internal void render_init(void)
         fs_source,
     };
     _render_opengl_state.shader = _render_opengl_shader_load(vert_sources, ArrayLength(vert_sources), frag_sources, ArrayLength(frag_sources));
-    // anzenkodo: Create 1x1 white texture for solid color fills
+    // ak: Create 1x1 white texture for solid color fills
     glGenTextures(1, &_render_opengl_state.default_texture);
     glBindTexture(GL_TEXTURE_2D, _render_opengl_state.default_texture);
     uint8_t white[4] = {255, 255, 255, 255};
@@ -142,7 +142,7 @@ internal void render_init(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
-    // anzenkodo: Generate vertex storage (unit quad)
+    // ak: Generate vertex storage (unit quad)
     glGenVertexArrays(1, &_render_opengl_state.vao);
     glGenBuffers(1, &_render_opengl_state.vbo);
     glBindVertexArray(_render_opengl_state.vao);
