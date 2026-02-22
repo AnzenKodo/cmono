@@ -1,7 +1,6 @@
 #include "../base/base_include.h"
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
-#include "../draw/draw.h"
 #include "../render/render_include.h"
 #include "../font/font.h"
 #include "./cope_core.h"
@@ -9,7 +8,6 @@
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
-#include "../draw/draw.c"
 #include "../font/font.c"
 #include "../render/render_include.c"
 
@@ -62,18 +60,16 @@ internal void entry_point(void)
         os_exit(0);
     }
     flags_end(&context);
-
-    temp_font = font_load(str8("./assets/font/VendSans-Regular.ttf"), 30, 200, 200, arena);
-
     // Program Init ===========================================================
-    int width = 150;
-    int height = 300;
+    unsigned int width = 150;
+    unsigned int height = 300;
+    unsigned int row_height = 25;
     wl_window_open(str8(PROGRAM_NAME), width, height);
     wl_window_border_set(false);
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
-    Draw_List list = ZERO_STRUCT;
-    unsigned int row_height = 25;
+    Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
+    Render_Draw_List list = ZERO_STRUCT;
     while (!wl_should_window_close())
     {
         Arena_Temp temp = arena_temp_begin(arena);
@@ -84,7 +80,9 @@ internal void entry_point(void)
         ) {
             wl_set_window_close();
         }
-        draw_rect_push(temp.arena, &list, (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height }, (Vec4_F32) { .52f, .53f, 1.0f, 1.0f });
+        Vec4_F32 size = (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height };
+        Vec4_F32 padding = (Vec4_F32){ 3.5f, 0.0f, 3.5f, 0.0f };
+        render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, (Vec4_F32){ .52f, .53f, 1.0f, 1.0f }, (Vec4_F32){ 0.0f, 0.0f, 1.0f, 1.0f });
         render(&list);
         arena_temp_end(temp);
     }
