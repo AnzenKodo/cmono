@@ -261,8 +261,7 @@ CheckNil(nil,p) ? \
 #define INVALID_CODE_PATH Assert(!"Invalid Path!")
 #define NOT_IMPLEMENTED   Assert(!"Not Implemented!")
 
-////////////////////////////////
-//~ rjf: Linkage Keyword Macros
+// ak: Linkage Keyword Macros =================================================
 
 #if OS_WINDOWS
 # define shared_function C_LINKAGE __declspec(dllexport)
@@ -278,6 +277,18 @@ CheckNil(nil,p) ? \
 # define C_LINKAGE_BEGIN
 # define C_LINKAGE_END
 # define C_LINKAGE
+#endif
+
+// ak: Address Sanitizer Markup ===============================================
+
+#if ASAN_ENABLED
+    C_LINKAGE void __asan_poison_memory_region(void const volatile *addr, size_t size);
+    C_LINKAGE void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
+#   define AsanPoisonMemoryRegion(addr, size)   __asan_poison_memory_region((addr), (size))
+#   define AsanUnpoisonMemoryRegion(addr, size) __asan_unpoison_memory_region((addr), (size))
+#else
+#   define AsanPoisonMemoryRegion(addr, size)   ((void)(addr), (void)(size))
+#   define AsanUnpoisonMemoryRegion(addr, size) ((void)(addr), (void)(size))
 #endif
 
 // Image
@@ -304,6 +315,15 @@ struct Img
     unsigned int height;
     Img_Format format;
 };
+
+typedef enum Corner
+{
+    Corner_TopLeft = 1,
+    Corner_BottomLeft,
+    Corner_TopRight,
+    Corner_BottomRight,
+    Corner_COUNT
+} Corner;
 
 // Functions
 // ============================================================================
