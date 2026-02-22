@@ -165,6 +165,31 @@
 #   define TOOLCHAIN_MINGW 1
 #endif
 
+// ak: Address Sanitizer Checking
+//=============================================================================
+
+#if COMPILER_MSVC
+#   if defined(__SANITIZE_ADDRESS__)
+#       define ASAN_ENABLED 1
+#       define NO_ASAN __declspec(no_sanitize_address)
+#   else
+#       define NO_ASAN
+#   endif
+#elif COMPILER_CLANG
+#   if defined(__has_feature)
+#       if __has_feature(address_sanitizer) || defined(__SANITIZE_ADDRESS__)
+#           define ASAN_ENABLED 1
+#       endif
+#   endif
+#   define NO_ASAN __attribute__((no_sanitize("address")))
+#elif COMPILER_GCC
+#   if defined(__SANITIZE_ADDRESS__)
+#       define ASAN_ENABLED 1
+#   endif
+#   define NO_ASAN __attribute__((no_sanitize("address")))
+#else
+#   error ASAN is not defined for this compiler
+#endif
 
 // Toolchain/Environment Enums
 //=============================================================================
