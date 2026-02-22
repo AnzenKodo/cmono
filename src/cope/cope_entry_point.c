@@ -31,7 +31,6 @@ internal void print_help_message(Flags_Context *context)
 internal void entry_point(void)
 {
     Arena *arena = arena_alloc(MB(10), MB(1));
-
     // Command Line ===========================================================
     Flags_Context context = flags_begin(arena);
     Flags_Option *option = NULL;

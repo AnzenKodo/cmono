@@ -1,3 +1,5 @@
+// TODO(ak): add unicode support
+// TODO(ak): store font as cpu image
 #ifndef FONT_H
 #define FONT_H
 
