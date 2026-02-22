@@ -14,11 +14,12 @@ struct Arena {
 };
 
 #define ARENA_HEADER_SIZE (sizeof(Arena))
-#define arena_push(a, T, n) ((T *)(_arena_push(a, sizeof(T)*(n), AlignOf(T))))
+#define arena_push(a, T, n) ((T *)(_arena_push(a, sizeof(T)*(n), AlignOf(T), true)))
+#define arena_push_nz(a, T, n) ((T *)(_arena_push(a, sizeof(T)*(n), AlignOf(T), false)))
 
 internal Arena *arena_alloc(size_t reserve_size, size_t commit_size);
 internal void arena_free(Arena *arena);
-internal void *_arena_push(Arena *arena, size_t size, size_t align);
+internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_zero);
 internal void arena_pop(Arena *arena, size_t size);
 internal void arena_pop_to(Arena *arena, size_t pos);
 internal void arena_clear(Arena *arena);

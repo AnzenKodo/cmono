@@ -16,6 +16,8 @@ internal Arena *arena_alloc(size_t reserve_size, size_t commit_size)
         arena->commit_pos = commit_size;
         result = arena;
     }
+    // AsanPoisonMemoryRegion(arena, commit_size);
+    // AsanUnpoisonMemoryRegion(arena, ARENA_HEADER_SIZE);
     return result;
 }
 internal void arena_free(Arena* arena)
@@ -28,7 +30,7 @@ internal size_t arena_pos(Arena *arena)
     return arena->pos;
 }
 
-internal void *_arena_push(Arena *arena, size_t size, size_t align)
+internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_zero)
 {
     char *result = NULL;
     size_t pos_align = AlignPow2(arena->pos, align);
@@ -47,9 +49,13 @@ internal void *_arena_push(Arena *arena, size_t size, size_t align)
             {
                 arena->commit_pos = commit_pos_new;
             }
+            // AsanUnpoisonMemoryRegion(mem, commit_size);
         }
         arena->pos = pos_new;
         result = (char*)arena + pos_align;
+        if (fill_zero) {
+            mem_set(result, 0, size);
+        }
     }
     return result;
 }
@@ -57,6 +63,7 @@ internal void arena_pop(Arena *arena, size_t size)
 {
     size = Min(size, arena->pos - ARENA_HEADER_SIZE);
     arena->pos -= size;
+    // AsanPoisonMemoryRegion(arena, commit_size);
 }
 internal void arena_pop_to(Arena *arena, size_t pos)
 {
