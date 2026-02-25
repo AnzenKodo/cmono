@@ -36,6 +36,6 @@ struct Font
 
 internal Font font_load(Str8 name, size_t atlas_width, size_t atlas_height, Arena *arena);
 internal void font_unload(Font *font);
-internal void font_quad_push(Font *font, Str8 text, Vec2_F32 pos, Vec4_F32 color, Render_Draw_List *list, Arena *arena);
+internal void font_quad_push(Font *font, Str8 text, Vec2_F32 pos, Render_Color color, Render_Draw_List *list, Arena *arena);
 
 #endif // FONT_H

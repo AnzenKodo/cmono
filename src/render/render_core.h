@@ -39,14 +39,21 @@ typedef enum Render_Draw_Type {
     Render_Draw_Type_Rect,
 } Render_Draw_Type;
 
+typedef struct Render_Color {
+    unsigned char r;        // Color red value
+    unsigned char g;        // Color green value
+    unsigned char b;        // Color blue value
+    unsigned char a;        // Color alpha value
+} Render_Color;
+
 typedef struct Render_Draw_Rect Render_Draw_Rect;
 struct Render_Draw_Rect
 {
-    Vec4_F32 dst;
-    Vec4_F32 src;
-    Vec4_F32 color;
-    Vec4_F32 border_color;
-    float    border_size;
+    float         border_size;
+    Vec4_F32      color;
+    Vec4_F32      dst;
+    Vec4_F32      src;
+    Vec4_F32      border_color;
     Render_Handle texture;
 };
 
@@ -91,6 +98,9 @@ struct Render_Draw_List
 //~ ak: Helper functions ======================================================
 
 internal Render_Handle render_handle_zero(void);
+inline internal Render_Color render_hex_to_color(unsigned int hex);
+inline internal unsigned int render_color_to_hex(Render_Color color);
+inline internal Vec4_F32 render_color_to_vec4_f32(Render_Color color);
 
 //- ak: Core functions ========================================================
 
@@ -105,6 +115,6 @@ internal void render_tex2d_free(Render_Handle handle);
 
 //- ak: Draw functions ========================================================
 
-internal void render_draw_rect_push(Arena *arena, Render_Draw_List *list, Vec4_F32 dst, Vec4_F32 color);
+internal void render_draw_rect_push(Arena *arena, Render_Draw_List *list, Vec4_F32 dst, Render_Color color);
 
 #endif // RENDER_CORE_H

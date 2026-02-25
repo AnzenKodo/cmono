@@ -60,7 +60,7 @@ internal void font_unload(Font *font)
    render_tex2d_free(font->texture);
 }
 
-internal void font_quad_push(Font *font, Str8 text, Vec2_F32 pos, Vec4_F32 color, Render_Draw_List *list, Arena *arena)
+internal void font_quad_push(Font *font, Str8 text, Vec2_F32 pos, Render_Color color, Render_Draw_List *list, Arena *arena)
 {
     float x = pos.x;
     float y = pos.y+(font->height/2);
@@ -83,7 +83,7 @@ internal void font_quad_push(Font *font, Str8 text, Vec2_F32 pos, Vec4_F32 color
             rect->dst = (Vec4_F32){ q.x0, q.y0, q.x1-q.x0, q.y1-q.y0 };
             rect->src = (Vec4_F32){ q.s0, q.t0, q.s1-q.s0, q.t1-q.t0 };
             rect->texture = font->texture;
-            rect->color = color;
+            rect->color = render_color_to_vec4_f32(color);
             SLLQueuePush(list->first, list->last, node);
         }
     }
