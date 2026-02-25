@@ -5,7 +5,7 @@
 #include "src/os/os_include.h"
 #include "src/base/base_include.c"
 #include "src/os/os_include.c"
-#include "src/cope/cope_core.h"
+#include "src/program/program.h"
 
 // Defines
 // ============================================================================
@@ -268,12 +268,12 @@ internal void build_run(Build_Info *info)
     build_cmd_finish(info);
 }
 
-internal void entry_point()
+internal void prog_entry_point()
 {
     Build_Info info = ZERO_STRUCT;
-    info.name = str8(PROGRAM_NAME);
-    info.cmd_name = str8(PROGRAM_CMD_NAME);
-    info.entry_point = str8("src/cope/cope_entry_point.c");
+    info.name = str8(PROG_NAME);
+    info.cmd_name = str8(PROG_CMD_NAME);
+    info.entry_point = str8("src/program/program.c");
     info.dir = str8("build");
     info.os = Context_Os_CURRENT;
     info.log_context = log_init();

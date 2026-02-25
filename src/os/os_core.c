@@ -55,5 +55,5 @@ internal void os_entry_point(void)
 #else
     _os_core_state.log_context.level = Log_Level_None;
 #endif
-    entry_point();
+    prog_entry_point();
 }

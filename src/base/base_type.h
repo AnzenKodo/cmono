@@ -99,10 +99,19 @@ struct F64Array
 #define ArrayLength(a) (sizeof(a) / sizeof((a)[0]))
 #define TypeOf(T)     __typeof__(T)
 
-#if LANG_CPP
-#   define ZERO_STRUCT {}
-#else
+#if LANGUAGE_C
 #   define ZERO_STRUCT {0}
+#else
+#   define ZERO_STRUCT {}
+#endif
+
+// NOTE: MSVC C++ compiler does not support compound literals (C99 feature)
+// Plain structures in C++ (without constructors) can be initialized with { }
+// This is called aggregate initialization (C++11 feature)
+#if defined(__cplusplus)
+    #define Literal(type)      type
+#else
+    #define Literal(type)      (type)
 #endif
 
 #define PtrFromInt(i) (void*)((uint8_t*)0 + (i))
