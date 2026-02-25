@@ -1,10 +1,18 @@
+local build_command = ""
 local cc_command = ""
 if (vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1) then
-    cc_command="setup_x64.bat && cl.exe build.c -nologo -Z7 -Fo:build\\ -Fe:build\\build.exe && build\\build.exe build-"
+    build_command="setup_x64.bat && cl.exe build.c -nologo -Z7 -Fo:build\\ -Fe:build\\build.exe"
+    cc_command=build_command.." && build\\build.exe build-"
 else
-    cc_command="cc -ggdb build.c && ./a.out build-"
+    build_command="cc -ggdb build.c"
+    cc_command=build_command.." && ./a.out build-"
 end
 vim.opt.makeprg=cc_command .. "run --nocolor"
+vim.api.nvim_create_user_command("Build",  function()
+    vim.opt.makeprg=build_command
+    vim.cmd('make')
+    vim.opt.makeprg=cc_command .. "run --nocolor"
+end, { desc = "Bootstrap build system"})
 
 -- Setup Termdebug ============================================================
 
