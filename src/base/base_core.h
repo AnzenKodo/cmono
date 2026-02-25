@@ -264,19 +264,19 @@ CheckNil(nil,p) ? \
 // ak: Linkage Keyword Macros =================================================
 
 #if OS_WINDOWS
-# define shared_function C_LINKAGE __declspec(dllexport)
+#   define shared_function C_LINKAGE __declspec(dllexport)
 #else
-# define shared_function C_LINKAGE
+#   define shared_function C_LINKAGE
 #endif
 
-#if LANG_CPP
-# define C_LINKAGE_BEGIN extern "C"{
-# define C_LINKAGE_END }
-# define C_LINKAGE extern "C"
+#if LANGUAGE_CPP
+#   define C_LINKAGE_BEGIN extern "C"{
+#   define C_LINKAGE_END }
+#   define C_LINKAGE extern "C"
 #else
-# define C_LINKAGE_BEGIN
-# define C_LINKAGE_END
-# define C_LINKAGE
+#   define C_LINKAGE_BEGIN
+#   define C_LINKAGE_END
+#   define C_LINKAGE
 #endif
 
 // ak: Address Sanitizer Markup ===============================================

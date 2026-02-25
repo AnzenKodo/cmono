@@ -5,9 +5,9 @@
 //=============================================================================
 
 #if defined(__cplusplus)
-#   define LANG_CPP 1
+#   define LANGUAGE_CPP 1
 #else
-#   define LANG_C 1
+#   define LANGUAGE_C 1
 #endif
 
 // Compiler OS/Arch Chacking
