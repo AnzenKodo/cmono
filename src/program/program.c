@@ -1,3 +1,6 @@
+// TODO(ak): make UI module
+// TODO(ak): make config file
+// TODO(ak): handle config using command line args
 // TODO(ak): embead font in exe
 // TODO(ak): setup Github Action
 // TODO(ak): change program version
@@ -92,7 +95,6 @@ internal void prog_entry_point(void)
         render(&list);
         arena_temp_end(temp);
     }
-
     // Free Everything ========================================================
     wl_window_close();
     render_deinit();
