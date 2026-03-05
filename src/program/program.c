@@ -1,9 +1,10 @@
-// TODO(ak): make UI module
 // TODO(ak): make config file
 // TODO(ak): handle config using command line args
 // TODO(ak): embead font in exe
 // TODO(ak): setup Github Action
 // TODO(ak): change program version
+// TODO(ak): add freelist in render texture
+
 #include "./program.h"
 #include "../base/base_include.h"
 #include "../os/os_include.h"
