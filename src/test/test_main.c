@@ -1,6 +1,3 @@
-// TODO: Refine Window Layer
-// TODO: Make buffer pointer
-
 #define GL_GLEXT_PROTOTYPES
 
 #include "main.h"

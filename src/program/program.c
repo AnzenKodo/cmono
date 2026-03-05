@@ -95,6 +95,41 @@ internal void prog_entry_point(void)
         Vec4_F32 size = (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height };
         Vec4_F32 padding = (Vec4_F32){ 3.5f, 0.0f, 3.5f, 0.0f };
         render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, PROG_FOREGROUND_COLOR, PROG_BACKGROUND_COLOR);
+
+#if 0
+        list_comp()
+        {
+            ui_parent_push();
+            ui_font_push(font);
+            ui_axis_push(Axies_X);
+            ui_padding_push(...);
+            ui_size_kind_push(UI_SizeKind_Pixels);
+            ui_bg_color_push(...);
+            ui_fg_color_push(...);
+            item_comp()
+            {
+                ui_parent_push();
+                ui_bg_color_push(...);
+                ui_fg_color_push(...);
+                ui_size_kind_push(/*Take remaning width space*/);
+                ui_draw_text("Text") {
+                    ui_parent_push();
+                    ui_parent_pop();
+                }
+                ui_draw_text("Text") {
+                    ui_parent_push();
+                    ui_parent_pop();
+                }
+                ui_draw_text("Text") {
+                    ui_parent_push();
+                    ui_parent_pop();
+                }
+                ui_parent_pop();
+            }
+            ui_parent_pop();
+        }
+#endif
+
         render(&list);
         arena_temp_end(temp);
     }
