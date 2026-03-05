@@ -11,12 +11,14 @@
 #include "../window_layer/window_layer_include.h"
 #include "../render/render_include.h"
 #include "../font/font.h"
+#include "../ui/ui.h"
 
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
 #include "../font/font.c"
 #include "../render/render_include.c"
+#include "../ui/ui.c"
 
 internal void print_help_message(Flags_Context *context)
 {
