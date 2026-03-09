@@ -179,11 +179,11 @@ internal void build_compile_gcc(Build_Info *info)
         " -Wno-unused-variable"
     );
     //~ ak: Security
-    build_cmd_append(info, " -mshstk -fcf-protection=full");
+    build_cmd_append(info, " -mshstk -fcf-protection=full -fstack-protector");
     if ((info->type != Build_Type_Debug && info->type != Build_Type_Release) && !info->mingw)
     {
-        build_cmd_append(info, " -fstack-protector -fsanitize=address -fno-omit-frame-pointer");
-        // build_cmd_append(info, "-fanalyzer");
+        build_cmd_append(info, " -fsanitize=address -fno-omit-frame-pointer");
+        // build_cmd_append(info, " -fanalyzer");
     }
     //~ ak: Libs
     if (info->mingw || info->os == Context_Os_Windows)
@@ -216,7 +216,7 @@ internal void build_compile(Build_Info *info)
     }
     else
     {
-        fmt_printf("Error: OS build compile is not supported.");
+        fmt_eprintf("Error: OS build compile is not supported.");
     }
     build_cmd_finish(info);
 }
