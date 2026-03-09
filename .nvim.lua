@@ -22,7 +22,7 @@ termdebug_config.command = {
     "-ex", "set breakpoint pending on",
     "-ex", "set disassembly-flavor intel",
     "-ex", "set confirm off",
-    -- "-ex", "tbreak entry_point",
+    "-ex", "set print pretty on",
     "./build/cope_debug"
 }
 vim.g.termdebug_config = termdebug_config
