@@ -97,7 +97,7 @@ internal Str8 os_env_get(Str8 name);
 
 // Program Entry Points =======================================================
 
-internal void os_entry_point(void);
+internal void os_main(void);
 
 // Global Variables
 //=============================================================================

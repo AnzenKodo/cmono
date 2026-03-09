@@ -285,6 +285,6 @@ int main(int argc, char *argv[])
         Str8 str = str8_from_cstr(argv[i]);
         array_append(&_os_core_state.args, str);
     }
-    os_entry_point();
+    os_main();
     arena_scratch_end(scratch);
 }

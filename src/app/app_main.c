@@ -5,7 +5,7 @@
 // TODO(ak): change program version
 // TODO(ak): add freelist in render texture
 
-#include "./program.h"
+#include "./app.h"
 #include "../base/base_include.h"
 #include "../os/os_include.h"
 #include "../window_layer/window_layer_include.h"
@@ -34,10 +34,10 @@ internal void print_help_message(Flags_Context *context)
     term_style_start(TERM_UNDERLINE);
     fmt_println("VERSION:");
     term_style_end();
-    fmt_println("   "PROG_VERSION);
+    fmt_println("   "APP_VERSION);
 }
 
-internal void prog_entry_point(void)
+internal void app_main(void)
 {
     Arena *arena = arena_alloc(MB(10), MB(1));
     // Command Line ===========================================================
@@ -66,7 +66,7 @@ internal void prog_entry_point(void)
         }
         if (version)
         {
-            fmt_print("v"PROG_VERSION);
+            fmt_print("v"APP_VERSION);
             os_exit(0);
         }
         arena_temp_end(temp);
@@ -75,12 +75,15 @@ internal void prog_entry_point(void)
     unsigned int width = 150;
     unsigned int height = 300;
     unsigned int row_height = 25;
-    wl_window_open(str8(PROG_NAME), width, height);
+    wl_window_open(str8(APP_NAME), width, height);
     wl_window_border_set(false);
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
     Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
     Render_Draw_List list = ZERO_STRUCT;
+    Ui_State *state = ui_state_alloc(arena);
+    ui_state_select(state);
+    // Program Loop ===========================================================
     while (!wl_should_window_close())
     {
         Arena_Temp temp = arena_temp_begin(arena);
@@ -91,45 +94,42 @@ internal void prog_entry_point(void)
         {
             wl_set_window_close();
         }
-        render_draw_rect_push(temp.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, PROG_BACKGROUND_COLOR);
+        render_draw_rect_push(temp.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, APP_BACKGROUND_COLOR);
         Vec4_F32 size = (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height };
         Vec4_F32 padding = (Vec4_F32){ 3.5f, 0.0f, 3.5f, 0.0f };
-        render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, PROG_FOREGROUND_COLOR, PROG_BACKGROUND_COLOR);
-
-#if 0
-        list_comp()
+        render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
+        // list_comp()
         {
-            ui_parent_push();
-            ui_font_push(font);
-            ui_axis_push(Axies_X);
-            ui_padding_push(...);
-            ui_size_kind_push(UI_SizeKind_Pixels);
-            ui_bg_color_push(...);
-            ui_fg_color_push(...);
-            item_comp()
-            {
-                ui_parent_push();
-                ui_bg_color_push(...);
-                ui_fg_color_push(...);
-                ui_size_kind_push(/*Take remaning width space*/);
-                ui_draw_text("Text") {
-                    ui_parent_push();
-                    ui_parent_pop();
-                }
-                ui_draw_text("Text") {
-                    ui_parent_push();
-                    ui_parent_pop();
-                }
-                ui_draw_text("Text") {
-                    ui_parent_push();
-                    ui_parent_pop();
-                }
-                ui_parent_pop();
-            }
+            Ui_Box box = ui_box();
+            ui_parent_push(&box);
+        //     ui_font_push(font);
+        //     ui_axis_push(Axies_X);
+        //     ui_padding_push(...);
+        //     ui_size_kind_push(UI_SizeKind_Pixels);
+        //     ui_bg_color_push(...);
+        //     ui_fg_color_push(...);
+        //     item_comp()
+        //     {
+        //         ui_parent_push();
+        //         ui_bg_color_push(...);
+        //         ui_fg_color_push(...);
+        //         ui_size_kind_push(/*Take remaning width space*/);
+        //         ui_draw_text("Text") {
+        //             ui_parent_push();
+        //             ui_parent_pop();
+        //         }
+        //         ui_draw_text("Text") {
+        //             ui_parent_push();
+        //             ui_parent_pop();
+        //         }
+        //         ui_draw_text("Text") {
+        //             ui_parent_push();
+        //             ui_parent_pop();
+        //         }
+        //         ui_parent_pop();
+        //     }
             ui_parent_pop();
         }
-#endif
-
         render(&list);
         arena_temp_end(temp);
     }

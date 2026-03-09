@@ -46,7 +46,7 @@ internal Str8 *os_program_path_get(void)
     return &_os_core_state.args.v[0];
 }
 
-internal void os_entry_point(void)
+internal void os_main(void)
 {
     _os_core_state.log_context = log_init();
 #if BUILD_DEBUG
@@ -55,5 +55,5 @@ internal void os_entry_point(void)
 #else
     _os_core_state.log_context.level = Log_Level_None;
 #endif
-    prog_entry_point();
+    app_main();
 }

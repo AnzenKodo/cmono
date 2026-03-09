@@ -313,6 +313,6 @@ int main(void)
         }
     }
     // Go to default OS entry point
-    os_entry_point();
+    os_main();
     arena_scratch_end(scratch);
 }

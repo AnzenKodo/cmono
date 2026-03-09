@@ -328,6 +328,6 @@ typedef enum Corner
 // Functions
 // ============================================================================
 
-internal void prog_entry_point(void);
+internal void app_main(void);
 
 #endif // BASE_CORE_H
