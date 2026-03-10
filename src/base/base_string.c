@@ -3,7 +3,7 @@
 
 #if !defined(XXH_IMPLEMENTATION)
 #   define XXH_IMPLEMENTATION
-#   include "../external/xxhash.h"
+#   include "./external/xxhash.h"
 #endif
 
 // Character Classification & Conversion Functions

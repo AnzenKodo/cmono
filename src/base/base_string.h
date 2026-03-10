@@ -6,7 +6,7 @@
 
 #define XXH_INLINE_ALL
 #define XXH_STATIC_LINKING_ONLY
-#include "../external/xxhash.h"
+#include "./external/xxhash.h"
 
 // Types
 //=============================================================================
