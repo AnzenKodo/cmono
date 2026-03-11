@@ -1,8 +1,11 @@
 //~ ak: Includes
 //=============================================================================
 
+//- ak: headers
 #include "src/base/base_include.h"
 #include "src/os/os_include.h"
+
+//- ak: implementation
 #include "src/base/base_include.c"
 #include "src/os/os_include.c"
 #include "src/app/app.h"

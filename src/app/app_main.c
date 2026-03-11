@@ -5,6 +5,10 @@
 // TODO(ak): change program version
 // TODO(ak): add freelist in render texture
 
+//~ ak: Includes
+//=============================================================================
+
+//- ak: headers
 #include "./app.h"
 #include "../base/base_include.h"
 #include "../os/os_include.h"
@@ -13,6 +17,7 @@
 #include "../font/font.h"
 #include "../ui/ui.h"
 
+//- ak: implementation
 #include "../base/base_include.c"
 #include "../os/os_include.c"
 #include "../window_layer/window_layer_include.c"
