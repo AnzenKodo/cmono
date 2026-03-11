@@ -23,7 +23,6 @@ typedef enum Build_Type
     Build_Type_None,
     Build_Type_Dev,
     Build_Type_Debug,
-    Build_Type_Profiler,
     Build_Type_Release,
 } Build_Type;
 
@@ -54,8 +53,7 @@ global const char *help_message = "build.c: C file that build's C projects.\n"
 "   run                  Run project\n"
 "   build-run            Build and Run project\n"
 "   build-debugger       Build for Debugger\n"
-"   test                 Test project (Requires: valgrid, typos)\n"
-"   profile              Runs Profiler (Requires: perf)\n"
+"   gen-meta       Generate code from Metaprogram"
 "   --help -h       Print help\n";
 
 //~ ak: Functions
@@ -224,40 +222,6 @@ internal void build_compile(Build_Info *info)
     build_cmd_finish(info);
 }
 
-internal void build_test(Build_Info *info)
-{
-    fmt_printf("Compiling:\n");
-    build_compile_gcc(info);
-    build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
-    build_cmd_finish(info);
-    fmt_printf("Test Typos:\n");
-    build_cmd_append(info, "typos");
-    build_cmd_finish(info);
-    fmt_printf("Test Memory Leaks:\n");
-    build_cmd_append(info, "valgrind ");
-    build_cmd_append(info, " --leak-check=full --track-origins=yes ");
-    build_cmd_append(info, " ./%s/%s", info->dir.cstr, info->cmd_name.cstr); // Output
-    build_cmd_append(info, " --leak-check=full --show-leak-kinds=all");
-    build_cmd_finish(info);
-}
-
-internal void build_profiler(Build_Info *info)
-{
-    fmt_printf("Compiling:\n");
-    build_compile_gcc(info);
-    build_cmd_append(info, " -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-missing-braces");
-    build_cmd_finish(info);
-    fmt_printf("Profiler Recording:\n");
-    build_cmd_append(
-        info, "perf record -o ./%s/perf.data -g ./%s/%s",
-        info->dir.cstr, info->dir.cstr, info->cmd_name.cstr
-    );
-    build_cmd_finish(info);
-    fmt_printf("Profiler Report:\n");
-    build_cmd_append(info, "perf report -i ./%s/perf.data", info->dir.cstr);
-    build_cmd_finish(info);
-}
-
 //~ ak: Build run functions ===================================================
 
 internal void build_run(Build_Info *info)
@@ -282,6 +246,7 @@ internal void base_main(void)
     info.log_context = log_init();
     bool should_print_help = false;
     bool build_run_program = false;
+    bool gen_meta_program = false;
     Str8Array *args = os_args_get();
     if (args->length >= 2)
     {
@@ -322,11 +287,13 @@ internal void base_main(void)
         {
             info.type = Build_Type_Debug;
         }
+        else if (str8_match(arg1, str8("gen-meta"), 0))
+        {
+            gen_meta_program = true;
+        }
         else if (str8_match(arg1, str8("run"), 0))
         {
             build_run_program = true;
-        } else if(str8_match(arg1, str8("profile"), 0)) {
-            info.type = Build_Type_Profiler;
         }
         else
         {
@@ -349,10 +316,18 @@ internal void base_main(void)
             info.log_context.enable_color_log = false;
         }
     }
-    if (!(should_print_help))
+    if (!should_print_help)
     {
         fmt_println("# Build Output ============================================================== #");
         fmt_printfln("Build Type: %s", build_type_to_str8(&info));
+        if (gen_meta_program)
+        {
+            info.type = Build_Type_Debug;
+            info.name = str8("MetaTable");
+            info.cmd_name = str8("metatable");
+            info.entry_point = str8("src/metatable/metatable_main.c");
+            build_run_program = true;
+        }
         if (info.type != Build_Type_None)
         {
             build_compile(&info);
@@ -362,7 +337,7 @@ internal void base_main(void)
             build_run(&info);
         }
     }
-    if (should_print_help)
+    else
     {
         fmt_printf("%s", help_message);
     }
@@ -410,11 +385,6 @@ internal char *build_type_to_str8(Build_Info *info)
         case Build_Type_Debug:
         {
             type_string = "debug";
-        }
-        break;
-        case Build_Type_Profiler:
-        {
-            type_string = "profiler";
         }
         break;
         case Build_Type_Release:
