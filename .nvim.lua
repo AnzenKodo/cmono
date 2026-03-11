@@ -1,5 +1,6 @@
 -- TODO(ak): Add every build user command and debug also make helper functions
 -- for making them.
+-- TODO(ak): replace build command variables with single function
 
 -- ak: Build Initialization
 -- ============================================================================
