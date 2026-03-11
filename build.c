@@ -268,7 +268,7 @@ internal void build_run(Build_Info *info)
     build_cmd_finish(info);
 }
 
-internal void app_main(void)
+internal void base_main(void)
 {
     Build_Info info = ZERO_STRUCT;
     info.name = str8(APP_NAME);

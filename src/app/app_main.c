@@ -37,7 +37,7 @@ internal void print_help_message(Flags_Context *context)
     fmt_println("   "APP_VERSION);
 }
 
-internal void app_main(void)
+internal void base_main(void)
 {
     Arena *arena = arena_alloc(MB(10), MB(1));
     // Command Line ===========================================================

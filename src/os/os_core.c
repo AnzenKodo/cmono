@@ -55,5 +55,5 @@ internal void os_main(void)
 #else
     _os_core_state.log_context.level = Log_Level_None;
 #endif
-    app_main();
+    base_main();
 }
