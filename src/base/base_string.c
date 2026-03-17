@@ -523,6 +523,94 @@ internal Str8Array str8_array_from_list(Arena *arena, Str8List *list)
     return array;
 }
 
+//~ ak: String Path Helpers
+//=============================================================================
+
+internal Str8 str8_chop_last_slash(Str8 string)
+{
+    if(string.size > 0)
+    {
+        uint8_t *ptr = string.cstr + string.size - 1;
+        for(;ptr >= string.cstr; ptr -= 1)
+        {
+            if(*ptr == '/' || *ptr == '\\')
+            {
+                break;
+            }
+        }
+        if(ptr >= string.cstr)
+        {
+            string.size = (uint64_t)(ptr - string.cstr);
+        }
+        else
+        {
+            string.size = 0;
+        }
+    }
+    return string;
+}
+
+internal Str8 str8_skip_last_slash(Str8 string)
+{
+    if(string.size > 0)
+    {
+        uint8_t *ptr = string.cstr + string.size - 1;
+        for(;ptr >= string.cstr; ptr -= 1)
+        {
+            if(*ptr == '/' || *ptr == '\\')
+            {
+                break;
+            }
+        }
+        if(ptr >= string.cstr)
+        {
+            ptr += 1;
+            string.size = (uint64_t)(string.cstr + string.size - ptr);
+            string.cstr = ptr;
+        }
+    }
+    return string;
+}
+
+internal Str8 str8_chop_last_dot(Str8 string)
+{
+    Str8 result = string;
+    uint64_t p = string.size;
+    for(;p > 0;)
+    {
+        p -= 1;
+        if(string.cstr[p] == '.')
+        {
+            result = str8_prefix(string, p);
+            break;
+        }
+    }
+    return result;
+}
+
+internal Str8 str8_skip_last_dot(Str8 string)
+{
+    Str8 result = string;
+    uint64_t p = string.size;
+    for(;p > 0;)
+    {
+        p -= 1;
+        if(string.cstr[p] == '.')
+        {
+            result = str8_skip(string, p + 1);
+            break;
+        }
+    }
+    return result;
+}
+
+internal Str8List str8_split_path(Arena *arena, Str8 string)
+{
+    Str8List result = str8_split(arena, string, (uint8_t*)"/\\", 2, 0);
+    return result;
+}
+
+
 // String Split and Join
 //=============================================================================
 
@@ -602,7 +690,7 @@ internal Str8 str8_copy(Arena *arena, Str8 s)
 {
     Str8 str;
     str.length = s.length;
-    str.cstr = arena_push(arena, uint8_t, str.length + 1);
+    str.cstr = arena_push_nz(arena, uint8_t, str.length + 1);
     mem_copy(str.cstr, s.cstr, s.length);
     str.cstr[str.length] = 0;
     return(str);

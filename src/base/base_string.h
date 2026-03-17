@@ -162,11 +162,18 @@ internal Str8Node* str8_list_push(Arena *arena, Str8List *list, Str8 str);
 
 internal Str8Array str8_array_from_list(Arena *arena, Str8List *list);
 
+//~ ak: String Path Helpers ===================================================
+
+internal Str8 str8_chop_last_slash(Str8 string);
+internal Str8 str8_skip_last_slash(Str8 string);
+internal Str8 str8_chop_last_dot(Str8 string);
+internal Str8 str8_skip_last_dot(Str8 string);
+internal Str8List str8_split_path(Arena *arena, Str8 string);
+
 // String Split and Join ======================================================
 
 internal Str8List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags);
 internal Str8     str8_list_join(Arena *arena, Str8List *list, StrJoin *optional_params);
-
 // String Formatting & Copying ================================================
 
 internal Str8 str8_copy(Arena *arena, Str8 s);
