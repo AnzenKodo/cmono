@@ -1,4 +1,7 @@
-internal inline bool mem_match(void const *s1, void const *s2, int64_t size)
+// NOTE(ak): references taken from:
+//  - [Ginger Bill](https://www.gingerbill.org): [gb.h](https://github.com/gingerBill/gb/blob/master/gb.h)
+
+internal inline bool mem_match(void const *s1, void const *s2, size_t size)
 {
     bool result = false;
     uint8_t const *s1p8 = (uint8_t const *)s1;
@@ -18,7 +21,7 @@ internal inline bool mem_match(void const *s1, void const *s2, int64_t size)
     return result;
 }
 
-internal inline void *mem_copy(void *dest, void const *source, int64_t n)
+internal inline void *mem_copy(void *dest, void const *source, size_t n)
 {
 #if COMPILER_MSVC
     if (dest == NULL) {
@@ -170,7 +173,7 @@ internal inline void *mem_copy(void *dest, void const *source, int64_t n)
     return dest;
 }
 
-internal inline void *mem_move(void *dest, void const *source, int64_t n)
+internal inline void *mem_move(void *dest, void const *source, size_t n)
 {
     uint8_t *d = (uint8_t *)dest;
     uint8_t const *s = (uint8_t const *)source;
@@ -214,7 +217,25 @@ internal inline void *mem_move(void *dest, void const *source, int64_t n)
     return dest;
 }
 
-internal inline void *mem_set(void *dest, uint8_t c, int64_t n)
+internal inline bool mem_cmp(void const *s1, void const *s2, size_t size)
+{
+	uint8_t const *s1p8 = (uint8_t const *)s1;
+	uint8_t const *s2p8 = (uint8_t const *)s2;
+
+	if (s1 == NULL || s2 == NULL) {
+		return 0;
+	}
+
+	while (size--) {
+		if (*s1p8 != *s2p8) {
+			return (*s1p8 - *s2p8);
+		}
+		s1p8++, s2p8++;
+	}
+	return 0;
+}
+
+internal inline void *mem_set(void *dest, uint8_t c, size_t n)
 {
     uint8_t *s = (uint8_t *)dest;
     int64_t k;
@@ -269,11 +290,9 @@ internal inline void *mem_set(void *dest, uint8_t c, int64_t n)
 
 internal int32_t mem_is_zero(void *ptr, uint64_t size){
   int32_t result = 1;
-
   // break down size
   uint64_t extra = (size&0x7);
   uint64_t count8 = (size >> 3);
-
   // check with 8-byte stride
   uint64_t *p64 = (uint64_t*)ptr;
   if(result)
@@ -285,7 +304,6 @@ internal int32_t mem_is_zero(void *ptr, uint64_t size){
       }
     }
   }
-
   // check extra
   if(result)
   {
@@ -297,7 +315,6 @@ internal int32_t mem_is_zero(void *ptr, uint64_t size){
       }
     }
   }
-
   done:;
   return(result);
 }
