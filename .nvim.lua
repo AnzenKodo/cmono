@@ -50,7 +50,7 @@ vim.g.termdebug_config = termdebug_config
 vim.api.nvim_create_autocmd("User", {
     pattern = "TermdebugStartPost",
     callback = function()
-        vim.keymap.set("n", "<leader>dr",  ":call TermDebugSendCommand('dr')<CR>", { desc = "[d]ebugger [r]un (modify)" })
+        vim.keymap.set("n", "<leader>dr", ":call TermDebugSendCommand('dr')<CR>", { desc = "[d]ebugger [r]un" })
         vim.cmd('cexpr system("' .. cc_command .. 'build-debugger --nocolor")')
         vim.fn.TermDebugSendCommand('define dr')
         vim.fn.TermDebugSendCommand('   shell '..cc_command.."build-debugger")

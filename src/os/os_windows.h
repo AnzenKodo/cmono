@@ -19,8 +19,8 @@ struct _OS_Win32_State
     uint64_t microsecond_resolution;
 };
 
-typedef struct Os_Win32_Walk_Iter Os_Win32_Walk_Iter;
-struct Os_Win32_Walk_Iter
+typedef struct _Os_Win32_Walk_Iter _Os_Win32_Walk_Iter;
+struct _Os_Win32_Walk_Iter
 {
     HANDLE handle;
     WIN32_FIND_DATAW find_data;

@@ -1,3 +1,4 @@
+// TODO(ak): make metaprogramming lang
 // TODO(ak): make config file
 // TODO(ak): handle config using command line args
 // TODO(ak): embead font in exe
@@ -31,7 +32,7 @@ internal void print_help_message(Flags_Context *context)
     fmt_println("USAGE:");
     term_style_end();
     Str8 *program_name = os_program_path_get();
-    fmt_printfln("   %s [OPTIONS] <shader_file_name.frag>", program_name->cstr);
+    fmt_printfln("   %s [OPTIONS]", program_name->cstr);
     term_style_start(TERM_UNDERLINE);
     fmt_println("OPTIONS:");
     term_style_end();
@@ -105,9 +106,9 @@ internal void base_main(void)
         render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
         // list_comp()
         {
+            ui_font_push(&font);
             Ui_Box box = ui_box();
             ui_parent_push(&box);
-        //     ui_font_push(font);
         //     ui_axis_push(Axies_X);
         //     ui_padding_push(...);
         //     ui_size_kind_push(UI_SizeKind_Pixels);

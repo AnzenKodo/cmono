@@ -32,7 +32,7 @@ internal Font font_load(Str8 name, size_t atlas_width, size_t atlas_height, Aren
     Arena_Temp temp = arena_temp_begin(arena);
     {
         unsigned char *ttf_buffer = arena_push(temp.arena, unsigned char, MB(1));
-        Os_File font_file = os_file_open(name, OS_AccessFlag_Read);
+        Os_File font_file = os_file_open(name, Os_AccessFlag_Read);
         os_file_read_full(font_file, ttf_buffer);
         // ak: init font data
         stbtt_fontinfo font_info;
