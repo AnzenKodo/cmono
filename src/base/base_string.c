@@ -690,30 +690,32 @@ internal Str8 str8_copy(Arena *arena, Str8 s)
 {
     Str8 str;
     str.length = s.length;
+    str.size = s.size;
     str.cstr = arena_push_nz(arena, uint8_t, str.length + 1);
     mem_copy(str.cstr, s.cstr, s.length);
     str.cstr[str.length] = 0;
     return(str);
 }
 
-internal Str8 str8fv(Arena *arena, char *fmt, va_list args)
+internal Str8 str8fv(Arena *arena, char *format, va_list args)
 {
-    va_list args2;
-    va_copy(args2, args);
-    uint32_t needed_bytes = fmt_vsnprintf(0, 0, fmt, args) + 1;
-    Str8 result = ZERO_STRUCT;
-    result.cstr = arena_push(arena, uint8_t, needed_bytes);
-    result.length = fmt_vsnprintf((char*)result.cstr, needed_bytes, fmt, args2);
-    result.cstr[result.length] = 0;
-    va_end(args2);
+    Str8 result = {0};
+    va_list args_copy;
+    va_copy(args_copy, args);
+        uint32_t needed = fmt_vsnprintf(0, 0, format, args) + 1;
+        result.cstr = arena_push_nz(arena, uint8_t, needed);
+        result.length = fmt_vsnprintf((char*)result.cstr, needed, format, args_copy);
+        result.size = result.length;
+        result.cstr[result.length] = 0;
+    va_end(args_copy);
     return result;
 }
 
-internal Str8 str8f(Arena *arena, char *fmt, ...)
+internal Str8 str8f(Arena *arena, char *format, ...)
 {
     va_list args;
-    va_start(args, fmt);
-    Str8 result = str8fv(arena, fmt, args);
+    va_start(args, format);
+    Str8 result = str8fv(arena, format, args);
     va_end(args);
     return result;
 }

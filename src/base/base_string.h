@@ -177,8 +177,8 @@ internal Str8     str8_list_join(Arena *arena, Str8List *list, StrJoin *optional
 // String Formatting & Copying ================================================
 
 internal Str8 str8_copy(Arena *arena, Str8 s);
-internal Str8 str8fv(Arena *arena, char *fmt, va_list args);
-internal Str8 str8f(Arena *arena, char *fmt, ...);
+internal Str8 str8fv(Arena *arena, char *format, va_list args);
+internal Str8 str8f(Arena *arena, char *format, ...);
 
 // UTF-8 & UTF-16 Decoding/Encoding ===========================================
 
