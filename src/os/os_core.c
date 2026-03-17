@@ -8,7 +8,7 @@ internal void * os_memory_alloc(size_t size)
 internal size_t os_file_read_full(Os_File file, void *out_data)
 {
     size_t result;
-    Os_FileProperties prop = os_file_properties(file);
+    Os_File_Properties prop = os_file_properties(file);
     result = os_file_read(file, (Rng1_U64){0, prop.size}, out_data);
     return result;
 }
@@ -31,7 +31,7 @@ internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
 {
     Str8 result;
-    Os_FileProperties prop = os_file_properties(file);
+    Os_File_Properties prop = os_file_properties(file);
     result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
     return result;
 }

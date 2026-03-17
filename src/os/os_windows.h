@@ -19,6 +19,16 @@ struct _OS_Win32_State
     uint64_t microsecond_resolution;
 };
 
+typedef struct Os_Win32_Walk_Iter Os_Win32_Walk_Iter;
+struct Os_Win32_Walk_Iter
+{
+    HANDLE handle;
+    WIN32_FIND_DATAW find_data;
+    bool is_volume_iter;
+    Str8Array drive_strings;
+    uint64_t drive_strings_iter_idx;
+};
+
 // Defines
 //=============================================================================
 

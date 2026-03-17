@@ -12,11 +12,11 @@ internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time)
     return unix_time32;
 }
 
-internal FilePropertyFlags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes) {
-    FilePropertyFlags flags = 0;
+internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes) {
+    Os_File_Property_Flags flags = 0;
     if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
-        flags |= FilePropertyFlag_IsFolder;
+        flags |= Os_File_Property_Flag_IsFolder;
     }
     return flags;
 }
@@ -85,28 +85,28 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
     SECURITY_ATTRIBUTES security_attributes = {sizeof(security_attributes), 0, 0};
-    if(flags & OS_AccessFlag_Read) {
+    if(flags & Os_AccessFlag_Read) {
         access_flags |= GENERIC_READ;
     }
-    if(flags & OS_AccessFlag_Write) {
+    if(flags & Os_AccessFlag_Write) {
         access_flags |= GENERIC_WRITE;
     }
-    if(flags & OS_AccessFlag_Execute) {
+    if(flags & Os_AccessFlag_Execute) {
         access_flags |= GENERIC_EXECUTE;
     }
-    if(flags & OS_AccessFlag_ShareRead) {
+    if(flags & Os_AccessFlag_ShareRead) {
         share_mode |= FILE_SHARE_READ;
     }
-    if(flags & OS_AccessFlag_ShareWrite) {
+    if(flags & Os_AccessFlag_ShareWrite) {
         share_mode |= FILE_SHARE_WRITE|FILE_SHARE_DELETE;
     }
-    if(flags & OS_AccessFlag_Write) {
+    if(flags & Os_AccessFlag_Write) {
         creation_disposition = CREATE_ALWAYS;
     }
-    if(flags & OS_AccessFlag_Append) {
+    if(flags & Os_AccessFlag_Append) {
         creation_disposition = OPEN_ALWAYS; access_flags |= FILE_APPEND_DATA;
     }
-    if(flags & OS_AccessFlag_Inherited)
+    if(flags & Os_AccessFlag_Inherited)
     {
         security_attributes.bInheritHandle = 1;
     }
@@ -212,6 +212,130 @@ internal bool os_dir_make(Str8 path)
     }
     arena_scratch_end(scratch);
     return(result);
+}
+
+//- ak: directory walking
+
+internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_Flags flags)
+{
+    Arena_Temp scratch = arena_scratch_begin(&arena, 1);
+    Str8 path_with_wildcard = str8_cat(scratch.arena, path, str8("\\*"));
+    Str16 path16 = str16_from_8(scratch.arena, path_with_wildcard);
+    Os_File_Walk *iter = push_array(arena, Os_File_Walk, 1);
+    iter->flags = flags;
+    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
+    if(path.size == 0)
+    {
+        win32_walk->is_volume_iter = 1;
+        WCHAR buffer[512] = {0};
+        DWORD length = GetLogicalDriveStringsW(sizeof(buffer), buffer);
+        Str8List drive_strings = {0};
+        for(uint64_t off = 0; off < (uint64_t)length;)
+        {
+            Str16 next_drive_string_16 = str16_from_cstr((U16 *)buffer+off);
+            off += next_drive_string_16.size+1;
+            Str8 next_drive_string = str8_from_16(arena, next_drive_string_16);
+            next_drive_string = str8_chop_last_slash(next_drive_string);
+            str8_list_push(scratch.arena, &drive_strings, next_drive_string);
+        }
+        win32_walk->drive_strings = str8_array_from_list(arena, &drive_strings);
+        win32_walk->drive_strings_iter_idx = 0;
+    }
+    else
+    {
+        win32_walk->handle = FindFirstFileExW((WCHAR*)path16.cstr, FindExInfoBasic, &win32_walk->find_data, FindExSearchNameMatch, 0, FIND_FIRST_EX_LARGE_FETCH);
+    }
+    arena_scratch_end(scratch);
+    return iter;
+}
+
+internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *info_out)
+{
+    bool result = 0;
+    Os_File_Walk_Flags flags = iter->flags;
+    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
+    switch(win32_walk->is_volume_iter)
+    {
+        //- rjf: file iteration
+        default:
+        case 0:
+            {
+                if (!(flags & Os_File_Walk_Flag_Done) && win32_walk->handle != INVALID_HANDLE_VALUE)
+                {
+                    do
+                    {
+                        // check is usable
+                        bool usable_file = 1;
+
+                        WCHAR *file_name = win32_walk->find_data.cFileName;
+                        DWORD attributes = win32_walk->find_data.dwFileAttributes;
+                        if (file_name[0] == '.'){
+                            if (flags & Os_FileIterFlag_SkipHiddenFiles){
+                                usable_file = 0;
+                            }
+                            else if (file_name[1] == 0){
+                                usable_file = 0;
+                            }
+                            else if (file_name[1] == '.' && file_name[2] == 0){
+                                usable_file = 0;
+                            }
+                        }
+                        if (attributes & FILE_ATTRIBUTE_DIRECTORY){
+                            if (flags & Os_FileIterFlag_SkipFolders){
+                                usable_file = 0;
+                            }
+                        }
+                        else{
+                            if (flags & Os_FileIterFlag_SkipFiles){
+                                usable_file = 0;
+                            }
+                        }
+                        // emit if usable
+                        if (usable_file){
+                            info_out->name = str8_from_16(arena, str16_from_cstr((U16*)file_name));
+                            info_out->props.size = (uint64_t)win32_walk->find_data.nFileSizeLow | (((uint64_t)win32_walk->find_data.nFileSizeHigh)<<32);
+                            _os_win32_dense_time_from_file_time(&info_out->props.created,  &win32_walk->find_data.ftCreationTime);
+                            _os_win32_dense_time_from_file_time(&info_out->props.modified, &win32_walk->find_data.ftLastWriteTime);
+                            info_out->props.flags = _os_win32_file_property_flags_from_dwFileAttributes(attributes);
+                            result = 1;
+                            if (!FindNextFileW(win32_walk->handle, &win32_walk->find_data)){
+                                iter->flags |= Os_File_Walk_Flag_Done;
+                            }
+                            break;
+                        }
+                    }while(FindNextFileW(win32_walk->handle, &win32_walk->find_data));
+                }
+            }break;
+
+            //- rjf: volume iteration
+        case 1:
+            {
+                result = win32_walk->drive_strings_iter_idx < win32_walk->drive_strings.count;
+                if(result != 0)
+                {
+                    MemorySetZero(info_out);
+                    info_out->name = win32_walk->drive_strings.v[win32_walk->drive_strings_iter_idx];
+                    info_out->props.flags |= Os_File_Property_Flag_IsFolder;
+                    win32_walk->drive_strings_iter_idx += 1;
+                }
+            }break;
+    }
+    if(!result)
+    {
+        iter->flags |= Os_File_Walk_Flag_Done;
+    }
+    return result;
+}
+
+internal void os_file_walk_end(Os_File_Walk *walk)
+{
+    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
+    HANDLE zero_handle;
+    MemorySetZero(&zero_handle);
+    if(!MemoryMatchStruct(&zero_handle, &win32_walk->handle))
+    {
+        FindClose(win32_walk->handle);
+    }
 }
 
 // Exit

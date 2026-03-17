@@ -28,15 +28,15 @@ internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in)
     return result;
 }
 
-internal Os_FileProperties _os_linux_file_properties_from_stat(struct stat *s)
+internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s)
 {
-    Os_FileProperties props = ZERO_STRUCT;
+    Os_File_Properties props = ZERO_STRUCT;
     props.size     = s->st_size;
     props.created  = _os_linux_dense_time_from_timespec(s->st_ctim);
     props.modified = _os_linux_dense_time_from_timespec(s->st_mtim);
     if(s->st_mode & S_IFDIR)
     {
-        props.flags |= FilePropertyFlag_IsFolder;
+        props.flags |= Os_File_Property_Flag_IsFolder;
     }
     return props;
 }
@@ -74,42 +74,42 @@ internal size_t os_pagesize_get(void)
     return result;
 }
 
-// File System
+//~ ak: File System
 //=============================================================================
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
     int32_t access_flags = 0;
-    if(flags & OS_AccessFlag_Read && flags & OS_AccessFlag_Write)
+    if(flags & Os_AccessFlag_Read && flags & Os_AccessFlag_Write)
     {
         access_flags = O_RDWR;
     }
-    else if(flags & OS_AccessFlag_Write)
+    else if(flags & Os_AccessFlag_Write)
     {
         access_flags = O_WRONLY|O_TRUNC;
     }
-    else if(flags & OS_AccessFlag_Read)
+    else if(flags & Os_AccessFlag_Read)
     {
         access_flags = O_RDONLY;
     }
-    if(flags & OS_AccessFlag_Append)
+    if(flags & Os_AccessFlag_Append)
     {
         access_flags |= O_APPEND;
     }
-    if(flags & (OS_AccessFlag_Write|OS_AccessFlag_Append))
+    if(flags & (Os_AccessFlag_Write|Os_AccessFlag_Append))
     {
         access_flags |= O_CREAT;
     }
     Os_File file = open((char *)path.cstr, access_flags, 0666);
-    if (!(flags & OS_AccessFlag_Inherited)) {
+    if (!(flags & Os_AccessFlag_Inherited)) {
         fcntl(file, F_SETFD, FD_CLOEXEC);
     }
     // Lock file based on given flags
     short share_mode = 0;
-    if (!(flags & OS_AccessFlag_ShareRead)) {
+    if (!(flags & Os_AccessFlag_ShareRead)) {
         share_mode |= F_RDLCK;
     }
-    if (!(flags & OS_AccessFlag_ShareWrite)) {
+    if (!(flags & Os_AccessFlag_ShareWrite)) {
         share_mode |= F_WRLCK;
     }
     if (share_mode) {
@@ -183,11 +183,11 @@ internal size_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
     return total_num_bytes_written;
 }
 
-internal Os_FileProperties os_file_properties(Os_File file)
+internal Os_File_Properties os_file_properties(Os_File file)
 {
     struct stat fd_stat = ZERO_STRUCT;
     int fstat_result = fstat(file, &fd_stat);
-    Os_FileProperties props = ZERO_STRUCT;
+    Os_File_Properties props = ZERO_STRUCT;
     if(fstat_result != -1)
     {
         props = _os_linux_file_properties_from_stat(&fd_stat);
@@ -203,6 +203,74 @@ internal bool os_dir_make(Str8 path)
     } else {
         return false;
     }
+}
+
+//- ak: directory walking
+
+internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_Flags flags)
+{
+    Os_File_Walk *base_walk = arena_push(arena, Os_File_Walk, 1);
+    base_walk->flags = flags;
+    _Os_Linux_File_Walk *walk = (_Os_Linux_File_Walk *)base_walk->memory;
+    {
+        Str8 path_copy = str8_copy(arena, path);
+        walk->dir = opendir((char *)path_copy.cstr);
+        walk->path = path_copy;
+    }
+    return base_walk;
+}
+
+internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *info_out)
+{
+    bool good = 0;
+    _Os_Linux_File_Walk *linux_walk = (_Os_Linux_File_Walk *)walk->memory;
+    for(;;)
+    {
+        // ak: get next entry
+        linux_walk->dp = readdir(linux_walk->dir);
+        good = (linux_walk->dp != 0);
+        // ak: unpack entry info
+        struct stat st = {0};
+        int stat_result = 0;
+        if(good)
+        {
+            Arena_Temp scratch = arena_scratch_begin(&arena, 1);
+            Str8 full_path = str8f(scratch.arena, "%S/%s", linux_walk->path, linux_walk->dp->d_name);
+            stat_result = stat((char *)full_path.cstr, &st);
+            arena_scratch_end(scratch);
+        }
+        // ak: determine if filtered
+        bool filtered = 0;
+        if(good)
+        {
+            filtered = ((st.st_mode == S_IFDIR && walk->flags & Os_File_Walk_Flag_SkipFolders) ||
+                    (st.st_mode == S_IFREG && walk->flags & Os_File_Walk_Flag_SkipFiles) ||
+                    (linux_walk->dp->d_name[0] == '.' && linux_walk->dp->d_name[1] == 0) ||
+                    (linux_walk->dp->d_name[0] == '.' && linux_walk->dp->d_name[1] == '.' && linux_walk->dp->d_name[2] == 0));
+        }
+        // ak: output & exit, if good & unfiltered
+        if(good && !filtered)
+        {
+            info_out->name = str8_copy(arena, str8_from_cstr(linux_walk->dp->d_name));
+            if(stat_result != -1)
+            {
+                info_out->props = _os_linux_file_properties_from_stat(&st);
+            }
+            break;
+        }
+        // ak: exit if not good
+        if(!good)
+        {
+            break;
+        }
+    }
+    return good;
+}
+
+internal void os_file_walk_end(Os_File_Walk *walk)
+{
+    _Os_Linux_File_Walk *linux_walk = (_Os_Linux_File_Walk *)walk->memory;
+    closedir(linux_walk->dir);
 }
 
 // Exit
