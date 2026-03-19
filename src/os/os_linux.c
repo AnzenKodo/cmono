@@ -235,7 +235,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
         if(good)
         {
             Arena_Temp scratch = arena_scratch_begin(&arena, 1);
-            Str8 full_path = str8f(scratch.arena, "%S/%s", linux_walk->path, linux_walk->dp->d_name);
+            Str8 full_path = str8f(scratch.arena, "%.*s/%s", str8_varg(linux_walk->path), linux_walk->dp->d_name);
             stat_result = stat((char *)full_path.cstr, &st);
             arena_scratch_end(scratch);
         }

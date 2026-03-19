@@ -89,14 +89,21 @@ internal bool os_memory_commit(void *ptr, size_t size);
 internal bool os_memory_decommit(void *ptr, size_t size);
 internal size_t os_pagesize_get(void);
 
-// File System ================================================================
+//~ ak: File System ===========================================================
 
+//- ak: Open and Close file
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags);
 internal void os_file_close(Os_File file);
+
+//- ak: File Read
 internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data);
 internal size_t os_file_read_full(Os_File file, void *out_data);
 internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena);
 internal Str8 os_file_read_str_full(Os_File file, Arena *arena);
+internal Str8 os_path_read_str(Str8 path, Rng1_U64 range, Arena *arena);
+internal Str8 os_path_read_str_full(Str8 path, Arena *arena);
+
+//- ak: File Write
 internal size_t os_file_write(Os_File file, Rng1_U64 rng, void *data);
 internal Os_File_Properties os_file_properties(Os_File file);
 internal bool os_dir_make(Str8 path);

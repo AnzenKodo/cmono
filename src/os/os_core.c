@@ -5,6 +5,8 @@ internal void * os_memory_alloc(size_t size)
     return result;
 }
 
+//- ak: File Read
+
 internal size_t os_file_read_full(Os_File file, void *out_data)
 {
     size_t result;
@@ -30,9 +32,28 @@ internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 
 internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
 {
-    Str8 result;
+    Str8 result = ZERO_STRUCT;
     Os_File_Properties prop = os_file_properties(file);
     result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
+    return result;
+}
+
+internal Str8 os_path_read_str(Str8 path, Rng1_U64 range, Arena *arena)
+{
+    Str8 result = ZERO_STRUCT;
+    Os_File file = os_file_open(path, Os_AccessFlag_Read|Os_AccessFlag_ShareRead);
+    result = os_file_read_str(file, range, arena);
+    os_file_close(file);
+    return result;
+}
+
+internal Str8 os_path_read_str_full(Str8 path, Arena *arena)
+{
+    Str8 result = ZERO_STRUCT;
+    Os_File file = os_file_open(path, Os_AccessFlag_Read|Os_AccessFlag_ShareRead);
+    Os_File_Properties prop = os_file_properties(file);
+    result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
+    os_file_close(file);
     return result;
 }
 
