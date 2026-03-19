@@ -24,8 +24,7 @@
 ////////////////////////////////
 //~ rjf: Entry Point
 
-internal void
-entry_point(CmdLine *cmdline)
+internal void entry_point(CmdLine *cmdline)
 {
   //////////////////////////////
   //- rjf: set up state
@@ -35,14 +34,14 @@ entry_point(CmdLine *cmdline)
   mg_state = arena_push(arena, MG_State, 1);
   mg_state->slots_count = 256;
   mg_state->slots = arena_push(arena, MG_LayerSlot, mg_state->slots_count);
-  
+
   //////////////////////////////
   //- rjf: extract paths
   //
   Str8 build_dir_path   = os_get_process_info()->binary_path;
   Str8 project_dir_path = str8_chop_last_slash(build_dir_path);
   Str8 code_dir_path    = str8f(arena, "%S/src", project_dir_path);
-  
+
   //////////////////////////////
   //- rjf: search code directories for all files to consider
   //
@@ -78,7 +77,7 @@ entry_point(CmdLine *cmdline)
       os_file_walk_end(walk);
     }
   }
-  
+
   //////////////////////////////
   //- rjf: parse all metadesk files
   //
@@ -117,7 +116,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: gather tables
   //
@@ -145,7 +144,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: gather layer options
   //
@@ -213,7 +212,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate enums
   //
@@ -259,7 +258,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate xlists
   //
@@ -283,7 +282,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate structs
   //
@@ -307,7 +306,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate data tables
   //
@@ -336,7 +335,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate enum -> string mapping functions
   //
@@ -368,7 +367,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate catch-all generations
   //
@@ -399,7 +398,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: gather & generate all embeds
   //
@@ -427,13 +426,13 @@ entry_point(CmdLine *cmdline)
         str8_list_push (arena, &layer->h_tables, embed_string);
         str8_list_pushf(arena, &layer->h_tables, "};\n\n");
         str8_list_pushf(arena, &layer->h_tables, "read_only global Str8 %S = {%S__data, sizeof(%S__data)};\n",
-                        node->string,
-                        node->string,
-                        node->string);
+            node->string,
+            node->string,
+            node->string);
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: generate all markdown in build folder
   //
@@ -494,7 +493,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: write all layer output files
   //
@@ -638,7 +637,7 @@ entry_point(CmdLine *cmdline)
       }
     }
   }
-  
+
   //////////////////////////////
   //- rjf: write out all messages to stderr
   //

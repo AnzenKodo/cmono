@@ -325,7 +325,7 @@ internal void base_main(void)
             info.type = Build_Type_Debug;
             info.name = str8("MetaTable");
             info.cmd_name = str8("metatable");
-            info.entry_point = str8("src/metatable/metatable_main.c");
+            info.entry_point = str8("src/metatable/mtable_main.c");
             build_run_program = true;
         }
         if (info.type != Build_Type_None)
