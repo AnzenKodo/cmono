@@ -57,7 +57,7 @@ internal Str8 os_path_read_str_full(Str8 path, Arena *arena)
     return result;
 }
 
-internal Str8Array *os_args_get(void)
+internal Str8_Array *os_args_get(void)
 {
     return &_os_core_state.args;
 }

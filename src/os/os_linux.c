@@ -34,7 +34,7 @@ internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s)
     props.size     = s->st_size;
     props.created  = _os_linux_dense_time_from_timespec(s->st_ctim);
     props.modified = _os_linux_dense_time_from_timespec(s->st_mtim);
-    if(s->st_mode & S_IFDIR)
+    if (s->st_mode & S_IFDIR)
     {
         props.flags |= Os_File_Property_Flag_IsFolder;
     }
@@ -47,7 +47,7 @@ internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s)
 internal void *os_memory_reserve(size_t size)
 {
     void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-    if(result == MAP_FAILED) { result = 0; }
+    if (result == MAP_FAILED) { result = 0; }
     return result;
 }
 internal bool os_memory_commit(void *ptr, size_t size)
@@ -80,23 +80,23 @@ internal size_t os_pagesize_get(void)
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
 {
     int32_t access_flags = 0;
-    if(flags & Os_AccessFlag_Read && flags & Os_AccessFlag_Write)
+    if (flags & Os_AccessFlag_Read && flags & Os_AccessFlag_Write)
     {
         access_flags = O_RDWR;
     }
-    else if(flags & Os_AccessFlag_Write)
+    else if (flags & Os_AccessFlag_Write)
     {
         access_flags = O_WRONLY|O_TRUNC;
     }
-    else if(flags & Os_AccessFlag_Read)
+    else if (flags & Os_AccessFlag_Read)
     {
         access_flags = O_RDONLY;
     }
-    if(flags & Os_AccessFlag_Append)
+    if (flags & Os_AccessFlag_Append)
     {
         access_flags |= O_APPEND;
     }
-    if(flags & (Os_AccessFlag_Write|Os_AccessFlag_Append))
+    if (flags & (Os_AccessFlag_Write|Os_AccessFlag_Append))
     {
         access_flags |= O_CREAT;
     }
@@ -133,18 +133,18 @@ internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
     size_t total_num_bytes_to_read = rng1_dim_u64(rng);
     size_t total_num_bytes_read = 0;
     size_t total_num_bytes_left_to_read = total_num_bytes_to_read;
-    for(;total_num_bytes_left_to_read > 0;)
+    while (total_num_bytes_left_to_read > 0)
     {
         int read_result = pread(
             file, (uint8_t *)out_data + total_num_bytes_read,
             total_num_bytes_left_to_read, rng.min + total_num_bytes_read
         );
-        if(read_result >= 0)
+        if (read_result >= 0)
         {
             total_num_bytes_read += read_result;
             total_num_bytes_left_to_read -= read_result;
         }
-        else if(errno != EINTR)
+        else if (errno != EINTR)
         {
             break;
         }
@@ -152,34 +152,33 @@ internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
     return total_num_bytes_read;
 }
 
-internal size_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
+internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
 {
     size_t total_num_bytes_to_write = rng1_dim_u64(rng);
     size_t total_num_bytes_written = 0;
-    if (file == OS_STDOUT || file == OS_STDIN || file == OS_STDERR)
+    size_t total_num_bytes_left_to_write = total_num_bytes_to_write;
+    while (total_num_bytes_left_to_write > 0)
     {
-        total_num_bytes_written = write(file, data, total_num_bytes_to_write);
-    }
-    else
-    {
-        size_t total_num_bytes_left_to_write = total_num_bytes_to_write;
-        for(;total_num_bytes_left_to_write > 0;)
-        {
-            int write_result = pwrite(
+        int write_result = pwrite(
                 file, (uint8_t *)data + total_num_bytes_written,
                 total_num_bytes_left_to_write, rng.min + total_num_bytes_written
-            );
-            if(write_result >= 0)
-            {
-                total_num_bytes_written += write_result;
-                total_num_bytes_left_to_write -= write_result;
-            }
-            else if(errno != EINTR)
-            {
-                break;
-            }
+                );
+        if (write_result >= 0)
+        {
+            total_num_bytes_written += write_result;
+            total_num_bytes_left_to_write -= write_result;
+        }
+        else if (errno != EINTR)
+        {
+            break;
         }
     }
+    return total_num_bytes_written;
+}
+
+internal size_t os_file_write_append(Os_File file, void *data, size_t size)
+{
+    size_t total_num_bytes_written = write(file, data, size);
     return total_num_bytes_written;
 }
 
@@ -188,7 +187,7 @@ internal Os_File_Properties os_file_properties(Os_File file)
     struct stat fd_stat = ZERO_STRUCT;
     int fstat_result = fstat(file, &fd_stat);
     Os_File_Properties props = ZERO_STRUCT;
-    if(fstat_result != -1)
+    if (fstat_result != -1)
     {
         props = _os_linux_file_properties_from_stat(&fd_stat);
     }
@@ -224,7 +223,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
 {
     bool good = 0;
     _Os_Linux_File_Walk *linux_walk = (_Os_Linux_File_Walk *)walk->memory;
-    for(;;)
+    while (true)
     {
         // ak: get next entry
         linux_walk->dp = readdir(linux_walk->dir);
@@ -232,7 +231,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
         // ak: unpack entry info
         struct stat st = {0};
         int stat_result = 0;
-        if(good)
+        if (good)
         {
             Arena_Temp scratch = arena_scratch_begin(&arena, 1);
             Str8 full_path = str8f(scratch.arena, "%.*s/%s", str8_varg(linux_walk->path), linux_walk->dp->d_name);
@@ -241,7 +240,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
         }
         // ak: determine if filtered
         bool filtered = 0;
-        if(good)
+        if (good)
         {
             filtered = ((st.st_mode == S_IFDIR && walk->flags & Os_File_Walk_Flag_SkipFolders) ||
                     (st.st_mode == S_IFREG && walk->flags & Os_File_Walk_Flag_SkipFiles) ||
@@ -249,17 +248,17 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
                     (linux_walk->dp->d_name[0] == '.' && linux_walk->dp->d_name[1] == '.' && linux_walk->dp->d_name[2] == 0));
         }
         // ak: output & exit, if good & unfiltered
-        if(good && !filtered)
+        if (good && !filtered)
         {
             info_out->name = str8_copy(arena, str8_from_cstr(linux_walk->dp->d_name));
-            if(stat_result != -1)
+            if (stat_result != -1)
             {
                 info_out->props = _os_linux_file_properties_from_stat(&st);
             }
             break;
         }
         // ak: exit if not good
-        if(!good)
+        if (!good)
         {
             break;
         }
@@ -347,8 +346,8 @@ internal Str8 os_env_get(Str8 name)
 int main(int argc, char *argv[])
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
-    _os_core_state.args = array_push(scratch.arena, Str8Array, argc);
-    for(int i = 0; i < argc; i++)
+    _os_core_state.args = array_push(scratch.arena, Str8_Array, argc);
+    for (int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);
         array_append(&_os_core_state.args, str);

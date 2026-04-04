@@ -73,7 +73,7 @@ struct Os_File_Walk
 
 typedef struct _Os_Core_State _Os_Core_State;
 struct _Os_Core_State {
-    Str8Array args;
+    Str8_Array args;
     Log_Context log_context;
 };
 
@@ -104,7 +104,8 @@ internal Str8 os_path_read_str(Str8 path, Rng1_U64 range, Arena *arena);
 internal Str8 os_path_read_str_full(Str8 path, Arena *arena);
 
 //- ak: File Write
-internal size_t os_file_write(Os_File file, Rng1_U64 rng, void *data);
+internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng);
+internal size_t os_file_write_append(Os_File file, void *data, size_t size);
 internal Os_File_Properties os_file_properties(Os_File file);
 internal bool os_dir_make(Str8 path);
 
@@ -125,7 +126,7 @@ internal void os_sleep_millisec(uint32_t millisec);
 
 // Command line arguments =====================================================
 
-internal Str8List *os_agrs_get(void);
+internal Str8_List *os_agrs_get(void);
 internal Str8 *os_program_path_get(void);
 
 // Environment Variable =======================================================

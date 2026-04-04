@@ -25,7 +25,7 @@ struct _Os_Win32_Walk_Iter
     HANDLE handle;
     WIN32_FIND_DATAW find_data;
     bool is_volume_iter;
-    Str8Array drive_strings;
+    Str8_Array drive_strings;
     uint64_t drive_strings_iter_idx;
 };
 

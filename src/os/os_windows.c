@@ -181,6 +181,13 @@ internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
     return src_off;
 }
 
+internal size_t os_file_write_append(Os_File file, void *data, size_t size);
+{
+    DWORD total_num_bytes_written;
+    WriteFile(file, data, (DWORD)size, &total_num_bytes_written, NULL);
+    return total_num_bytes_written;
+}
+
 internal Os_FileProperties os_file_properties(Os_File file)
 {
     Os_FileProperties props = {0};
@@ -229,7 +236,7 @@ internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_
         win32_walk->is_volume_iter = 1;
         WCHAR buffer[512] = {0};
         DWORD length = GetLogicalDriveStringsW(sizeof(buffer), buffer);
-        Str8List drive_strings = {0};
+        Str8_List drive_strings = {0};
         for(uint64_t off = 0; off < (uint64_t)length;)
         {
             Str16 next_drive_string_16 = str16_from_cstr((U16 *)buffer+off);
@@ -420,7 +427,7 @@ int main(void)
     // Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
-    _os_core_state.args = array_push(scratch.arena, Str8Array, args_count);
+    _os_core_state.args = array_push(scratch.arena, Str8_Array, args_count);
     for(int i = 0; i < args_count; i++)
     {
         Str16 str16 = str16_from_cstr(args[i]);
