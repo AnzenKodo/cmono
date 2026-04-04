@@ -40,6 +40,22 @@
 #   error no_inline not defined for this compiler.
 #endif
 
+#ifdef OS_WINDOWS
+#   define PragmaPop() __pragma(warning(pop))
+#elif COMPILER_CLANG || COMPILER_GCC
+#   define PragmaPop() _Pragma("GCC diagnostic pop")
+#else
+#   error pragma pop not defined for this compiler
+#endif
+
+#if COMPILER_CLANG || COMPILER_GCC
+#   define PragmaNoWarnMissingFieldInitPush() \
+        _Pragma("GCC diagnostic push") \
+        _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"")
+#else
+#   error pragma missing field initializers not defined for this compiler
+#endif
+
 // Constants
 //=============================================================================
 
@@ -340,6 +356,22 @@ typedef enum Corner
     Corner_BottomRight,
     Corner_COUNT
 } Corner;
+
+//~ ak: Text 2D Coordinates & Ranges ==========================================
+
+typedef struct Txt_Pt Txt_Pt;
+struct Txt_Pt
+{
+    size_t line;
+    size_t column;
+};
+
+typedef struct Txt_Rng Txt_Rng;
+struct Txt_Rng
+{
+    Txt_Pt min;
+    Txt_Pt max;
+};
 
 // Functions
 // ============================================================================
