@@ -59,7 +59,7 @@ global const char *help_message = "build.c: C file that build's C projects.\n"
 //~ ak: Functions
 //=============================================================================
 
-internal void build_cmd_append(Build_Info *info, const char *format, ...);
+internal void build_cmd_append(Build_Info *info, const char *format, ...) FmtTypeCheck(2, 3);
 internal void build_cmd_finish(Build_Info *info);
 internal void build_cmd_run(Build_Info *info);
 internal char *build_type_to_str8(Build_Info *info);
@@ -155,7 +155,7 @@ internal void build_compile_gcc(Build_Info *info)
     //~ ak: Optimaization
     if (info->type == Build_Type_Debug)
     {
-        build_cmd_append(info, " -Og"); //~ ak: Enable Debug friendly optimaization
+        build_cmd_append(info, " -O0"); //~ ak: Enable Debug friendly optimaization
     }
     else if (info->type == Build_Type_Release)
     {
@@ -247,7 +247,7 @@ internal void base_main(void)
     bool should_print_help = false;
     bool build_run_program = false;
     bool gen_meta_program = false;
-    Str8Array *args = os_args_get();
+    Str8_Array *args = os_args_get();
     if (args->length >= 2)
     {
         Str8 arg1 = args->v[1];
@@ -325,7 +325,7 @@ internal void base_main(void)
             info.type = Build_Type_Debug;
             info.name = str8("MetaTable");
             info.cmd_name = str8("metatable");
-            info.entry_point = str8("src/metatable/mtable_main.c");
+            info.entry_point = str8("src/mtable/mtable_main.c");
             build_run_program = true;
         }
         if (info.type != Build_Type_None)
