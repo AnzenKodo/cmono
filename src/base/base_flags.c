@@ -94,7 +94,7 @@ internal Str8 _flags_get_options_from_arg(Str8 arg)
     return result;
 }
 
-internal uint64_t _flags_get_values_count(Str8Array *args, uint64_t index)
+internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index)
 {
     uint64_t count = 0;
     for (uint64_t i = index; i < args->length; i++)
@@ -117,7 +117,7 @@ internal Flags_Context flags_begin(Arena *arena)
     return context;
 }
 
-internal bool flags_parse(Flags_Context *context, Str8Array *args)
+internal bool flags_parse(Flags_Context *context, Str8_Array *args)
 {
     bool nocolor = false;
     if (context->should_add_color_flags)
@@ -232,7 +232,7 @@ internal bool flags_parse(Flags_Context *context, Str8Array *args)
                 break;
                 case _Flags_Option_Kind_StrArr:
                 {
-                    Str8Array array = ZERO_STRUCT;
+                    Str8_Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
                     array.v = arena_push(context->arena, Str8, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
@@ -615,7 +615,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (option->default_value.int_value != 0)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    fmt_printfln("%lld)", option->default_value.int_value);
+                    fmt_printfln("%ld)", option->default_value.int_value);
                 }
             }
             break;
@@ -624,7 +624,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (option->default_value.uint_value != 0)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    fmt_printfln("%llu)", option->default_value.uint_value);
+                    fmt_printfln("%lu)", option->default_value.uint_value);
                 }
             }
             break;
@@ -633,7 +633,7 @@ internal void flags_print_help(Flags_Context *context)
                 if (option->default_value.float_value != 0)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
-                    fmt_printfln("%llf)", option->default_value.float_value);
+                    fmt_printfln("%f)", option->default_value.float_value);
                 }
             }
             break;
@@ -643,13 +643,13 @@ internal void flags_print_help(Flags_Context *context)
             break;
             case _Flags_Option_Kind_StrArr:
             {
-                Str8Array *default_array = option->default_value.str_value_arr;
+                Str8_Array *default_array = option->default_value.str_value_arr;
                 if (default_array != NULL)
                 {
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
                     for (uint32_t i = 0; i < default_array->length; i++)
                     {
-                        fmt_printf("\"%s\"", default_array->v[i]);
+                        fmt_printf("\"%.*s\"", str8_varg(default_array->v[i]));
                         if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
@@ -667,7 +667,7 @@ internal void flags_print_help(Flags_Context *context)
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
                     for (uint32_t i = 0; i < default_array->length; i++)
                     {
-                        fmt_printf("%lld", default_array->v[i]);
+                        fmt_printf("%ld", default_array->v[i]);
                         if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
@@ -685,7 +685,7 @@ internal void flags_print_help(Flags_Context *context)
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
                     for (uint32_t i = 0; i < default_array->length; i++)
                     {
-                        fmt_printf("%llu", default_array->v[i]);
+                        fmt_printf("%lu", default_array->v[i]);
                         if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
@@ -703,7 +703,7 @@ internal void flags_print_help(Flags_Context *context)
                     fmt_printf("%*.s%s", desc_spacing, "", default_syntex);
                     for (uint32_t i = 0; i < default_array->length; i++)
                     {
-                        fmt_printf("%llf", default_array->v[i]);
+                        fmt_printf("%f", default_array->v[i]);
                         if (default_array->length-1 != i)
                         {
                             fmt_print(" ");
@@ -804,7 +804,7 @@ internal Flags_Option *flags_option_bool(Flags_Context *context, Str8 name, bool
     return option;
 }
 
-internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, Str8Array *result_value, Str8Array *default_value, Str8 description)
+internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description)
 {
     Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_StrArr;
