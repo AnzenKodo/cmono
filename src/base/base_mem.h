@@ -2,21 +2,21 @@
 #define BASE_MEM_H
 
 internal inline void *mem_copy(void *dest, void const *source, size_t n);
-#define MemoryCopyStruct(d,s)  mem_copy((d),(s),sizeof(*(d)))
-#define MemoryCopyArray(d,s)   mem_copy((d),(s),sizeof(d))
-#define MemoryCopyTyped(d,s,c) mem_copy((d),(s),sizeof(*(d))*(c))
-#define MemoryCopyStr8(dst, s) mem_copy(dst, (s).str, (s).size)
+#define MemCopyStruct(d,s)  mem_copy((d),(s),sizeof(*(d)))
+#define MemCopyArray(d,s)   mem_copy((d),(s),sizeof(d))
+#define MemCopyTyped(d,s,c) mem_copy((d),(s),sizeof(*(d))*(c))
+#define MemCopyStr8(dst, s) mem_copy(dst, (s).str, (s).size)
 
 internal inline void *mem_set(void *dest, uint8_t c, size_t n);
-#define MemorySetZero(s,z)       mem_set((s),0,(z))
-#define MemorySetZeroStruct(s)   MemorySetZero((s),sizeof(*(s)))
-#define MemorySetZeroArray(a)    MemorySetZero((a),sizeof(a))
-#define MemorySetZeroTyped(m,c)  MemorySetZero((m),sizeof(*(m))*(c))
+#define MemSetZero(s,z)       mem_set((s),0,(z))
+#define MemSetZeroStruct(s)   MemSetZero((s),sizeof(*(s)))
+#define MemSetZeroArray(a)    MemSetZero((a),sizeof(a))
+#define MemSetZeroTyped(m,c)  MemSetZero((m),sizeof(*(m))*(c))
 
 internal inline bool mem_cmp(void const *s1, void const *s2, size_t size);
-#define MemoryMatch(a,b,z)     (mem_cmp((a),(b),(z)) == 0)
-#define MemoryMatchStruct(a,b)  MemoryMatch((a),(b),sizeof(*(a)))
-#define MemoryMatchArray(a,b)   MemoryMatch((a),(b),sizeof(a))
+#define MemMatch(a,b,z)     (mem_cmp((a),(b),(z)) == 0)
+#define MemMatchStruct(a,b) MemMatch((a),(b),sizeof(*(a)))
+#define MemMatchArray(a,b)  MemMatch((a),(b),sizeof(a))
 
 internal inline bool mem_match(void const *s1, void const *s2, size_t size);
 internal inline void *mem_move(void *dest, void const *source, size_t n);
