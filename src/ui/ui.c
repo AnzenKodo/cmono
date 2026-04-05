@@ -145,8 +145,8 @@ struct Ui_Box
   // UI_Key default_nav_focus_next_active_key;
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+PragmaNoWarnMissingFieldInitPush()
+
 read_only global Ui_Box ui_box_nil =
 {
     &ui_box_nil,
@@ -157,7 +157,8 @@ read_only global Ui_Box ui_box_nil =
     &ui_box_nil,
     &ui_box_nil,
 };
-#pragma GCC diagnostic pop
+
+PragmaPop()
 
 internal Ui_Box ui_box()
 {

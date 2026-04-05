@@ -204,9 +204,9 @@ internal Str8 str8f(Arena *arena, char *format, ...) FmtTypeCheck(2, 3);
 
 internal Unicode_Decode utf8_decode(uint8_t *str, size_t max);
 internal Unicode_Decode utf16_decode(uint16_t *str, size_t max);
-internal uint32_t      utf8_encode(uint8_t *str, uint32_t codepoint);
-internal uint32_t      utf16_encode(uint16_t *str, uint32_t codepoint);
-internal uint32_t      utf8_from_utf32_single(uint8_t *buffer, uint32_t character);
+internal uint32_t utf8_encode(uint8_t *str, uint32_t codepoint);
+internal uint32_t utf16_encode(uint16_t *str, uint32_t codepoint);
+internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character);
 
 //~ ak: Unicode String Conversions ============================================
 

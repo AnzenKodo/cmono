@@ -58,7 +58,7 @@ internal void base_main(void)
         option = flags_option_bool(&context, str8("version"), &version, version, str8("Print version message"));
         flags_add_option_shortname(option, str8("v"));
         flags_add_color_flags(&context);
-        Str8Array *args = os_args_get();
+        Str8_Array *args = os_args_get();
         if (!flags_parse(&context, args))
         {
             flags_print_error(&context);
