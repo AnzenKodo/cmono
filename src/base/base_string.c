@@ -1,4 +1,4 @@
-// External Include
+//~ ak: External Include
 //=============================================================================
 
 #if !defined(XXH_IMPLEMENTATION)
@@ -6,7 +6,7 @@
 #   include "./external/xxhash.h"
 #endif
 
-// Character Classification & Conversion Functions
+//~ ak: Character Classification & Conversion Functions
 //=============================================================================
 
 internal bool char_is_space(uint8_t c)
@@ -30,10 +30,10 @@ internal bool char_is_alpha(uint8_t c)
 internal bool char_is_digit(uint8_t c, uint32_t base)
 {
     bool result = 0;
-    if(0 < base && base <= 16)
+    if (0 < base && base <= 16)
     {
         uint8_t val = integer_symbol_reverse[c];
-        if(val < base)
+        if (val < base)
         {
             result = 1;
         }
@@ -65,14 +65,14 @@ internal uint8_t char_to_upper(uint8_t c)
 
 internal uint8_t char_to_correct_slash(uint8_t c)
 {
-    if(char_is_slash(c))
+    if (char_is_slash(c))
     {
         c = '/';
     }
     return(c);
 }
 
-// C-String Measurement
+//~ ak: C-String Measurement
 //=============================================================================
 
 internal size_t cstr8_length(uint8_t *cstr)
@@ -94,7 +94,7 @@ internal size_t cstr32_length(uint32_t *cstr)
     return(p - cstr);
 }
 
-// String Constructors
+//~ ak: String Constructors
 //=============================================================================
 
 internal Str8 str8_init(uint8_t *cstr, size_t size)
@@ -127,42 +127,75 @@ internal Str32 str32_from_cstr(uint32_t *cstr)
     return (Str32){(uint32_t*)cstr, len, len};
 }
 
-internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last, Str8 str)
+internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last, size_t size)
 {
-    return (Str8){first, (size_t)(one_past_last - first), str.size};
+    return (Str8){first, (size_t)(one_past_last - first), size};
 }
 
-// String Matching
+//~ ak: String Stylization
 //=============================================================================
 
-internal bool str8_match(Str8 a, Str8 b, StrMatchFlags flags)
+internal Str8 str8_to_upper(Str8 string, Arena *arena)
+{
+    string = str8_copy(arena, string);
+    for(size_t index = 0; index < string.length; index += 1)
+    {
+        string.cstr[index] = char_to_upper(string.cstr[index]);
+    }
+    return string;
+}
+
+internal Str8 str8_to_lower(Str8 string, Arena *arena)
+{
+    string = str8_copy(arena, string);
+    for(size_t index = 0; index < string.length; index += 1)
+    {
+        string.cstr[index] = char_to_lower(string.cstr[index]);
+    }
+    return string;
+}
+
+internal Str8 str8_to_backslashed(Str8 string, Arena *arena)
+{
+    string = str8_copy(arena, string);
+    for(size_t index = 0; index < string.length; index += 1)
+    {
+        string.cstr[index] = char_is_slash(string.cstr[index]) ? '\\' : string.cstr[index];
+    }
+    return string;
+}
+
+//~ ak: String Matching
+//=============================================================================
+
+internal bool str8_match(Str8 a, Str8 b, Str_Match_Flags flags)
 {
     bool result = 0;
     if (a.length == b.length && flags == 0)
     {
         result = mem_match(a.cstr, b.cstr, b.length);
     }
-    else if (a.length == b.length || (flags & StrMatchFlag_RightSideSloppy))
+    else if (a.length == b.length || (flags & Str_Match_Flag_RightSideSloppy))
     {
-        bool case_insensitive  = (flags & StrMatchFlag_CaseInsensitive);
-        bool slash_insensitive = (flags & StrMatchFlag_SlashInsensitive);
+        bool case_insensitive  = (flags & Str_Match_Flag_CaseInsensitive);
+        bool slash_insensitive = (flags & Str_Match_Flag_SlashInsensitive);
         size_t length               = Min(a.length, b.length);
         result = 1;
-        for(size_t i = 0; i < length; i += 1)
+        for (size_t i = 0; i < length; i += 1)
         {
             uint8_t at = a.cstr[i];
             uint8_t bt = b.cstr[i];
-            if(case_insensitive)
+            if (case_insensitive)
             {
                 at = char_to_upper(at);
                 bt = char_to_upper(bt);
             }
-            if(slash_insensitive)
+            if (slash_insensitive)
             {
                 at = char_to_correct_slash(at);
                 bt = char_to_correct_slash(bt);
             }
-            if(at != bt)
+            if (at != bt)
             {
                 result = 0;
                 break;
@@ -179,7 +212,7 @@ internal bool str8_ends_with(Str8 str, Str8 end)
     return is_match;
 }
 
-internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags)
+internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, Str_Match_Flags flags)
 {
     uint8_t *p = str.cstr + start_pos;
     size_t stop_offset = Max(str.length + 1, substr.length) - substr.length;
@@ -188,22 +221,22 @@ internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMat
     {
         uint8_t *string_opl = str.cstr + str.length;
         Str8 needle_tail = str8_skip(substr, 1);
-        StrMatchFlags adjusted_flags = flags | StrMatchFlag_RightSideSloppy;
+        Str_Match_Flags adjusted_flags = flags | Str_Match_Flag_RightSideSloppy;
         uint8_t needle_first_char_adjusted = substr.cstr[0];
-        if(adjusted_flags & StrMatchFlag_CaseInsensitive)
+        if (adjusted_flags & Str_Match_Flag_CaseInsensitive)
         {
             needle_first_char_adjusted = char_to_upper(needle_first_char_adjusted);
         }
         for (;p < stop_p; p += 1)
         {
             uint8_t haystack_char_adjusted = *p;
-            if(adjusted_flags & StrMatchFlag_CaseInsensitive)
+            if (adjusted_flags & Str_Match_Flag_CaseInsensitive)
             {
                 haystack_char_adjusted = char_to_upper(haystack_char_adjusted);
             }
             if (haystack_char_adjusted == needle_first_char_adjusted)
             {
-                if (str8_match(str8_range(p+1, string_opl, str), needle_tail, adjusted_flags))
+                if (str8_match(str8_range(p+1, string_opl, str.length), needle_tail, adjusted_flags))
                 {
                     break;
                 }
@@ -218,13 +251,13 @@ internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, StrMat
     return result;
 }
 
-internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr, StrMatchFlags flags)
+internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr, Str_Match_Flags flags)
 {
     size_t result = 0;
-    for(int64_t i = str.length - start_pos - substr.length; i >= 0; --i)
+    for (int64_t i = str.length - start_pos - substr.length; i >= 0; --i)
     {
         Str8 haystack = str8_substr(str, (Rng1_U64){i, i + substr.length});
-        if(str8_match(haystack, substr, flags))
+        if (str8_match(haystack, substr, flags))
         {
             result = (size_t)i + substr.length;
             break;
@@ -233,7 +266,7 @@ internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr
     return result;
 }
 
-// String Slicing
+//~ ak: String Slicing
 //=============================================================================
 
 internal Str8 str8_substr(Str8 str, Rng1_U64 range)
@@ -259,12 +292,44 @@ internal Str8 str8_prefix(Str8 str, size_t length)
     return str;
 }
 
-internal Str8 str8_skip(Str8 str, size_t amt)
+internal Str8 str8_skip(Str8 str, size_t amount)
 {
-    amt = Min(amt, str.length);
-    str.cstr += amt;
-    str.length -= amt;
+    amount = Min(amount, str.length);
+    str.cstr += amount;
+    str.length -= amount;
+    str.size = str.length;
     return str;
+}
+
+internal Str8 str8_chop(Str8 str, size_t amount)
+{
+    amount = Min(amount, str.length);
+    str.length -= amount;
+    return str;
+}
+
+internal Str8 str8_skip_chop_whitespace(Str8 string)
+{
+    uint8_t *first = string.cstr;
+    uint8_t *opl = first + string.length;
+    for (;first < opl; first += 1)
+    {
+        if(!char_is_space(*first))
+        {
+            break;
+        }
+    }
+    while (opl > first)
+    {
+        opl -= 1;
+        if(!char_is_space(*opl))
+        {
+            opl += 1;
+            break;
+        }
+    }
+    Str8 result = str8_range(first, opl, string.length);
+    return result;
 }
 
 internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2)
@@ -278,37 +343,18 @@ internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2)
     return(str);
 }
 
-// String Conversions
+
+
+//~ ak: String Conversions
 //=============================================================================
 
-internal int64_t str8_to_sign(Str8 str, Str8 *string_tail)
-{
-    // count negative signs
-    size_t neg_count = 0;
-    size_t i = 0;
-    for(; i < str.length; i += 1)
-    {
-        if (str.cstr[i] == '-'){
-            neg_count += 1;
-        }
-        else if (str.cstr[i] != '+'){
-            break;
-        }
-    }
-
-    // output part of string after signs
-    *string_tail = str8_skip(str, i);
-
-    // output integer sign
-    int64_t sign = (neg_count & 1)?-1:+1;
-    return sign;
-}
+//- ak: string -> integer
 
 internal bool str8_is_integer(Str8 str, uint32_t radix)
 {
   bool result = false;
   Str8 sign = str8_prefix(str, 1);
-  if(str8_match(sign, str8("-"), 0))
+  if (str8_match(sign, str8("-"), 0))
   {
     result = str8_is_integer_unsigned(str8_skip(str, 1), radix);
   }
@@ -323,15 +369,15 @@ internal bool str8_is_integer(Str8 str, uint32_t radix)
 internal bool str8_is_integer_unsigned(Str8 str, uint32_t radix)
 {
     bool result = false;
-    if(str.length > 0)
+    if (str.length > 0)
     {
-        if(1 < radix && radix <= 16)
+        if (1 < radix && radix <= 16)
         {
             result = true;
-            for(size_t i = 0; i < str.length; i += 1)
+            for (size_t i = 0; i < str.length; i += 1)
             {
                 uint8_t c = str.cstr[i];
-                if(!(c < 0x80) || integer_symbol_reverse[c] >= radix)
+                if (!(c < 0x80) || integer_symbol_reverse[c] >= radix)
                 {
                     result = false;
                     break;
@@ -342,73 +388,33 @@ internal bool str8_is_integer_unsigned(Str8 str, uint32_t radix)
     return result;
 }
 
-internal bool str8_is_float(Str8 str)
+internal int64_t str8_to_sign(Str8 str, Str8 *string_tail)
 {
-    if (str.length == 0) {
-        return false;
-    }
+    //- ak: count negative signs
+    size_t neg_count = 0;
     size_t i = 0;
-    if (i < str.length && (str.cstr[i] == '+' || str.cstr[i] == '-'))
+    for (; i < str.length; i += 1)
     {
-        i += 1;
+        if (str.cstr[i] == '-'){
+            neg_count += 1;
+        }
+        else if (str.cstr[i] != '+'){
+            break;
+        }
     }
-    bool has_digits = false;
-    bool has_dot = false;
-    bool has_exp = false;
-    while (i < str.length)
-    {
-        uint8_t c = str.cstr[i];
-        if (c >= '0' && c <= '9')
-        {
-            has_digits = true;
-        }
-        else if (c == '.' && !has_dot && !has_exp)
-        {
-            has_dot = true;
-        }
-        else if ((c == 'e' || c == 'E') && !has_exp && has_digits)
-        {
-            // Exponent allowed only after at least one digit
-            has_exp = true;
-            i += 1;
-            if (i >= str.length)
-            {
-                return false; // 'e' at end is invalid
-            }
-            // Optional exponent sign
-            if (str.cstr[i] == '+' || str.cstr[i] == '-')
-            {
-                i += 1;
-            }
-            // Must have at least one digit in exponent
-            if (i >= str.length || str.cstr[i] < '0' || str.cstr[i] > '9')
-            {
-                return false;
-            }
-            // Skip remaining exponent digits
-            while (i < str.length && str.cstr[i] >= '0' && str.cstr[i] <= '9')
-            {
-                i += 1;
-            }
-            return i == str.length; // Must consume all after 'e'
-        }
-        else
-        {
-            return false;
-        }
-        i += 1;
-    }
-    // Valid if we saw at least one digit (somewhere before or after dot)
-    // Examples: ".5" → valid, "5." → valid, "." → invalid
-    return has_digits;
+    //- ak: output part of string after signs
+    *string_tail = str8_skip(str, i);
+    //- ak: output integer sign
+    int64_t sign = (neg_count & 1)?-1:+1;
+    return sign;
 }
 
 internal uint64_t str8_to_u64(Str8 str, uint32_t radix)
 {
     uint64_t x = 0;
-    if(1 < radix && radix <= 16)
+    if (1 < radix && radix <= 16)
     {
-        for(uint64_t i = 0; i < str.length; i += 1)
+        for (uint64_t i = 0; i < str.length; i += 1)
         {
             x *= radix;
             x += integer_symbol_reverse[str.cstr[i]&0x7F];
@@ -438,50 +444,156 @@ internal int32_t str8_to_i32(Str8 str, uint32_t radix)
     return x32;
 }
 
+internal bool str8_c_rules_to_u64_try(Str8 string, uint64_t *x)
+{
+    // ak: unpack radix / prefix size based on string prefix
+    uint64_t radix = 0;
+    uint64_t prefix_size = 0;
+    {
+        // hex
+        if (str8_match(str8_prefix(string, 2), str8("0x"), Str_Match_Flag_CaseInsensitive))
+        {
+            radix = 0x10, prefix_size = 2;
+        }
+        // binary
+        else if (str8_match(str8_prefix(string, 2), str8("0b"), Str_Match_Flag_CaseInsensitive))
+        {
+            radix = 2, prefix_size = 2;
+        }
+        // octal
+        else if (str8_match(str8_prefix(string, 1), str8("0"), Str_Match_Flag_CaseInsensitive) && string.length > 1)
+        {
+            radix = 010, prefix_size = 1;
+        }
+        // decimal
+        else
+        {
+            radix = 10, prefix_size = 0;
+        }
+    }
+    // ak: convert if we can
+    Str8 integer    = str8_skip(string, prefix_size);
+    bool is_integer = str8_is_integer(integer, radix);
+    if (is_integer)
+    {
+        *x = str8_to_u64(integer, radix);
+    }
+    return is_integer;
+}
+
+internal bool str8_c_rules_to_i64_try(Str8 string, int64_t  *x)
+{
+    Str8 string_tail    = ZERO_STRUCT;
+    int64_t  sign       = str8_to_sign(string, &string_tail);
+    uint64_t x_u64      = 0;
+    bool     is_integer = str8_c_rules_to_u64_try(string_tail, &x_u64);
+    *x = x_u64*sign;
+    return is_integer;
+}
+
+//- ak: string -> float
+
+internal bool str8_is_float(Str8 str)
+{
+    if (str.length == 0) {
+        return false;
+    }
+    size_t i = 0;
+    if (i < str.length && (str.cstr[i] == '+' || str.cstr[i] == '-'))
+    {
+        i += 1;
+    }
+    bool has_digits = false;
+    bool has_dot = false;
+    bool has_exp = false;
+    while (i < str.length)
+    {
+        uint8_t c = str.cstr[i];
+        if (c >= '0' && c <= '9')
+        {
+            has_digits = true;
+        }
+        else if (c == '.' && !has_dot && !has_exp)
+        {
+            has_dot = true;
+        }
+        else if ((c == 'e' || c == 'E') && !has_exp && has_digits)
+        {
+            //- ak: Exponent allowed only after at least one digit
+            has_exp = true;
+            i += 1;
+            if (i >= str.length)
+            {
+                return false; //- ak: 'e' at end is invalid
+            }
+            //- ak: Optional exponent sign
+            if (str.cstr[i] == '+' || str.cstr[i] == '-')
+            {
+                i += 1;
+            }
+            //- ak: Must have at least one digit in exponent
+            if (i >= str.length || str.cstr[i] < '0' || str.cstr[i] > '9')
+            {
+                return false;
+            }
+            //- ak: Skip remaining exponent digits
+            while (i < str.length && str.cstr[i] >= '0' && str.cstr[i] <= '9')
+            {
+                i += 1;
+            }
+            return i == str.length; //- ak: Must consume all after 'e'
+        }
+        else
+        {
+            return false;
+        }
+        i += 1;
+    }
+    //- ak: Valid if we saw at least one digit (somewhere before or after dot)
+    // Examples: ".5" → valid, "5." → valid, "." → invalid
+    return has_digits;
+}
+
 internal double str8_to_f64(Str8 str)
 {
-    // TODO(rjf): crappy implementation for now that just uses atof.
     double result = 0;
-    if(str.length > 0)
+    if (str.length > 0)
     {
-        // Find starting pos of numeric string, as well as sign
+        //- ak: Find starting pos of numeric string, as well as sign
         double sign = +1.0;
-        if(str.cstr[0] == '-')
+        if (str.cstr[0] == '-')
         {
             sign = -1.0;
         }
-        else if(str.cstr[0] == '+')
+        else if (str.cstr[0] == '+')
         {
             sign = 1.0;
         }
-        // Gather numerics
+        //- ak: Gather numerics
         size_t num_valid_chars = 0;
         char buffer[64];
         bool exp = 0;
-        for(size_t idx = 0; idx < str.length && num_valid_chars < sizeof(buffer)-1; idx += 1)
+        for (size_t index = 0; index < str.length && num_valid_chars < sizeof(buffer)-1; index += 1)
         {
-            if(char_is_digit(str.cstr[idx], 10) || str.cstr[idx] == '.' || str.cstr[idx] == 'e' ||
-                    (exp && (str.cstr[idx] == '+' || str.cstr[idx] == '-')))
+            if (char_is_digit(str.cstr[index], 10) || str.cstr[index] == '.' || str.cstr[index] == 'e' ||
+                    (exp && (str.cstr[index] == '+' || str.cstr[index] == '-')))
             {
-                buffer[num_valid_chars] = str.cstr[idx];
+                buffer[num_valid_chars] = str.cstr[index];
                 num_valid_chars += 1;
                 exp = 0;
-                exp = (str.cstr[idx] == 'e');
+                exp = (str.cstr[index] == 'e');
             }
         }
-        // Null-terminate.
+        //- ak: Null-terminate.
         buffer[num_valid_chars] = 0;
-        // Do final conversion
+        //- ak: Do final conversion
         result = sign * atof(buffer);
     }
     return result;
 }
 
-internal Str8 str8_from_bool(bool value)
-{
-    Str8 result = value ? str8("true") : str8("false");
-    return result;
-}
+//- ak: string -> bool
+
 internal bool str8_is_bool(Str8 str)
 {
     bool result = str8_match(str, str8("true"), 0) || str8_match(str, str8("false"), 0);
@@ -493,32 +605,48 @@ internal bool str8_to_bool(Str8 str)
     return result;
 }
 
-// String List Construction Functions
+internal Str8 str8_from_bool(bool value)
+{
+    Str8 result = value ? str8("true") : str8("false");
+    return result;
+}
+
+//~ ak: String List Construction Functions
 //=============================================================================
 
-internal Str8Node* str8_list_push(Arena *arena, Str8List *list, Str8 str)
+internal Str8_Node* str8_list_push(Arena *arena, Str8_List *list, Str8 str)
 {
-    Str8Node *node = arena_push(arena, Str8Node, 1);
+    Str8_Node *node = arena_push(arena, Str8_Node, 1);
     SLLQueuePush(list->first, list->last, node);
     list->length += 1;
-    list->capacity += str.length;
+    list->size += str.length;
     node->str = str;
     return node;
 }
 
-// String Arrays Construction Functions
-// ==============================================================
-
-internal Str8Array str8_array_from_list(Arena *arena, Str8List *list)
+internal Str8_Node* str8_list_pushf(Arena *arena, Str8_List *list, char *fmt, ...)
 {
-    Str8Array array;
+  va_list args;
+  va_start(args, fmt);
+  Str8 string = str8fv(arena, fmt, args);
+  Str8_Node *result = str8_list_push(arena, list, string);
+  va_end(args);
+  return result;
+}
+
+//~ ak: String Arrays Construction Functions
+//=============================================================================
+
+internal Str8_Array str8_array_from_list(Arena *arena, Str8_List *list)
+{
+    Str8_Array array;
     array.size = list->length;
     array.length = array.size;
     array.v = arena_push(arena, Str8, array.size);
-    size_t idx = 0;
-    for (Str8Node *n = list->first; n != 0; n = n->next, idx += 1)
+    size_t index = 0;
+    for (Str8_Node *n = list->first; n != 0; n = n->next, index += 1)
     {
-        array.v[idx] = n->str;
+        array.v[index] = n->str;
     }
     return array;
 }
@@ -528,23 +656,23 @@ internal Str8Array str8_array_from_list(Arena *arena, Str8List *list)
 
 internal Str8 str8_chop_last_slash(Str8 string)
 {
-    if(string.size > 0)
+    if (string.length > 0)
     {
-        uint8_t *ptr = string.cstr + string.size - 1;
-        for(;ptr >= string.cstr; ptr -= 1)
+        uint8_t *ptr = string.cstr + string.length - 1;
+        for (;ptr >= string.cstr; ptr -= 1)
         {
-            if(*ptr == '/' || *ptr == '\\')
+            if (*ptr == '/' || *ptr == '\\')
             {
                 break;
             }
         }
-        if(ptr >= string.cstr)
+        if (ptr >= string.cstr)
         {
-            string.size = (uint64_t)(ptr - string.cstr);
+            string.length = (size_t)(ptr - string.cstr);
         }
         else
         {
-            string.size = 0;
+            string.length = 0;
         }
     }
     return string;
@@ -552,20 +680,20 @@ internal Str8 str8_chop_last_slash(Str8 string)
 
 internal Str8 str8_skip_last_slash(Str8 string)
 {
-    if(string.size > 0)
+    if (string.length > 0)
     {
-        uint8_t *ptr = string.cstr + string.size - 1;
-        for(;ptr >= string.cstr; ptr -= 1)
+        uint8_t *ptr = string.cstr + string.length - 1;
+        for (;ptr >= string.cstr; ptr -= 1)
         {
-            if(*ptr == '/' || *ptr == '\\')
+            if (*ptr == '/' || *ptr == '\\')
             {
                 break;
             }
         }
-        if(ptr >= string.cstr)
+        if (ptr >= string.cstr)
         {
             ptr += 1;
-            string.size = (uint64_t)(string.cstr + string.size - ptr);
+            string.length = (size_t)(string.cstr + string.length - ptr);
             string.cstr = ptr;
         }
     }
@@ -575,11 +703,11 @@ internal Str8 str8_skip_last_slash(Str8 string)
 internal Str8 str8_chop_last_dot(Str8 string)
 {
     Str8 result = string;
-    uint64_t p = string.size;
-    for(;p > 0;)
+    size_t p = string.length;
+    for (;p > 0;)
     {
         p -= 1;
-        if(string.cstr[p] == '.')
+        if (string.cstr[p] == '.')
         {
             result = str8_prefix(string, p);
             break;
@@ -591,11 +719,11 @@ internal Str8 str8_chop_last_dot(Str8 string)
 internal Str8 str8_skip_last_dot(Str8 string)
 {
     Str8 result = string;
-    uint64_t p = string.size;
-    for(;p > 0;)
+    size_t p = string.length;
+    for (;p > 0;)
     {
         p -= 1;
-        if(string.cstr[p] == '.')
+        if (string.cstr[p] == '.')
         {
             result = str8_skip(string, p + 1);
             break;
@@ -604,20 +732,20 @@ internal Str8 str8_skip_last_dot(Str8 string)
     return result;
 }
 
-internal Str8List str8_split_path(Arena *arena, Str8 string)
+internal Str8_List str8_split_path(Arena *arena, Str8 string)
 {
-    Str8List result = str8_split(arena, string, (uint8_t*)"/\\", 2, 0);
+    Str8_List result = str8_split(arena, string, (uint8_t*)"/\\", 2, 0);
     return result;
 }
 
 
-// String Split and Join
+//~ ak: String Split and Join
 //=============================================================================
 
-internal Str8List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, StrSplitFlags flags)
+internal Str8_List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags)
 {
-    Str8List list = ZERO_STRUCT;
-    bool keep_empties = (flags & StrSplitFlag_KeepEmpties);
+    Str8_List list = ZERO_STRUCT;
+    bool keep_empties = (flags & Str_Split_Flag_KeepEmpties);
     uint8_t *ptr = str.cstr;
     uint8_t *opl = str.cstr + str.length;
     for (;ptr < opl;)
@@ -640,7 +768,7 @@ internal Str8List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_
                 break;
             }
         }
-        Str8 node = str8_range(first, ptr, str);
+        Str8 node = str8_range(first, ptr, str.length);
         if (keep_empties || node.length > 0)
         {
             str8_list_push(arena, &list, node);
@@ -650,12 +778,12 @@ internal Str8List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_
   return list;
 }
 
-internal Str8 str8_list_join(Arena *arena, Str8List *list, StrJoin *optional_params)
+internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_params)
 {
-    StrJoin join = {0};
+    Str_Join join = ZERO_STRUCT;
     if (optional_params != 0)
     {
-        MemoryCopyStruct(&join, optional_params);
+        MemCopyStruct(&join, optional_params);
     }
     size_t sep_count = 0;
     if (list->length > 0)
@@ -663,11 +791,11 @@ internal Str8 str8_list_join(Arena *arena, Str8List *list, StrJoin *optional_par
         sep_count = list->length - 1;
     }
     Str8 result;
-    result.length = join.pre.length + join.post.length + sep_count*join.sep.length + list->capacity;
+    result.length = join.pre.length + join.post.length + sep_count*join.sep.length + list->size;
     uint8_t *ptr = result.cstr = arena_push(arena, uint8_t, result.length + 1);
     mem_copy(ptr, join.pre.cstr, join.pre.length);
     ptr += join.pre.length;
-    for (Str8Node *node = list->first; node != 0; node = node->next)
+    for (Str8_Node *node = list->first; node != 0; node = node->next)
     {
         mem_copy(ptr, node->str.cstr, node->str.length);
         ptr += node->str.length;
@@ -683,7 +811,7 @@ internal Str8 str8_list_join(Arena *arena, Str8List *list, StrJoin *optional_par
     return result;
 }
 
-// String Formatting & Copying
+//~ ak: String Formatting & Copying
 //=============================================================================
 
 internal Str8 str8_copy(Arena *arena, Str8 s)
@@ -699,7 +827,7 @@ internal Str8 str8_copy(Arena *arena, Str8 s)
 
 internal Str8 str8fv(Arena *arena, char *format, va_list args)
 {
-    Str8 result = {0};
+    Str8 result = ZERO_STRUCT;
     va_list args_copy;
     va_copy(args_copy, args);
         uint32_t needed = fmt_vsnprintf(0, 0, format, args) + 1;
@@ -720,12 +848,12 @@ internal Str8 str8f(Arena *arena, char *format, ...)
     return result;
 }
 
-// UTF-8 & UTF-16 Decoding/Encoding
+//~ ak: UTF-8 & UTF-16 Decoding/Encoding
 //=============================================================================
 
-internal UnicodeDecode utf8_decode(uint8_t *str, size_t max)
+internal Unicode_Decode utf8_decode(uint8_t *str, size_t max)
 {
-    UnicodeDecode result = {1, max_u32};
+    Unicode_Decode result = {1, max_u32};
     uint8_t byte = str[0];
     uint8_t byte_class = utf8_class[byte >> 3];
     switch (byte_class)
@@ -783,9 +911,9 @@ internal UnicodeDecode utf8_decode(uint8_t *str, size_t max)
     return result;
 }
 
-internal UnicodeDecode utf16_decode(uint16_t *str, size_t max)
+internal Unicode_Decode utf16_decode(uint16_t *str, size_t max)
 {
-    UnicodeDecode result = {1, max_u32};
+    Unicode_Decode result = {1, max_u32};
     result.codepoint = str[0];
     result.inc = 1;
     if (max > 1 && 0xD800 <= str[0] && str[0] < 0xDC00 && 0xDC00 <= str[1] && str[1] < 0xE000){
@@ -850,21 +978,21 @@ internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character)
     return(utf8_encode(buffer, character));
 }
 
-// Unicode String Conversions
+//~ ak: Unicode String Conversions
 //=============================================================================
 
 internal Str8 str8_from_16(Arena *arena, Str16 in)
 {
     Str8 result = ZERO_STRUCT;
-    if(in.length)
+    if (in.length)
     {
         size_t cap = in.length*3;
         uint8_t *str = arena_push(arena, uint8_t, cap + 1);
         uint16_t *ptr = in.cstr;
         uint16_t *opl = ptr + in.length;
         size_t length = 0;
-        UnicodeDecode consume;
-        for(;ptr < opl; ptr += consume.inc)
+        Unicode_Decode consume;
+        for (;ptr < opl; ptr += consume.inc)
         {
             consume = utf16_decode(ptr, opl - ptr);
             length += utf8_encode(str + length, consume.codepoint);
@@ -879,15 +1007,15 @@ internal Str8 str8_from_16(Arena *arena, Str16 in)
 internal Str16 str16_from_8(Arena *arena, Str8 in)
 {
     Str16 result = ZERO_STRUCT;
-    if(in.length)
+    if (in.length)
     {
         size_t cap = in.length*2;
         uint16_t *str = arena_push(arena, uint16_t, cap + 1);
         uint8_t *ptr = in.cstr;
         uint8_t *opl = ptr + in.length;
         size_t length = 0;
-        UnicodeDecode consume;
-        for(;ptr < opl; ptr += consume.inc)
+        Unicode_Decode consume;
+        for (;ptr < opl; ptr += consume.inc)
         {
             consume = utf8_decode(ptr, opl - ptr);
             length += utf16_encode(str + length, consume.codepoint);
@@ -902,14 +1030,14 @@ internal Str16 str16_from_8(Arena *arena, Str8 in)
 internal Str8 str8_from_32(Arena *arena, Str32 in)
 {
     Str8 result = ZERO_STRUCT;
-    if(in.length)
+    if (in.length)
     {
         size_t cap = in.length*4;
         uint8_t *str = arena_push(arena, uint8_t, cap + 1);
         uint32_t *ptr = in.cstr;
         uint32_t *opl = ptr + in.length;
         size_t length = 0;
-        for(;ptr < opl; ptr += 1)
+        for (;ptr < opl; ptr += 1)
         {
             length += utf8_encode(str + length, *ptr);
         }
@@ -923,15 +1051,15 @@ internal Str8 str8_from_32(Arena *arena, Str32 in)
 internal Str32 str32_from_8(Arena *arena, Str8 in)
 {
     Str32 result = ZERO_STRUCT;
-    if(in.length)
+    if (in.length)
     {
         size_t cap = in.length;
         uint32_t *str = arena_push(arena, uint32_t, cap + 1);
         uint8_t *ptr = in.cstr;
         uint8_t *opl = ptr + in.length;
         size_t length = 0;
-        UnicodeDecode consume;
-        for(;ptr < opl; ptr += consume.inc)
+        Unicode_Decode consume;
+        for (;ptr < opl; ptr += consume.inc)
         {
             consume = utf8_decode(ptr, opl - ptr);
             str[length] = consume.codepoint;
@@ -944,7 +1072,104 @@ internal Str32 str32_from_8(Arena *arena, Str8 in)
     return result;
 }
 
-// String Hash
+//~ ak: Basic Text Indentation
+//=============================================================================
+
+internal Str8 str8_get_indented(Str8 string, size_t size, Arena *arena)
+{
+    Arena_Temp scratch = arena_scratch_begin(&arena, 1);
+    read_only local_persist uint8_t indentation_bytes[] = "                                                                                                                                ";
+    Str8_List indented_strings = {0};
+    int64_t depth = 0;
+    int64_t next_depth = 0;
+    size_t line_begin_off = 0;
+    for (size_t off = 0; off <= string.length; off += 1)
+    {
+        uint8_t byte = off<string.length ? string.cstr[off] : 0;
+        switch(byte)
+        {
+            default:{}break;
+            case '{':case '[':case '(':
+            {
+                next_depth += 1; next_depth = Max(0, next_depth);
+            } break;
+            case '}':case ']':case ')':
+            {
+                next_depth -= 1; next_depth = Max(0, next_depth); depth = next_depth;
+            } break;
+            case '\n':
+            case 0:
+            {
+                Str8 line = str8_skip_chop_whitespace(str8_substr(string, (Rng1_U64){line_begin_off, off}));
+                if (line.length != 0)
+                {
+                    str8_list_pushf(scratch.arena, &indented_strings, "%.*s%.*s\n", (int)(depth*size), indentation_bytes, str8_varg(line));
+                }
+                if (line.length == 0 && indented_strings.length != 0 && off < string.length)
+                {
+                    str8_list_pushf(scratch.arena, &indented_strings, "\n");
+                }
+                line_begin_off = off+1;
+                depth = next_depth;
+            } break;
+        }
+    }
+    Str8 result = str8_list_join(arena, &indented_strings, 0);
+    arena_scratch_end(scratch);
+    return result;
+}
+
+//~ ak: Text Escaping
+//=============================================================================
+
+internal Str8 str8_escaped_to_raw(Str8 string, Arena *arena)
+{
+    Arena_Temp scratch = arena_scratch_begin(&arena, 1);
+    Str8_List strs = ZERO_STRUCT;
+    size_t start = 0;
+    for (size_t index = 0; index <= string.length; index += 1)
+    {
+        if (index == string.length || string.cstr[index] == '\\' || string.cstr[index] == '\r')
+        {
+            Str8 str = str8_substr(string, (Rng1_U64){start, index});
+            if (str.length != 0)
+            {
+                str8_list_push(scratch.arena, &strs, str);
+            }
+            start = index+1;
+        }
+        if (index < string.length && string.cstr[index] == '\\')
+        {
+            uint8_t next_char = string.cstr[index+1];
+            uint8_t replace_byte = 0;
+            switch(next_char)
+            {
+                default:{}break;
+                case 'a': replace_byte = 0x07; break;
+                case 'b': replace_byte = 0x08; break;
+                case 'e': replace_byte = 0x1b; break;
+                case 'f': replace_byte = 0x0c; break;
+                case 'n': replace_byte = 0x0a; break;
+                case 'r': replace_byte = 0x0d; break;
+                case 't': replace_byte = 0x09; break;
+                case 'v': replace_byte = 0x0b; break;
+                case '\\':replace_byte = '\\'; break;
+                case '\'':replace_byte = '\''; break;
+                case '"': replace_byte = '"';  break;
+                case '?': replace_byte = '?';  break;
+            }
+            Str8 replace_string = str8_copy(scratch.arena, str8_init(&replace_byte, 1));
+            str8_list_push(scratch.arena, &strs, replace_string);
+            index += 1;
+            start += 1;
+        }
+    }
+    Str8 result = str8_list_join(arena, &strs, 0);
+    arena_scratch_end(scratch);
+    return result;
+}
+
+//~ ak: String Hash
 //=============================================================================
 
 internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 str)
@@ -957,4 +1182,22 @@ internal uint64_t str8_hash_u64(Str8 str)
 {
     uint64_t result = str8_hash_u64_from_seed(5381, str);
     return result;
+}
+
+internal Txt_Pt str8_offset_to_txt_pt(Str8 string, size_t offset)
+{
+    Txt_Pt pt = (Txt_Pt){ 1, 1 };
+    for (size_t index = 0; index < string.length && index < offset; index += 1)
+    {
+        if (string.cstr[index] == '\n')
+        {
+            pt.line += 1;
+            pt.column = 1;
+        }
+        else
+        {
+            pt.column += 1;
+        }
+    }
+    return pt;
 }
