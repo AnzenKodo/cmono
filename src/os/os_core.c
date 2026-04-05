@@ -1,9 +1,15 @@
+//~ ak: Memory Allocation
+//=============================================================================
+
 internal void * os_memory_alloc(size_t size)
 {
     void *result = os_memory_reserve(size);
     os_memory_commit(result, size);
     return result;
 }
+
+//~ ak: File System
+//=============================================================================
 
 //- ak: File Read
 
@@ -57,6 +63,20 @@ internal Str8 os_path_read_str_full(Str8 path, Arena *arena)
     return result;
 }
 
+//- ak: Directory Operations
+
+internal bool os_dir_ensure(Str8 path)
+{
+    bool result = os_is_dir_exist(path);
+    if (!result) {
+        result = os_dir_make(path);
+    }
+    return result;
+}
+
+//~ ak: Command line arguments
+//=============================================================================
+
 internal Str8_Array *os_args_get(void)
 {
     return &_os_core_state.args;
@@ -66,6 +86,8 @@ internal Str8 *os_program_path_get(void)
 {
     return &_os_core_state.args.v[0];
 }
+
+//~ ak: OS Entry Points =======================================================
 
 internal void os_main(void)
 {

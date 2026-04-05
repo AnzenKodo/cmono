@@ -35,9 +35,9 @@ internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in
 
 internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
 {
-    SYSTEMTIME systime = {0};
+    SYSTEMTIME systime = ZERO_STRUCT;
     FileTimeToSystemTime(in, &systime);
-    DateTime date_time = {0};
+    DateTime date_time = ZERO_STRUCT;
     _os_win32_date_time_from_system_time(&date_time, &systime);
     *out = dense_time_from_date_time(date_time);
 }
@@ -137,7 +137,7 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
             uint64_t amt64 = to_read - total_read_size;
             uint32_t amt32 = u32_from_u64_saturate(amt64);
             DWORD read_size = 0;
-            OVERLAPPED overlapped = {0};
+            OVERLAPPED overlapped = ZERO_STRUCT;
             overlapped.Offset     = (off&0x00000000ffffffffull);
             overlapped.OffsetHigh = (off&0xffffffff00000000ull) >> 32;
             ReadFile((HANDLE)file, (uint8_t *)out_data + total_read_size, amt32, &read_size, &overlapped);
@@ -163,7 +163,7 @@ internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
         uint64_t bytes_left = total_write_size - src_off;
         DWORD write_size = (DWORD)Min(MB(1), bytes_left);
         DWORD bytes_written = 0;
-        OVERLAPPED overlapped = {0};
+        OVERLAPPED overlapped = ZERO_STRUCT;
         overlapped.Offset = (dst_off&0x00000000ffffffffull);
         overlapped.OffsetHigh = (dst_off&0xffffffff00000000ull) >> 32;
         BOOL success = WriteFile((HANDLE)file, bytes_src, write_size, &bytes_written, &overlapped);
@@ -190,7 +190,7 @@ internal size_t os_file_write_append(Os_File file, void *data, size_t size);
 
 internal Os_FileProperties os_file_properties(Os_File file)
 {
-    Os_FileProperties props = {0};
+    Os_FileProperties props = ZERO_STRUCT;
     BY_HANDLE_FILE_INFORMATION info;
     BOOL info_good = GetFileInformationByHandle((HANDLE)file, &info);
     if(info_good)
@@ -205,23 +205,25 @@ internal Os_FileProperties os_file_properties(Os_File file)
     return props;
 }
 
+//- ak: Directory Operations
+
+internal bool os_is_dir_exist(Str8 path)
+{
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    Str16 path16 = str16_from_8(scratch.arena, path);
+    DWORD attr = GetFileAttributesW((WCHAR*)path16.cstr);
+    arena_scratch_end(scratch);
+    return (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 internal bool os_dir_make(Str8 path)
 {
     Arena_Temp scratch = arena_scratch_begin(0, 0);
-    bool result = false;
     Str16 path16 = str16_from_8(scratch.arena, path);
-    WIN32_FILE_ATTRIBUTE_DATA attributes = {0};
-    GetFileAttributesExW((WCHAR*)path16.cstr, GetFileExInfoStandard, &attributes);
-    if(attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        result = false;
-    } else if(CreateDirectoryW((WCHAR*)path16.cstr, 0)) {
-        result = true;
-    }
+    BOOL result = CreateDirectoryW((WCHAR*)path16.cstr, NULL);
     arena_scratch_end(scratch);
-    return(result);
+    return result != 0;
 }
-
-//- ak: directory walking
 
 internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_Flags flags)
 {
@@ -234,9 +236,9 @@ internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_
     if(path.size == 0)
     {
         win32_walk->is_volume_iter = 1;
-        WCHAR buffer[512] = {0};
+        WCHAR buffer[512] = ZERO_STRUCT;
         DWORD length = GetLogicalDriveStringsW(sizeof(buffer), buffer);
-        Str8_List drive_strings = {0};
+        Str8_List drive_strings = ZERO_STRUCT;
         for(uint64_t off = 0; off < (uint64_t)length;)
         {
             Str16 next_drive_string_16 = str16_from_cstr((U16 *)buffer+off);

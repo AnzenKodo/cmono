@@ -1,18 +1,18 @@
 #ifndef OS_CORE_H
 #define OS_CORE_H
 
-// External Includes
+//~ ak: External Includes
 //=============================================================================
 
 #include <fcntl.h>
 #include <errno.h>
 
-// Types
+//~ ak: Types
 //=============================================================================
 
 typedef uint64_t Os_File;
 
-// Access Flags ===============================================================
+//~ ak: Access Flags ==========================================================
 
 typedef uint32_t Os_AccessFlags;
 enum
@@ -69,7 +69,7 @@ struct Os_File_Walk
     uint8_t memory[800];
 };
 
-// Private OS State ===========================================================
+//~ ak: Private OS State ======================================================
 
 typedef struct _Os_Core_State _Os_Core_State;
 struct _Os_Core_State {
@@ -77,10 +77,10 @@ struct _Os_Core_State {
     Log_Context log_context;
 };
 
-// Functions
+//~ ak: Functions
 //=============================================================================
 
-// Memory Allocation ==========================================================
+//~ ak: Memory Allocation =====================================================
 
 internal void *os_memory_alloc(size_t size);
 internal void *os_memory_reserve(size_t size);
@@ -107,18 +107,20 @@ internal Str8 os_path_read_str_full(Str8 path, Arena *arena);
 internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng);
 internal size_t os_file_write_append(Os_File file, void *data, size_t size);
 internal Os_File_Properties os_file_properties(Os_File file);
-internal bool os_dir_make(Str8 path);
 
-//- ak: directory walking
+//- ak: Directory Operations
+internal bool os_is_dir_exist(Str8 path);
+internal bool os_dir_make(Str8 path);
+internal bool os_dir_ensure(Str8 path);
 internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_Flags flags);
 internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *info_out);
 internal void os_file_walk_end(Os_File_Walk *walk);
 
-// Exit =======================================================================
+//~ ak: Exit ==================================================================
 
 internal void os_exit(int32_t exit_code);
 
-// Time =======================================================================
+//~ ak: Time ==================================================================
 
 internal uint32_t os_now_unix(void);
 internal void os_sleep_ms(uint32_t microsec);
@@ -126,7 +128,7 @@ internal void os_sleep_millisec(uint32_t millisec);
 
 // Command line arguments =====================================================
 
-internal Str8_List *os_agrs_get(void);
+internal Str8_Array *os_args_get(void);
 internal Str8 *os_program_path_get(void);
 
 // Environment Variable =======================================================
@@ -134,7 +136,7 @@ internal Str8 *os_program_path_get(void);
 internal bool os_env_is_set(Str8 name);
 internal Str8 os_env_get(Str8 name);
 
-// Program Entry Points =======================================================
+//~ ak: OS Entry Points =======================================================
 
 internal void os_main(void);
 

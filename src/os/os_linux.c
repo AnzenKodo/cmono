@@ -113,7 +113,7 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
         share_mode |= F_WRLCK;
     }
     if (share_mode) {
-        struct flock lock = {0};
+        struct flock lock = ZERO_STRUCT;
         lock.l_type = share_mode;
         lock.l_start = 0;
         lock.l_whence = SEEK_SET;
@@ -194,17 +194,20 @@ internal Os_File_Properties os_file_properties(Os_File file)
     return props;
 }
 
-internal bool os_dir_make(Str8 path)
+//- ak: Directory Operations
+
+internal bool os_is_dir_exist(Str8 path)
 {
-    int32_t result = mkdir((const char *)path.cstr, 0700);
-    if (result == 0) {
-        return true;
-    } else {
-        return false;
-    }
+    struct stat st;
+    int result = stat((const char*)path.cstr, &st);
+    return (result == 0) && S_ISDIR(st.st_mode);
 }
 
-//- ak: directory walking
+internal bool os_dir_make(Str8 path)
+{
+    int result = mkdir((const char *)path.cstr, 0700);
+    return result == 0;
+}
 
 internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_Flags flags)
 {
@@ -229,7 +232,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
         linux_walk->dp = readdir(linux_walk->dir);
         good = (linux_walk->dp != 0);
         // ak: unpack entry info
-        struct stat st = {0};
+        struct stat st = ZERO_STRUCT;
         int stat_result = 0;
         if (good)
         {
