@@ -2,8 +2,8 @@
 //  - [Ryan Fleury](https://www.dgtlgrove.com)
 //      - [metagen](https://github.com/EpicGamesExt/raddebugger/tree/master/src/metagen)
 
-#ifndef MDESK_GEN_H
-#define MDESK_GEN_H
+#ifndef METADESK_GEN_H
+#define METADESK_GEN_H
 
 //~ ak: Struct
 //=============================================================================
@@ -383,4 +383,4 @@ read_only global int8_t mdg_str_expr_op_precedence_table[MDG_Str_Expr_Op_COUNT] 
     4,  // MDG_Str_Expr_Op_DoesNotEqual
 };
 
-#endif // MDESK_GEN_H
+#endif // METADESK_GEN_H

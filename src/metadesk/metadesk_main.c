@@ -4,14 +4,14 @@
 //- ak: headers
 #include "../base/base_include.h"
 #include "../os/os_include.h"
-#include "./mdesk.h"
-#include "./mdesk_gen.h"
+#include "./metadesk.h"
+#include "./metadesk_gen.h"
 
 //- ak: implementation
 #include "../base/base_include.c"
 #include "../os/os_include.c"
-#include "./mdesk.c"
-#include "./mdesk_gen.c"
+#include "./metadesk.c"
+#include "./metadesk_gen.c"
 
 void base_main(void)
 {

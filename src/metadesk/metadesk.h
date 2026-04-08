@@ -4,8 +4,8 @@
 //      - [Metadesk](https://github.com/ryanfleury/metadesk)
 //      - [RadDebugger Metadesk](https://github.com/EpicGamesExt/raddebugger/tree/master/src/mdesk)
 
-#ifndef MDESK_H
-#define MDESK_H
+#ifndef METADESK_H
+#define METADESK_H
 
 //~ ak: Types
 //=============================================================================
@@ -272,4 +272,4 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena);
 internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens, Str8 filename, Arena *arena);
 internal MD_Parse md_parse_from_string(Str8 string, Str8 filename, Arena *arena);
 
-#endif // MDESK_H
+#endif // METADESK_H
