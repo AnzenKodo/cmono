@@ -13,8 +13,9 @@
 typedef struct MDG_Msg MDG_Msg;
 struct MDG_Msg
 {
-    Str8 location;
-    Str8 kind;
+    Log_Level level;
+    Txt_Pt pt;
+    Str8 file_path;
     Str8 string;
 };
 

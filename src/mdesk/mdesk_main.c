@@ -1,5 +1,4 @@
 // TODO(ak): fix terminal color support detection
-// TODO(ak): make log pritter
 
 //~ ak: Includes
 //=============================================================================
@@ -74,18 +73,17 @@ void base_main(void)
                 MD_Parse parse = md_parse_from_string(source, file_path, arena);
                 for (MD_Msg *m = parse.msgs.first; m != 0; m = m->next)
                 {
-                    Txt_Pt pt = str8_offset_to_txt_pt(source, m->node->src_offset);
-                    Str8 msg_kind_string = ZERO_STRUCT;
-                    switch (m->kind)
+                    Log_Level msg_level = Log_Level_None;
+                    switch (m->level)
                     {
-                        default:{}break;
-                        case MD_Msg_Kind_Note:        {msg_kind_string = str8("note");}break;
-                        case MD_Msg_Kind_Warning:     {msg_kind_string = str8("warning");}break;
-                        case MD_Msg_Kind_Error:       {msg_kind_string = str8("error");}break;
-                        case MD_Msg_Kind_FatalError:  {msg_kind_string = str8("fatal error");}break;
+                        case MD_Msg_Level_None:  {}break;
+                        case MD_Msg_Level_Info:  {msg_level = Log_Level_Info;}break;
+                        case MD_Msg_Level_Debug: {msg_level = Log_Level_Debug;}break;
+                        case MD_Msg_Level_Warn:  {msg_level = Log_Level_Warn;}break;
+                        case MD_Msg_Level_Error: {msg_level = Log_Level_Error;}break;
                     }
-                    Str8 location = str8f(arena, "%.*s:%zu:%zu", str8_varg(file_path), pt.line, pt.column);
-                    MDG_Msg dst_m = {location, msg_kind_string, m->string};
+                    Txt_Pt pt = str8_offset_to_txt_pt(source, m->node->src_offset);
+                    MDG_Msg dst_m = {msg_level, pt, file_path, m->string};
                     mdg_msg_list_push(&msgs, &dst_m, arena);
                 }
                 MDG_ParsedFile_Node *parse_n = arena_push(arena, MDG_ParsedFile_Node, 1);
@@ -372,9 +370,14 @@ void base_main(void)
     fmt_print("\n");
     
     //- ak: write out all messages to stderr ==================================
+    Log_Context context = log_init();
+    char *file_info_color = log_get_file_info_color(context);
+    char *restart_color = log_get_reset_color(context);
     for (MDG_Msg_Node *n = msgs.first; n != 0; n = n->next)
     {
         MDG_Msg *msg = &n->v;
-        fmt_eprintf("%.*s: %.*s: %.*s\n", str8_varg(msg->location), str8_varg(msg->kind), str8_varg(msg->string));
+        fmt_eprintf("%s%.*s:%ld:%ld%s ", file_info_color, str8_varg(msg->file_path), msg->pt.line, msg->pt.column, restart_color);
+        log_print_color_level(context, msg->level);
+        fmt_eprintf("%.*s\n", str8_varg(msg->string));
     }
 }

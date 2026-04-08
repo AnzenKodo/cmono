@@ -1,23 +1,23 @@
 //~ ak: Message Functions
 //=============================================================================
 
-internal void md_msg_list_push(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Kind kind, Str8 string)
+internal void md_msg_list_push(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Level level, Str8 string)
 {
     MD_Msg *msg = arena_push(arena, MD_Msg, 1);
     msg->node = node;
-    msg->kind = kind;
+    msg->level = level;
     msg->string = string;
     SLLQueuePush(msgs->first, msgs->last, msg);
     msgs->count += 1;
-    msgs->worst_message_kind = Max(kind, msgs->worst_message_kind);
+    msgs->worst_message_level = Max(level, msgs->worst_message_level);
 }
 
-internal void md_msg_list_pushf(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Kind kind, char *fmt, ...)
+internal void md_msg_list_pushf(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Level level, char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     Str8 string = str8fv(arena, fmt, args);
-    md_msg_list_push(arena, msgs, node, kind, string);
+    md_msg_list_push(arena, msgs, node, level, string);
     va_end(args);
 }
 
@@ -30,7 +30,7 @@ internal void md_msg_list_concat_in_place(MD_Msg_List *dst, MD_Msg_List *to_push
       dst->last->next = to_push->first;
       dst->last = to_push->last;
       dst->count += to_push->count;
-      dst->worst_message_kind = Max(dst->worst_message_kind, to_push->worst_message_kind);
+      dst->worst_message_level = Max(dst->worst_message_level, to_push->worst_message_level);
     }
     else
     {
@@ -484,7 +484,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
         {
             MD_Node *error = md_node_push(MD_Node_Kind_ErrorMarker, 0, str8(""), str8(""), token_start - byte_first, arena);
             Str8 error_string = str8("Unterminated comment.");
-            md_msg_list_push(arena, &msgs, error, MD_Msg_Kind_Error, error_string);
+            md_msg_list_push(arena, &msgs, error, MD_Msg_Level_Error, error_string);
         }
         
         //- ak: push errors on unterminated strings
@@ -492,7 +492,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
         {
             MD_Node *error = md_node_push(MD_Node_Kind_ErrorMarker, 0, str8(""), str8(""), token_start - byte_first, arena);
             Str8 error_string = str8("Unterminated string literal.");
-            md_msg_list_push(arena, &msgs, error, MD_Msg_Kind_Error, error_string);
+            md_msg_list_push(arena, &msgs, error, MD_Msg_Level_Error, error_string);
         }
     }
     
@@ -632,7 +632,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
         {
             MD_Node *error = md_node_push(MD_Node_Kind_ErrorMarker, 0, token_string, token_string, token->range.min, arena);
             Str8 error_string = str8f(arena, "Unexpected reserved symbol \"%.*s\".", str8_varg(token_string));
-            md_msg_list_push(arena, &msgs, error, MD_Msg_Kind_Error, error_string);
+            md_msg_list_push(arena, &msgs, error, MD_Msg_Level_Error, error_string);
             token += 1;
         }
         
@@ -646,7 +646,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
             {
                 MD_Node *error = md_node_push(MD_Node_Kind_ErrorMarker, 0, token_string, token_string, token->range.min, arena);
                 Str8 error_string = str8("Tag label expected after @ symbol.");
-                md_msg_list_push(arena, &msgs, error, MD_Msg_Kind_Error, error_string);
+                md_msg_list_push(arena, &msgs, error, MD_Msg_Level_Error, error_string);
                 token += 1;
             }
             else
@@ -767,7 +767,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
                 MD_Node *node = work_top->parent;
                 MD_Node *error = md_node_push(MD_Node_Kind_ErrorMarker, 0, token_string, token_string, token->range.min, arena);
                 Str8 error_string = str8f(arena, "More than two newlines following \"%.*s\", which has implicitly-delimited children, resulting in an empty list of children.", str8_varg(node->string));
-                md_msg_list_push(arena, &msgs, error, MD_Msg_Kind_Warning, error_string);
+                md_msg_list_push(arena, &msgs, error, MD_Msg_Level_Warn, error_string);
                 MD_ParseWorkPop();
             }
             else
@@ -807,7 +807,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
         else {
             MD_Node *error = md_node_push(MD_Node_Kind_ErrorMarker, 0, token_string, token_string, token->range.min, arena);
             Str8 error_string = str8f(arena, "Unexpected \"%.*s\" token.", str8_varg(token_string));
-            md_msg_list_push(arena, &msgs, error, MD_Msg_Kind_Error, error_string);
+            md_msg_list_push(arena, &msgs, error, MD_Msg_Level_Error, error_string);
             token += 1;
         }
     }

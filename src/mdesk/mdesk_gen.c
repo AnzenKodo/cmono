@@ -183,7 +183,7 @@ internal MDG_Str_Expr_ParseResult mdg_str_expr_parse_from_first_opl_min_prec(Are
             md_msg_list_concat_in_place(&parse.msgs, &subparse.msgs);
             if (subparse.root == &mdg_str_expr_nil)
             {
-                md_msg_list_pushf(arena, &parse.msgs, it, MD_Msg_Kind_Error, "Missing right-hand-side of '%S'.", mdg_str_expr_op_symbol_string_table[found_op]);
+                md_msg_list_pushf(arena, &parse.msgs, it, MD_Msg_Level_Error, "Missing right-hand-side of '%S'.", mdg_str_expr_op_symbol_string_table[found_op]);
             }
             it = subparse.next_node;
         }

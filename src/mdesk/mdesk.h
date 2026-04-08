@@ -12,22 +12,22 @@
 
 //~ ak: Messages Types ========================================================
 
-typedef enum MD_Msg_Kind
+typedef enum MD_Msg_Level
 {
-    MD_Msg_Kind_Null,
-    MD_Msg_Kind_Note,
-    MD_Msg_Kind_Warning,
-    MD_Msg_Kind_Error,
-    MD_Msg_Kind_FatalError,
+    MD_Msg_Level_None,
+    MD_Msg_Level_Info,
+    MD_Msg_Level_Debug,
+    MD_Msg_Level_Warn,
+    MD_Msg_Level_Error,
 }
-MD_Msg_Kind;
+MD_Msg_Level;
 
 typedef struct MD_Msg MD_Msg;
 struct MD_Msg
 {
     MD_Msg *next;
     struct MD_Node *node;
-    MD_Msg_Kind kind;
+    MD_Msg_Level level;
     Str8 string;
 };
 
@@ -37,7 +37,7 @@ struct MD_Msg_List
     MD_Msg *first;
     MD_Msg *last;
     uint64_t count;
-    MD_Msg_Kind worst_message_kind;
+    MD_Msg_Level worst_message_level;
 };
 
 //~ ak: Tokens Types ==========================================================
@@ -232,8 +232,8 @@ PragmaPop()
 
 //~ ak: Message Functions =====================================================
 
-internal void md_msg_list_push(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Kind kind, Str8 string);
-internal void md_msg_list_pushf(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Kind kind, char *fmt, ...);
+internal void md_msg_list_push(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Level level, Str8 string);
+internal void md_msg_list_pushf(Arena *arena, MD_Msg_List *msgs, MD_Node *node, MD_Msg_Level level, char *fmt, ...);
 internal void md_msg_list_concat_in_place(MD_Msg_List *dst, MD_Msg_List *to_push);
 
 //~ ak: Token Functions =======================================================
