@@ -473,7 +473,7 @@ internal void flags_print_error(Flags_Context *context)
             {
                 log_error(context->log_context,
                     "opiton '%.*s' requires a value. Example: '--%.*s <value>'.",
-                    str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
+                    str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UnknownOption:

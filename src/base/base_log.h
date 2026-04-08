@@ -20,25 +20,22 @@ struct Log_Context {
 // Functions
 //=============================================================================
 
-internal char *_log_get_level_string(Log_Level level);
-internal char *_log_get_level_color(Log_Level level);
-internal void log_printf(Log_Context context, Log_Level level, const char *format, va_list args);
+internal char *log_get_reset_color(Log_Context context);
+internal char *log_get_level_color(Log_Level level);
+internal char *log_get_level_string(Log_Level level);
+internal char *log_get_file_info_color(Log_Context context);
+internal void log_print_color_level(Log_Context context, Log_Level level);
+internal void log_vprintf(Log_Context context, Log_Level level, const char *format, va_list args);
 internal Log_Context log_init(void);
-internal void log_info(Log_Context context, const char *format, ...);
-internal void log_debug(Log_Context context, const char *format, ...);
-internal void log_warn(Log_Context context, const char *format, ...);
-internal void log_error(Log_Context context, const char *format, ...);
+internal void log_info(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_debug(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_warn(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_error(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
 
 #define LogPrintfLine(context, level, format, ...) do { \
-    char *level_string = _log_get_level_string(level); \
-    char *level_color = ""; \
-    char *line_info_color = ""; \
-    if (context.enable_color_log || term_is_color_allowed()) \
-    { \
-        level_color = _log_get_level_color(level); \
-        line_info_color = TERM_FG_CYAN; \
-    } \
-    fmt_fprintf(context.file, "%s%s"TERM_RESET"%s[%s:%d] "TERM_RESET, level_color, level_string, line_info_color, FILE_NAME, LINE_NUMBER); \
+    char *line_info_color = log_get_file_info_color(context, level); \
+    fmt_fprintf(context.file, "%s%s:%d%s ", line_info_color, FILE_NAME, LINE_NUMBER, log_get_reset_color(context)); \
+    log_print_color_level(context, level) \
     fmt_fprintfln(context.file, format, ##__VA_ARGS__); \
 } while(0)
 #define LogInfoLine(context, format, ...) do { \
