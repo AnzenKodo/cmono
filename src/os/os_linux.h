@@ -1,7 +1,7 @@
 #ifndef OS_LINUX_H
 #define OS_LINUX_H
 
-// External Includes
+//~ak: External Includes
 //=============================================================================
 
 #define _POSIX_C_SOURCE 200809L
@@ -15,7 +15,7 @@
 #include <time.h>
 extern char **environ;
 
-// Types
+//~ ak: Types
 //=============================================================================
 
 //~ ak: File System ===========================================================
@@ -29,17 +29,17 @@ struct _Os_Linux_File_Walk
   Str8 path;
 };
 
-// Defines
+//~ ak: Defines
 //=============================================================================
 
 #define OS_STDIN  STDIN_FILENO
 #define OS_STDOUT STDOUT_FILENO
 #define OS_STDERR STDERR_FILENO
 
-// Functions
+//~ ak: Functions
 //=============================================================================
 
-// Helpers functions ==========================================================
+//~ ak: Helpers functions =====================================================
 
 internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec);
 internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in);

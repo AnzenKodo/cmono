@@ -1,4 +1,4 @@
-// Helpers Functions
+//~ ak: Helpers Functions
 //=============================================================================
 
 internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time)
@@ -42,27 +42,27 @@ internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
     *out = dense_time_from_date_time(date_time);
 }
 
-// Memory Allocation
+//~ ak: Memory Allocation
 //=============================================================================
 
-internal void *os_memory_reserve(size_t size)
+internal void *os_mem_reserve(size_t size)
 {
     void *result = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
     return result;
 }
 
-internal bool os_memory_commit(void *ptr, size_t size)
+internal bool os_mem_commit(void *ptr, size_t size)
 {
     LPVOID result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
     return result != NULL;
 }
 
-internal bool os_memory_decommit(void *ptr, size_t size)
+internal bool os_mem_decommit(void *ptr, size_t size)
 {
     return VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
-internal bool os_memory_release(void *ptr, size_t size)
+internal bool os_mem_release(void *ptr, size_t size)
 {
     return VirtualFree(ptr, size, MEM_RELEASE);
 }
@@ -74,7 +74,7 @@ internal size_t os_pagesize_get(void)
     return sysinfo.dwPageSize;
 }
 
-// File System
+//~ ak: File System
 //=============================================================================
 
 internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
@@ -129,7 +129,7 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
     Rng1_U64 rng_clamped  = (Rng1_U64){Min(rng.min, size), Min(rng.max, size)};
     uint64_t total_read_size = 0;
-    // read loop
+    //- ak: read loop
     {
         uint64_t to_read = rng1_dim_u64(rng_clamped);
         for(uint64_t off = rng.min; total_read_size < to_read;)
@@ -265,7 +265,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
     _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
     switch(win32_walk->is_volume_iter)
     {
-        //- rjf: file iteration
+        //- ak: file iteration
         default:
         case 0:
             {
@@ -273,7 +273,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
                 {
                     do
                     {
-                        // check is usable
+                        //- ak: check is usable
                         bool usable_file = 1;
 
                         WCHAR *file_name = win32_walk->find_data.cFileName;
@@ -299,7 +299,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
                                 usable_file = 0;
                             }
                         }
-                        // emit if usable
+                        //- ak: emit if usable
                         if (usable_file){
                             info_out->name = str8_from_16(arena, str16_from_cstr((U16*)file_name));
                             info_out->props.size = (uint64_t)win32_walk->find_data.nFileSizeLow | (((uint64_t)win32_walk->find_data.nFileSizeHigh)<<32);
@@ -316,7 +316,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
                 }
             }break;
 
-            //- rjf: volume iteration
+            //- ak: volume iteration
         case 1:
             {
                 result = win32_walk->drive_strings_iter_idx < win32_walk->drive_strings.count;
@@ -347,7 +347,7 @@ internal void os_file_walk_end(Os_File_Walk *walk)
     }
 }
 
-// Exit
+//~ ak: Exit
 //=============================================================================
 
 internal void os_exit(int32_t exit_code)
@@ -355,7 +355,7 @@ internal void os_exit(int32_t exit_code)
     ExitProcess(exit_code);
 }
 
-// Time
+//~ ak: Time
 //=============================================================================
 
 internal uint32_t os_now_unix(void)
@@ -379,9 +379,9 @@ internal uint64_t os_now_microsec(void)
 
 internal void os_sleep_microsec(uint64_t microsec)
 {
-    DWORD millisec = (DWORD)(microsec / 1000); // Integer division to get milliseconds
+    DWORD millisec = (DWORD)(microsec / 1000); //- ak: Integer division to get milliseconds
     if (microsec % 1000 >= 500) {
-        millisec++; // Round up if the remaining microseconds are 500 or more
+        millisec++; //- ak: Round up if the remaining microseconds are 500 or more
     }
     os_sleep_millisec(millisec);
 }
@@ -391,8 +391,18 @@ internal void os_sleep_millisec(uint32_t millisec)
     Sleep(millisec);
 }
 
-// Environment Variable
-// ============================================================================
+//~ ak: Command-Line Operations
+//=============================================================================
+
+internal bool os_is_term_mode(Os_File file)
+{
+    bool result = false;
+    result = GetConsoleMode((HANDLE)file, NULL);
+    return result;
+}
+
+//~ ak: Environment Variable
+//=============================================================================
 
 internal bool os_env_is_set(Str8 name)
 {
@@ -420,13 +430,13 @@ internal Str8 os_env_get(Str8 name)
     return result;
 }
 
-// OS Entry Points
+//~ ak: OS Entry Points
 //=============================================================================
 
 int main(void)
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
-    // Setup argument array
+    //- ak: Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
     _os_core_state.args = array_push(scratch.arena, Str8_Array, args_count);
@@ -445,7 +455,17 @@ int main(void)
             _os_win32_state.microsecond_resolution = large_int_resolution.QuadPart;
         }
     }
-    // Go to default OS entry point
+    //- ak: Enable terminal color support
+    {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD dwMode = 0;
+        if (GetConsoleMode(hOut, &dwMode))
+        {
+            dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            SetConsoleMode(hOut, dwMode);
+        }
+    }
+    //- ak: Go to default OS entry point
     os_main();
     arena_scratch_end(scratch);
 }

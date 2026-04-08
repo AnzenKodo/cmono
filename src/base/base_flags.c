@@ -471,64 +471,64 @@ internal void flags_print_error(Flags_Context *context)
         {
             case _Flags_Error_Kind_MissingValue:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "opiton '%.*s' requires a value. Example: '--%.*s <value>'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UnknownOption:
             {
-                log_error(context->log_context, "opiton '%.*s' is invalid.", str8_varg(error->flag_name));
+                log_error(&context->log_context, "opiton '%.*s' is invalid.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_NoFlagPrefix:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "'%.*s' is not recognized as a opiton. Option must start with '-', '--', or '/' (Windows only). Examples: '-%.*s', '--%.*s', '/%.*s'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_DuplicateOption:
             {
-                log_error(context->log_context, "option '%.*s' was specified multiple times.", str8_varg(error->flag_name));
+                log_error(&context->log_context, "option '%.*s' was specified multiple times.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_RequireOption:
             {
-                log_error(context->log_context, "missing required option '--%.*s'.", str8_varg(error->flag_name));
+                log_error(&context->log_context, "missing required option '--%.*s'.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_InvalidIntOption:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "option '%.*s' expects an integer value, but '%.*s' was given. Examples: '--%.*s 42', '--%.*s -7', '--%.*s 123'.",
                     str8_varg(error->flag_name), str8_varg(error->value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UIntMinusOption:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "option '%.*s' does not accept negative values (got '%.*s'). Use a positive integer instead.",
                     str8_varg(error->flag_name), str8_varg(error->value));
             }
             break;
             case _Flags_Error_Kind_InvalidFloatOption:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "option '%.*s' expects a floating-point number, but '%.*s' was given. Examples: '--%.*s .14', '--%.*s -0.5', '--%.*s 2', '--%.*s 2.0'.",
                     str8_varg(error->flag_name), str8_varg(error->value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_InvalidBool:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "option '%.*s' expects a boolean value, but '%.*s' was given. Enter 'true', 'false' or no value for true.",
                     str8_varg(error->flag_name), str8_varg(error->value));
             }
             break;
             case _Flags_Error_Kind_SingleValue:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "option '%.*s' only accepts single value.",
                     str8_varg(error->flag_name));
             }
@@ -536,39 +536,39 @@ internal void flags_print_error(Flags_Context *context)
             case _Flags_Error_Kind_OutIndexArg:
             {
                 if (context->index_arg > 0) {
-                    log_error(context->log_context,
+                    log_error(&context->log_context,
                         "command only accepts >= (less equal to) %zu arguments without options.",
                         context->index_arg);
                 } else {
-                    log_error(context->log_context,
+                    log_error(&context->log_context,
                         "command don't accepts any arguments without options.");
                 }
             }
             break;
             case _Flags_Error_Kind_RequireArg:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "at least %zu argument without option is required.",
                     error->arg_index + 1);
             }
             break;
             case _Flags_Error_Kind_InvalidIntArg:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "%zu argument without option should be integer. Examples: '42', '-7', '123'.",
                     error->arg_index + 1);
             }
             break;
             case _Flags_Error_Kind_UIntMinusArg:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "%zu argument without option does not accept negative values (got '%.*s'). Use a positive integer instead.",
                     error->arg_index + 1, str8_varg(error->value));
             }
             break;
             case _Flags_Error_Kind_InvalidFloatArg:
             {
-                log_error(context->log_context,
+                log_error(&context->log_context,
                     "%zu argument without option expects a floating-point number, but '%.*s' was given. Examples: '.14', '-0.5', '2', '2.0'.",
                     error->arg_index + 1, str8_varg(error->value));
             }

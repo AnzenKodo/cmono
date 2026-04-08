@@ -1,7 +1,7 @@
 #ifndef OS_WINDOWS_H
 #define OS_WINDOWS_H
 
-// External Includes
+//~ ak: External Includes
 //=============================================================================
 
 #pragma comment(lib, "user32.lib")
@@ -10,7 +10,7 @@
 #include <mswsock.h>
 #include <windows.h>
 
-// Types
+//~ ak: Types
 //=============================================================================
 
 typedef struct _OS_Win32_State _OS_Win32_State;
@@ -29,14 +29,14 @@ struct _Os_Win32_Walk_Iter
     uint64_t drive_strings_iter_idx;
 };
 
-// Defines
+//~ ak: Defines
 //=============================================================================
 
 #define OS_STDIN  (Os_File)GetStdHandle(STD_INPUT_HANDLE)
 #define OS_STDOUT (Os_File)GetStdHandle(STD_OUTPUT_HANDLE)
 #define OS_STDERR (Os_File)GetStdHandle(STD_ERROR_HANDLE)
 
-// Functions
+//~ ak: Functions
 //=============================================================================
 
 // Helpers functions ==========================================================
@@ -46,7 +46,7 @@ internal FilePropertyFlags _os_win32_file_property_flags_from_dwFileAttributes(D
 internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in);
 internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
 
-// Global Variables
+//~ ak: Global Variables
 //=============================================================================
 
 global _OS_Win32_State _os_win32_state = ZERO_STRUCT;

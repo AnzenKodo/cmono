@@ -1,12 +1,11 @@
 internal bool term_is_color_allowed(void)
 {
     bool result = true;
-
-    if (os_env_is_set(str8("NO_COLOR")) || os_env_get(str8("TERM")).length < 1)
+    // Str8 term_env = os_env_get(str8("TERM"));
+    if (os_env_is_set(str8("NO_COLOR")) || !os_is_term_mode(OS_STDOUT))
     {
         result = false;
     }
-
     return result;
 }
 

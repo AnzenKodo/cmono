@@ -1,6 +1,9 @@
 #ifndef BASE_LOG_H
 #define BASE_LOG_H
 
+//~ ak: Types
+//=============================================================================
+
 typedef enum Log_Level {
     Log_Level_None,
     Log_Level_Info,
@@ -17,20 +20,31 @@ struct Log_Context {
     bool enable_color_log;
 };
 
-// Functions
+//~ ak: Functions
 //=============================================================================
 
-internal char *log_get_reset_color(Log_Context context);
+//~ ak: Helper Functions ======================================================
+
+internal char *log_get_reset_color(Log_Context *context);
 internal char *log_get_level_color(Log_Level level);
 internal char *log_get_level_string(Log_Level level);
-internal char *log_get_file_info_color(Log_Context context);
-internal void log_print_color_level(Log_Context context, Log_Level level);
-internal void log_vprintf(Log_Context context, Log_Level level, const char *format, va_list args);
+internal char *log_get_file_info_color(Log_Context *context);
+internal void log_print_color_level(Log_Context *context, Log_Level level);
+
+//~ ak: Initialization Functions ==============================================
+
 internal Log_Context log_init(void);
-internal void log_info(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_debug(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_warn(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_error(Log_Context context, const char *format, ...) FmtTypeCheck(2, 3);
+
+//~ ak: Log Level Print Functions =============================================
+
+internal void log_vprintf(Log_Context *context, Log_Level level, const char *format, va_list args);
+internal void log_info(Log_Context *context, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_debug(Log_Context *context, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_warn(Log_Context *context, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_error(Log_Context *context, const char *format, ...) FmtTypeCheck(2, 3);
+
+//~ ak: Macros
+//=============================================================================
 
 #define LogPrintfLine(context, level, format, ...) do { \
     char *line_info_color = log_get_file_info_color(context, level); \

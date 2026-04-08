@@ -11,8 +11,8 @@ internal Arena *arena_alloc(size_t reserve_size, size_t commit_size)
     size_t pagesize = os_pagesize_get();
     reserve_size = AlignPow2(reserve_size, pagesize);
     commit_size = AlignPow2(commit_size, pagesize);
-    Arena* arena = os_memory_reserve(reserve_size);
-    if (os_memory_commit(arena, commit_size))
+    Arena* arena = os_mem_reserve(reserve_size);
+    if (os_mem_commit(arena, commit_size))
     {
         arena->reserve_size = reserve_size;
         arena->commit_size = commit_size;
@@ -26,7 +26,7 @@ internal Arena *arena_alloc(size_t reserve_size, size_t commit_size)
 }
 internal void arena_free(Arena* arena)
 {
-    os_memory_release(arena, arena->reserve_size);
+    os_mem_release(arena, arena->reserve_size);
 }
 
 internal size_t arena_pos(Arena *arena)
@@ -49,7 +49,7 @@ internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_ze
             commit_pos_new =  Min(commit_pos_new, arena->reserve_size);
             char* mem = (char*)arena + arena->commit_pos;
             size_t commit_size = commit_pos_new - arena->commit_pos;
-            if (os_memory_commit(mem, commit_size))
+            if (os_mem_commit(mem, commit_size))
             {
                 arena->commit_pos = commit_pos_new;
             }

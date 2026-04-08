@@ -64,7 +64,7 @@ entry_point(char *argv[])
     wl_window_open(str8("Scuttle"), vec2i32(750, 750));
     wl_window_icon_set(cast(uint32_t *)ICON, ICON_WIDTH, ICON_HEIGHT);
     uint64_t size = MB(10);
-    void *buffer = os_memory_alloc(size);
+    void *buffer = os_mem_alloc(size);
     Arena *arena = alloc_arena_init(buffer, size);
     Draw_Buffer draw_buffer = render_init(arena);
 
@@ -146,6 +146,6 @@ entry_point(char *argv[])
 
     // Free Everything ========================================================
     render_deinit();
-    os_memory_release(buffer, size);
+    os_mem_release(buffer, size);
     wl_window_close();
 }

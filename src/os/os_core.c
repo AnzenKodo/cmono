@@ -1,10 +1,10 @@
 //~ ak: Memory Allocation
 //=============================================================================
 
-internal void * os_memory_alloc(size_t size)
+internal void * os_mem_alloc(size_t size)
 {
-    void *result = os_memory_reserve(size);
-    os_memory_commit(result, size);
+    void *result = os_mem_reserve(size);
+    os_mem_commit(result, size);
     return result;
 }
 
@@ -74,7 +74,7 @@ internal bool os_dir_ensure(Str8 path)
     return result;
 }
 
-//~ ak: Command line arguments
+//~ ak: Command-Line Operations
 //=============================================================================
 
 internal Str8_Array *os_args_get(void)

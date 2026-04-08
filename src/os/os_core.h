@@ -82,11 +82,11 @@ struct _Os_Core_State {
 
 //~ ak: Memory Allocation =====================================================
 
-internal void *os_memory_alloc(size_t size);
-internal void *os_memory_reserve(size_t size);
-internal bool os_memory_release(void *ptr, size_t size);
-internal bool os_memory_commit(void *ptr, size_t size);
-internal bool os_memory_decommit(void *ptr, size_t size);
+internal void *os_mem_alloc(size_t size);
+internal void *os_mem_reserve(size_t size);
+internal bool os_mem_release(void *ptr, size_t size);
+internal bool os_mem_commit(void *ptr, size_t size);
+internal bool os_mem_decommit(void *ptr, size_t size);
 internal size_t os_pagesize_get(void);
 
 //~ ak: File System ===========================================================
@@ -123,15 +123,17 @@ internal void os_exit(int32_t exit_code);
 //~ ak: Time ==================================================================
 
 internal uint32_t os_now_unix(void);
-internal void os_sleep_ms(uint32_t microsec);
+internal uint64_t os_now_microsec(void);
+internal void os_sleep_microsec(uint64_t microsec);
 internal void os_sleep_millisec(uint32_t millisec);
 
-// Command line arguments =====================================================
+//~ ak: Command-Line Operations ===============================================
 
 internal Str8_Array *os_args_get(void);
 internal Str8 *os_program_path_get(void);
+internal bool os_is_term_mode(Os_File file);
 
-// Environment Variable =======================================================
+//~ ak: Environment Variable ==================================================
 
 internal bool os_env_is_set(Str8 name);
 internal Str8 os_env_get(Str8 name);
@@ -140,7 +142,7 @@ internal Str8 os_env_get(Str8 name);
 
 internal void os_main(void);
 
-// Global Variables
+//~ ak: Global Variables
 //=============================================================================
 
 global _Os_Core_State _os_core_state = ZERO_STRUCT;

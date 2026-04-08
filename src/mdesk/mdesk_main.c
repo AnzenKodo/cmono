@@ -1,5 +1,3 @@
-// TODO(ak): fix terminal color support detection
-
 //~ ak: Includes
 //=============================================================================
 
@@ -370,14 +368,14 @@ void base_main(void)
     fmt_print("\n");
     
     //- ak: write out all messages to stderr ==================================
-    Log_Context context = log_init();
-    char *file_info_color = log_get_file_info_color(context);
-    char *restart_color = log_get_reset_color(context);
+    Log_Context context   = log_init();
+    char *file_info_color = log_get_file_info_color(&context);
+    char *restart_color   = log_get_reset_color(&context);
     for (MDG_Msg_Node *n = msgs.first; n != 0; n = n->next)
     {
         MDG_Msg *msg = &n->v;
         fmt_eprintf("%s%.*s:%ld:%ld%s ", file_info_color, str8_varg(msg->file_path), msg->pt.line, msg->pt.column, restart_color);
-        log_print_color_level(context, msg->level);
+        log_print_color_level(&context, msg->level);
         fmt_eprintf("%.*s\n", str8_varg(msg->string));
     }
 }

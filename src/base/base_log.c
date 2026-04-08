@@ -1,7 +1,10 @@
-internal char *log_get_reset_color(Log_Context context)
+//~ ak: Helper Functions
+//=============================================================================
+
+internal char *log_get_reset_color(Log_Context *context)
 {
     char *reset_color = "";
-    if (context.enable_color_log || term_is_color_allowed())
+    if (context->enable_color_log && term_is_color_allowed())
     {
         reset_color = TERM_RESET;
     }
@@ -64,41 +67,29 @@ internal char *log_get_level_string(Log_Level level)
     return level_string;
 }
 
-internal char *log_get_file_info_color(Log_Context context)
+internal char *log_get_file_info_color(Log_Context *context)
 {
     char *line_info_color = "";
-    if (context.enable_color_log || term_is_color_allowed())
+    if (context->enable_color_log && term_is_color_allowed())
     {
         line_info_color = TERM_FG_CYAN;
     }
     return line_info_color;
 }
 
-internal void log_print_color_level(Log_Context context, Log_Level level)
+internal void log_print_color_level(Log_Context *context, Log_Level level)
 {
     char *level_string = log_get_level_string(level);
     char *level_color = "";
-    if (context.enable_color_log && term_is_color_allowed())
+    if (context->enable_color_log && term_is_color_allowed())
     {
         level_color = log_get_level_color(level);
     }
-    fmt_fprintf(context.file, "%s%s%s ", level_color, level_string, log_get_reset_color(context));
+    fmt_fprintf(context->file, "%s%s%s ", level_color, level_string, log_get_reset_color(context));
 }
 
-internal void log_vprintf(Log_Context context, Log_Level level, const char *format, va_list args)
-{
-    if (level >= context.level)
-    {
-        if (context.print_level_prefix)
-        {
-            log_print_color_level(context, level);
-        }
-        va_list args_copy;
-        va_copy(args_copy, args);
-            fmt_vfprintfln(context.file, format, args_copy);
-        va_end(args_copy);
-    }
-}
+//~ ak: Initialization Functions
+//=============================================================================
 
 internal Log_Context log_init(void)
 {
@@ -110,28 +101,46 @@ internal Log_Context log_init(void)
     return context;
 }
 
-internal void log_info(Log_Context context, const char *format, ...)
+//~ ak: Log Level Print Functions
+//=============================================================================
+
+internal void log_vprintf(Log_Context *context, Log_Level level, const char *format, va_list args)
+{
+    if (level >= context->level)
+    {
+        if (context->print_level_prefix)
+        {
+            log_print_color_level(context, level);
+        }
+        va_list args_copy;
+        va_copy(args_copy, args);
+            fmt_vfprintfln(context->file, format, args_copy);
+        va_end(args_copy);
+    }
+}
+
+internal void log_info(Log_Context *context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
         log_vprintf(context, Log_Level_Info, format, args);
     va_end(args);
 }
-internal void log_debug(Log_Context context, const char *format, ...)
+internal void log_debug(Log_Context *context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
         log_vprintf(context, Log_Level_Debug, format, args);
     va_end(args);
 }
-internal void log_warn(Log_Context context, const char *format, ...)
+internal void log_warn(Log_Context *context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
         log_vprintf(context, Log_Level_Warn, format, args);
     va_end(args);
 }
-internal void log_error(Log_Context context, const char *format, ...)
+internal void log_error(Log_Context *context, const char *format, ...)
 {
     va_list args;
     va_start(args, format);

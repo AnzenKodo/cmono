@@ -1,4 +1,4 @@
-// Helpers functions
+//~ ak: Helpers functions
 //=============================================================================
 
 internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec)
@@ -41,28 +41,28 @@ internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s)
     return props;
 }
 
-// Memory Allocation
+//~ ak: Memory Allocation
 //=============================================================================
 
-internal void *os_memory_reserve(size_t size)
+internal void *os_mem_reserve(size_t size)
 {
     void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if (result == MAP_FAILED) { result = 0; }
     return result;
 }
-internal bool os_memory_commit(void *ptr, size_t size)
+internal bool os_mem_commit(void *ptr, size_t size)
 {
     int result = mprotect(ptr, size, PROT_READ|PROT_WRITE);
     return result == 0;
 }
 
-internal bool os_memory_decommit(void *ptr, size_t size)
+internal bool os_mem_decommit(void *ptr, size_t size)
 {
     int result1 = madvise(ptr, size, MADV_DONTNEED);
     int result2 = mprotect(ptr, size, PROT_NONE);
     return result1 == 0 && result2 == 0;
 }
-internal bool os_memory_release(void *ptr, size_t size)
+internal bool os_mem_release(void *ptr, size_t size)
 {
     int result = munmap(ptr, size);
     return result == 0;
@@ -104,7 +104,7 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     if (!(flags & Os_AccessFlag_Inherited)) {
         fcntl(file, F_SETFD, FD_CLOEXEC);
     }
-    // Lock file based on given flags
+    //- ak: Lock file based on given flags
     short share_mode = 0;
     if (!(flags & Os_AccessFlag_ShareRead)) {
         share_mode |= F_RDLCK;
@@ -117,7 +117,7 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
         lock.l_type = share_mode;
         lock.l_start = 0;
         lock.l_whence = SEEK_SET;
-        lock.l_len = 0;  // Lock entire file
+        lock.l_len = 0;  //- ak: Lock entire file
         fcntl(file, F_SETLK, &lock);
     }
     return file;
@@ -228,10 +228,10 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
     _Os_Linux_File_Walk *linux_walk = (_Os_Linux_File_Walk *)walk->memory;
     while (true)
     {
-        // ak: get next entry
+        //- ak: get next entry
         linux_walk->dp = readdir(linux_walk->dir);
         good = (linux_walk->dp != 0);
-        // ak: unpack entry info
+        //- ak: unpack entry info
         struct stat st = ZERO_STRUCT;
         int stat_result = 0;
         if (good)
@@ -241,7 +241,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
             stat_result = stat((char *)full_path.cstr, &st);
             arena_scratch_end(scratch);
         }
-        // ak: determine if filtered
+        //- ak: determine if filtered
         bool filtered = 0;
         if (good)
         {
@@ -250,7 +250,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
                     (linux_walk->dp->d_name[0] == '.' && linux_walk->dp->d_name[1] == 0) ||
                     (linux_walk->dp->d_name[0] == '.' && linux_walk->dp->d_name[1] == '.' && linux_walk->dp->d_name[2] == 0));
         }
-        // ak: output & exit, if good & unfiltered
+        //- ak: output & exit, if good & unfiltered
         if (good && !filtered)
         {
             info_out->name = str8_copy(arena, str8_from_cstr(linux_walk->dp->d_name));
@@ -260,7 +260,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
             }
             break;
         }
-        // ak: exit if not good
+        //- ak: exit if not good
         if (!good)
         {
             break;
@@ -275,7 +275,7 @@ internal void os_file_walk_end(Os_File_Walk *walk)
     closedir(linux_walk->dir);
 }
 
-// Exit
+//~ ak: Exit
 //=============================================================================
 
 internal void os_exit(int32_t exit_code)
@@ -283,7 +283,7 @@ internal void os_exit(int32_t exit_code)
     exit(exit_code);
 }
 
-// Time
+//~ ak: Time
 //=============================================================================
 
 internal uint32_t os_now_unix(void)
@@ -314,7 +314,17 @@ internal void os_sleep_millisec(uint32_t millisec)
     usleep(millisec*Thousand(1));
 }
 
-// Environment Variable =======================================================
+//~ ak: Command-Line Operations
+//=============================================================================
+
+internal bool os_is_term_mode(Os_File file)
+{
+    int result = isatty(file);
+    return result;
+}
+
+//~ ak: Environment Variable
+//=============================================================================
 
 internal bool os_env_is_set(Str8 name)
 {
@@ -343,7 +353,7 @@ internal Str8 os_env_get(Str8 name)
     return result;
 }
 
-// OS Entry Points
+//~ ak: OS Entry Points
 //=============================================================================
 
 int main(int argc, char *argv[])
