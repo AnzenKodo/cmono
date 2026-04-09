@@ -234,7 +234,7 @@ void base_main(void)
     }
     
     //- a: write all layer output files ======================================
-    log_info(&log, "Generating layer code...");
+    log_infoln(&log, "Generating layer code...");
     for (size_t slot_idx = 0; slot_idx < state->slots_count; slot_idx += 1)
     {
         MDG_Layer_Slot *slot = &state->slots[slot_idx];
@@ -365,10 +365,11 @@ void base_main(void)
                     }
                     os_file_close(c_file);
                 }
+                log_infofln(&log, "Generated %.*s", str8_varg(c_path));
+                log_infofln(&log, "Generated %.*s", str8_varg(h_path));
             }
         }
     }
-    fmt_fprintfln(log.file, "\n");
     
     //- ak: write out all messages to stderr ==================================
     char *file_info_color = log_get_file_info_color(&log);
