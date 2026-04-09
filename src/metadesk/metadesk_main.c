@@ -18,13 +18,16 @@ void base_main(void)
     Str8 src_path = str8("src");
     Str8 defulat_gen_dirname = str8("generated");
     Str8 ext_name = str8("mdesk");
+    
+    //- ak: initialization ====================================================
     MDG_Msg_List msgs = ZERO_STRUCT;
     Arena *arena = arena_alloc(MB(10), MB(1));
     MDG_State *state = mdg_state_init(256, arena);
+    Log_Context log = log_init();
     
     //- ak: collect file paths ================================================
     Str8_List file_paths = ZERO_STRUCT;
-    fmt_printf("Searching %.*s...", str8_varg(src_path));
+    log_infof(&log, "Searching %.*s...", str8_varg(src_path));
     {
         typedef struct Dir Dir;
         struct Dir
@@ -55,10 +58,10 @@ void base_main(void)
             os_file_walk_end(walk);
         }
     }
-    fmt_printfln(" %zu directory found", file_paths.length);
+    fmt_fprintfln(log.file, " %zu directory found", file_paths.length);
     
     //- ak: parse all metatable files =========================================
-    fmt_printf("parsing metatable...");
+    log_info(&log, "Parsing metatable...");
     MDG_ParsedFile_List parses = ZERO_STRUCT;
     {
         for (Str8_Node *n = file_paths.first; n != 0; n = n->next)
@@ -91,13 +94,13 @@ void base_main(void)
             }
         }
     }
-    fmt_printfln(" %zu .%.*s files parsed", parses.count, str8_varg(ext_name));
+    fmt_fprintfln(log.file, " %zu .%.*s files parsed", parses.count, str8_varg(ext_name));
     
     //- ak: gather tables =====================================================
     MDG_Map table_grid_map = mdg_map_push(1024, arena);
     MDG_Map table_col_map = mdg_map_push(1024, arena);
     size_t table_count = 0;
-    fmt_printf("gathering tables...");
+    log_info(&log, "Gathering tables...");
     {
         for (MDG_ParsedFile_Node *n = parses.first; n != 0; n = n->next)
         {
@@ -118,7 +121,7 @@ void base_main(void)
             }
         }
     }
-    fmt_printfln(" %zu tables found", table_count);
+    fmt_fprintfln(log.file, " %zu tables found", table_count);
     
     //- ak: gather layer options ==============================================
     for (MDG_ParsedFile_Node *n = parses.first; n != 0; n = n->next)
@@ -231,7 +234,7 @@ void base_main(void)
     }
     
     //- a: write all layer output files ======================================
-    fmt_print("generating layer code...");
+    log_info(&log, "Generating layer code...");
     for (size_t slot_idx = 0; slot_idx < state->slots_count; slot_idx += 1)
     {
         MDG_Layer_Slot *slot = &state->slots[slot_idx];
@@ -365,17 +368,16 @@ void base_main(void)
             }
         }
     }
-    fmt_print("\n");
+    fmt_fprintfln(log.file, "\n");
     
     //- ak: write out all messages to stderr ==================================
-    Log_Context context   = log_init();
-    char *file_info_color = log_get_file_info_color(&context);
-    char *restart_color   = log_get_reset_color(&context);
+    char *file_info_color = log_get_file_info_color(&log);
+    char *restart_color   = log_get_reset_color(&log);
     for (MDG_Msg_Node *n = msgs.first; n != 0; n = n->next)
     {
         MDG_Msg *msg = &n->v;
         fmt_eprintf("%s%.*s:%ld:%ld%s ", file_info_color, str8_varg(msg->file_path), msg->pt.line, msg->pt.column, restart_color);
-        log_print_color_level(&context, msg->level);
+        log_print_color_level(&log, msg->level);
         fmt_eprintf("%.*s\n", str8_varg(msg->string));
     }
 }

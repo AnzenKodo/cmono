@@ -1,10 +1,10 @@
 //~ ak: Helper Functions
 //=============================================================================
 
-internal char *log_get_reset_color(Log_Context *context)
+internal char *log_get_reset_color(Log_Context *log)
 {
     char *reset_color = "";
-    if (context->enable_color_log && term_is_color_allowed())
+    if (log->enable_color_log && term_is_color_allowed())
     {
         reset_color = TERM_RESET;
     }
@@ -67,25 +67,28 @@ internal char *log_get_level_string(Log_Level level)
     return level_string;
 }
 
-internal char *log_get_file_info_color(Log_Context *context)
+internal char *log_get_file_info_color(Log_Context *log)
 {
     char *line_info_color = "";
-    if (context->enable_color_log && term_is_color_allowed())
+    if (log->enable_color_log && term_is_color_allowed())
     {
         line_info_color = TERM_FG_CYAN;
     }
     return line_info_color;
 }
 
-internal void log_print_color_level(Log_Context *context, Log_Level level)
+internal void log_print_color_level(Log_Context *log, Log_Level level)
 {
-    char *level_string = log_get_level_string(level);
-    char *level_color = "";
-    if (context->enable_color_log && term_is_color_allowed())
+    if (log->print_level_prefix)
     {
-        level_color = log_get_level_color(level);
+        char *level_string = log_get_level_string(level);
+        char *level_color = "";
+        if (log->enable_color_log && term_is_color_allowed())
+        {
+            level_color = log_get_level_color(level);
+        }
+        fmt_fprintf(log->file, "%s%s%s ", level_color, level_string, log_get_reset_color(log));
     }
-    fmt_fprintf(context->file, "%s%s%s ", level_color, level_string, log_get_reset_color(context));
 }
 
 //~ ak: Initialization Functions
@@ -93,57 +96,155 @@ internal void log_print_color_level(Log_Context *context, Log_Level level)
 
 internal Log_Context log_init(void)
 {
-    Log_Context context = ZERO_STRUCT;
-    context.level = Log_Level_Info;
-    context.file = OS_STDOUT;
-    context.print_level_prefix = true;
-    context.enable_color_log = true;
-    return context;
+    Log_Context log = ZERO_STRUCT;
+    log.level = Log_Level_Info;
+    log.file = OS_STDOUT;
+    log.print_level_prefix = true;
+    log.enable_color_log = true;
+    return log;
 }
 
 //~ ak: Log Level Print Functions
 //=============================================================================
 
-internal void log_vprintf(Log_Context *context, Log_Level level, const char *format, va_list args)
+//- ak: print normal
+
+internal void log_print(Log_Context *log, Log_Level level, const char *string)
 {
-    if (level >= context->level)
+    if (level >= log->level)
     {
-        if (context->print_level_prefix)
-        {
-            log_print_color_level(context, level);
-        }
+        log_print_color_level(log, level);
+        fmt_fprint(log->file, string);
+    }
+}
+
+internal void log_info(Log_Context *log, const char *string)
+{
+    log_print(log, Log_Level_Info, string);
+}
+internal void log_debug(Log_Context *log, const char *string)
+{
+    log_print(log, Log_Level_Debug, string);
+}
+internal void log_warn(Log_Context *log, const char *string)
+{
+    log_print(log, Log_Level_Warn, string);
+}
+internal void log_error(Log_Context *log, const char *string)
+{
+    log_print(log, Log_Level_Error, string);
+}
+
+//- ak: print with newline
+
+internal void log_println(Log_Context *log, Log_Level level, const char *string)
+{
+    if (level >= log->level)
+    {
+        log_print_color_level(log, level);
+        fmt_fprintln(log->file, string);
+    }
+}
+
+internal void log_infoln(Log_Context *log, const char *string)
+{
+    log_println(log, Log_Level_Info, string);
+}
+internal void log_debugln(Log_Context *log, const char *string)
+{
+    log_println(log, Log_Level_Debug, string);
+}
+internal void log_warnln(Log_Context *log, const char *string)
+{
+    log_println(log, Log_Level_Warn, string);
+}
+internal void log_errorln(Log_Context *log, const char *string)
+{
+    log_println(log, Log_Level_Error, string);
+}
+
+//- ak: print with format
+
+internal void log_vprintf(Log_Context *log, Log_Level level, const char *format, va_list args)
+{
+    if (level >= log->level)
+    {
+        log_print_color_level(log, level);
         va_list args_copy;
         va_copy(args_copy, args);
-            fmt_vfprintfln(context->file, format, args_copy);
+            fmt_vfprintf(log->file, format, args_copy);
         va_end(args_copy);
     }
 }
 
-internal void log_info(Log_Context *context, const char *format, ...)
+internal void log_infof(Log_Context *log, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_vprintf(context, Log_Level_Info, format, args);
+        log_vprintf(log, Log_Level_Info, format, args);
     va_end(args);
 }
-internal void log_debug(Log_Context *context, const char *format, ...)
+internal void log_debugf(Log_Context *log, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_vprintf(context, Log_Level_Debug, format, args);
+        log_vprintf(log, Log_Level_Debug, format, args);
     va_end(args);
 }
-internal void log_warn(Log_Context *context, const char *format, ...)
+internal void log_warnf(Log_Context *log, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_vprintf(context, Log_Level_Warn, format, args);
+        log_vprintf(log, Log_Level_Warn, format, args);
     va_end(args);
 }
-internal void log_error(Log_Context *context, const char *format, ...)
+internal void log_errorf(Log_Context *log, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-        log_vprintf(context, Log_Level_Error, format, args);
+        log_vprintf(log, Log_Level_Error, format, args);
+    va_end(args);
+}
+
+//- ak: print with format and newline
+
+internal void log_vprintfln(Log_Context *log, Log_Level level, const char *format, va_list args)
+{
+    if (level >= log->level)
+    {
+        log_print_color_level(log, level);
+        va_list args_copy;
+        va_copy(args_copy, args);
+            fmt_vfprintfln(log->file, format, args_copy);
+        va_end(args_copy);
+    }
+}
+
+internal void log_infofln(Log_Context *log, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+        log_vprintfln(log, Log_Level_Info, format, args);
+    va_end(args);
+}
+internal void log_debugfln(Log_Context *log, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+        log_vprintfln(log, Log_Level_Debug, format, args);
+    va_end(args);
+}
+internal void log_warnfln(Log_Context *log, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+        log_vprintfln(log, Log_Level_Warn, format, args);
+    va_end(args);
+}
+internal void log_errorfln(Log_Context *log, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+        log_vprintfln(log, Log_Level_Error, format, args);
     va_end(args);
 }
