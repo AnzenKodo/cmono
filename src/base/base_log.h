@@ -69,10 +69,10 @@ internal void log_errorfln(Log_Context *log, const char *format, ...) FmtTypeChe
 //=============================================================================
 
 #define LogPrintfLine(log, level, format, ...) do { \
-    char *line_info_color = log_get_file_info_color(log, level); \
-    fmt_fprintf(log.file, "%s%s:%d%s ", line_info_color, FILE_NAME, LINE_NUMBER, log_get_reset_color(log)); \
-    log_print_color_level(log, level) \
-    fmt_fprintfln(log.file, format, ##__VA_ARGS__); \
+    char *line_info_color = log_get_file_info_color(log); \
+    fmt_fprintf((log)->file, "%s%s:%d%s ", line_info_color, FILE_NAME, LINE_NUMBER, log_get_reset_color(log)); \
+    log_print_color_level((log), level); \
+    fmt_fprintfln((log)->file, format, ##__VA_ARGS__); \
 } while(0)
 #define LogInfoLine(log, format, ...) do { \
     LogPrintfLine(log, Log_Level_Info, format, ##__VA_ARGS__); \

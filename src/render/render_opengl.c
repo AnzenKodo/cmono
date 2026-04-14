@@ -16,7 +16,7 @@ internal uint32_t _render_opengl_shader_compile(char **source, uint32_t source_n
     {
         char log[512];
         glGetShaderInfoLog(shader_id, 512, NULL, log);
-        LogErrorLine(_os_core_state.log_context, "Shader program compile failed.");
+        LogErrorLine(&_os_core_state.log_context, "Shader program compile failed.");
     }
     glAttachShader(program_id, shader_id);
     return shader_id;
@@ -36,7 +36,7 @@ internal uint32_t _render_opengl_shader_load(char **vert_sources, uint32_t vert_
     {
         char log[512];
         glGetProgramInfoLog(program_id, 512, NULL, log);
-        LogErrorLine(_os_core_state.log_context, "%s", log);
+        LogErrorLine(&_os_core_state.log_context, "%s", log);
     }
     glDeleteShader(vert_id);
     glDeleteShader(frag_id);
@@ -56,7 +56,7 @@ internal void _render_opengl_error_callback(GLenum source, GLenum type, GLuint i
         }break;
         default:
         {
-            LogErrorLine(_os_core_state.log_context, "%.*s", length, message);
+            LogErrorLine(&_os_core_state.log_context, "%.*s", length, message);
         }break;
     }
 }
@@ -75,7 +75,7 @@ internal _Render_Opengl_Tex2D *_render_opengl_tex2d_from_handle(Render_Handle ha
 
 internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex2D_Format format)
 {
-    _Render_Opengl_FormatInfo result = {0};
+    _Render_Opengl_FormatInfo result = ZERO_STRUCT;
     switch (format)
     {
         case Render_Tex2D_Format_R8:
