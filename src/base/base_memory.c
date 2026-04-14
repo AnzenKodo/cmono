@@ -3,24 +3,23 @@
 
 internal inline bool mem_match(void const *s1, void const *s2, size_t size)
 {
-    bool result = false;
-    uint8_t const *s1p8 = (uint8_t const *)s1;
-    uint8_t const *s2p8 = (uint8_t const *)s2;
+    bool result = true;
     if (s1 == NULL || s2 == NULL)
     {
-        result = false;
+        if (size != 0) result = false;
     }
-    while (size--)
+    else if (size != 0)
     {
-        if (*s1p8 == *s2p8)
+        uint8_t const *s1p8 = (uint8_t const *)s1;
+        uint8_t const *s2p8 = (uint8_t const *)s2;
+        while (size--)
         {
-            result = true;
+            if (*s1p8 != *s2p8)
+            {
+                result = false;
+                break;
+            }
             s1p8++, s2p8++;
-        }
-        else
-        {
-            result = false;
-            break;
         }
     }
     return result;
