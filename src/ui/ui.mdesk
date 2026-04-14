@@ -1,0 +1,97 @@
+//- ak: stack table
+
+@table(name, name_lower, type, default, manual_impl)
+UI_StackTable:
+{
+    //- ak: parents
+    { Parent    parent    `UI_Box *`    `&ui_nil_box` }
+}
+
+//- ak: declaring stack node types
+
+@gen
+{
+    @expand(UI_StackTable a) `typedef struct UI_$(a.name)_Node UI_$(a.name)_Node; struct UI_$(a.name)_Node{UI_$(a.name)_Node *next; $(a.type) v;};`
+}
+
+//- ak: declaring all default stack tops
+
+@gen
+{
+    `#define UI_DeclStackNils \\`;
+    `struct\\`;
+    `{\\`;
+        @expand(UI_StackTable a) `UI_$(a.name)_Node $(a.name_lower)_nil_stack_top;\\`;
+        `}`;
+}
+
+//- ak: initializing all default stack tops
+
+@gen
+{
+    `#define UI_InitStackNils(state) \\`;
+    @expand(UI_StackTable a) `state->$(a.name_lower)_nil_stack_top.v = $(a.default);\\`;
+    ``;
+}
+
+//- ak: declaring all stack nodes & free lists
+
+@gen
+{
+    `#define UI_DeclStacks \\`;
+    `struct\\`;
+    `{\\`;
+        @expand(UI_StackTable a) `struct { UI_$(a.name)_Node *top; $(a.type) bottom_val; UI_$(a.name)_Node *free; U64 gen; B32 auto_pop; } $(a.name_lower)_stack;\\`;
+        `}`;
+}
+
+//- ak: initing all stack nodes
+
+@gen
+{
+    `#define UI_InitStacks(state) \\`;
+    @expand(UI_StackTable a) `state->$(a.name_lower)_stack.top = &state->$(a.name_lower)_nil_stack_top; state->$(a.name_lower)_stack.bottom_val = $(a.default); state->$(a.name_lower)_stack.free = 0; state->$(a.name_lower)_stack.auto_pop = 0;\\`;
+    ``;
+}
+
+//- ak: auto-popping all stacks
+
+@gen
+{
+    `#define UI_AutoPopStacks(state) \\`
+        @expand(UI_StackTable a)
+        `if(state->$(a.name_lower)_stack.auto_pop) { ui_pop_$(a.name_lower)(); state->$(a.name_lower)_stack.auto_pop = 0; }\\`;
+    ``;
+}
+
+//- ak: decls for the stack function operation headers
+
+@gen
+{
+    @expand(UI_StackTable a)
+        `internal $(a.type)ui_$(a.name_lower)_top(void);`
+        @expand(UI_StackTable a)
+        `internal $(a.type)ui_$(a.name_lower)_bottom(void);`
+        @expand(UI_StackTable a)
+        `internal $(a.type)ui_$(a.name_lower)_push($(a.type) v);`
+        @expand(UI_StackTable a)
+        `internal $(a.type)ui_$(a.name_lower)_pop(void);`
+        @expand(UI_StackTable a)
+        `internal $(a.type)ui_$(a.name_lower)_set_next($(a.type) v);`
+}
+
+//- ak: decls for the stack operation implementations
+
+@gen @c_file
+{
+    @expand(UI_StackTable a)
+        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_top(void) { UI_StackTop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
+    @expand(UI_StackTable a)
+        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_bottom(void) { UI_StackBottom(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
+    @expand(UI_StackTable a)
+        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_push(" .. a.type .. " v) { UI_StackPush(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
+    @expand(UI_StackTable a)
+        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_pop(void) { UI_StackPop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
+    @expand(UI_StackTable a)
+         `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_set_next(" .. a.type .. " v) { UI_StackSetNext(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
+}
