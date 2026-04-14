@@ -212,6 +212,7 @@ typedef struct MDG_Layer MDG_Layer;
 struct MDG_Layer
 {
     Str8 key;
+    Str8 src_path;
     bool is_library;
     Str8 gen_folder_name;
     Str8 h_name_override;
@@ -261,6 +262,11 @@ internal uint64_t mdg_hash_from_string(Str8 string);
 //~ ak: Message Lists =========================================================
 
 internal void mdg_msg_list_push(MDG_Msg_List *msgs, MDG_Msg *msg, Arena *arena);
+
+//~ rjf: C-String-Izing =======================================================
+
+internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *arena);
+internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena);
 
 //~ ak: Map Functions =========================================================
 
