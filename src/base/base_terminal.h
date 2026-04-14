@@ -1,12 +1,12 @@
 #ifndef BASE_TERM_H
 #define BASE_TERM_H
 
-// Defines
+//~ ak: Defines
 //=============================================================================
 
-// ASNI Codes =================================================================
+//~ ak: ASNI Codes ============================================================
 
-/* Style */
+//- ak: Style
 #define TERM_RESET             "\x1B[0m"
 #define TERM_BOLD              "\x1B[1m"
 #define TERM_FAINT             "\x1B[2m"
@@ -18,7 +18,7 @@
 #define TERM_CONCEAL           "\x1B[8m"
 #define TERM_STRIKETHROUGH     "\x1B[9m"
 
-/* Foreground */
+//- ak: Foreground
 #define TERM_FG_BLACK          "\x1B[30m"
 #define TERM_FG_RED            "\x1B[31m"
 #define TERM_FG_GREEN          "\x1B[32m"
@@ -29,7 +29,7 @@
 #define TERM_FG_WHITE          "\x1B[37m"
 #define TERM_FG_DEFAULT        "\x1B[39m"
 
-/* Bright Foreground */
+//- ak: Bright Foreground
 #define TERM_FG_BRIGHT_BLACK   "\x1B[90m"
 #define TERM_FG_BRIGHT_RED     "\x1B[91m"
 #define TERM_FG_BRIGHT_GREEN   "\x1B[92m"
@@ -39,7 +39,7 @@
 #define TERM_FG_BRIGHT_CYAN    "\x1B[96m"
 #define TERM_FG_BRIGHT_WHITE   "\x1B[97m"
 
-/* Background */
+//- ak: Background
 #define TERM_BG_BLACK          "\x1B[40m"
 #define TERM_BG_RED            "\x1B[41m"
 #define TERM_BG_GREEN          "\x1B[42m"
@@ -50,7 +50,7 @@
 #define TERM_BG_WHITE          "\x1B[47m"
 #define TERM_BG_DEFAULT        "\x1B[49m"
 
-/* Bright Background */
+//- ak: Bright Background
 #define TERM_BG_BRIGHT_BLACK   "\x1B[100m"
 #define TERM_BG_BRIGHT_RED     "\x1B[101m"
 #define TERM_BG_BRIGHT_GREEN   "\x1B[102m"
@@ -60,38 +60,52 @@
 #define TERM_BG_BRIGHT_CYAN    "\x1B[106m"
 #define TERM_BG_BRIGHT_WHITE   "\x1B[107m"
 
-/* Cursor */
+//- ak: Cursor
 #define TERM_CURSOR_HOME       "\x1B[H"
 #define TERM_CURSOR_SAVE       "\x1B[s"
 #define TERM_CURSOR_RESTORE    "\x1B[u"
 #define TERM_CURSOR_HIDE       "\x1B[?25l"
 #define TERM_CURSOR_SHOW       "\x1B[?25h"
 
-/* Screen */
+//- ak: Screen
 #define TERM_CLEAR_SCREEN      "\x1B[2J"
 #define TERM_CLEAR_LINE        "\x1B[2K"
 #define TERM_CLEAR_TO_END      "\x1B[0J"
 #define TERM_CLEAR_TO_START    "\x1B[1J"
 
-// Macros
-// ============================================================================
+//~ ak: Macros
+//=============================================================================
 
-// Handle Cursor positions ====================================================
+//~ ak: Handle Cursor positions ===============================================
 #define TermCursorUp(n)      "\x1B[" #n "A"
 #define TermCursorDown(n)    "\x1B[" #n "B"
 #define TermCursorRight(n)   "\x1B[" #n "C"
 #define TermCursorLeft(n)    "\x1B[" #n "D"
 #define TermCursorPos(r,c)   "\x1B[" #r ";" #c "H"
 
-// Set Terminal title =========================================================
+//~ ak: Set terminal title ====================================================
 #define TermSetTitle(title)  "\x1B]0;" title "\x07"
+
+// Types
+//=============================================================================
+
+typedef struct _Term_State _Term_State;
+struct _Term_State
+{
+    Os_File file;
+};
 
 // Functions
 // ============================================================================
 
 internal bool term_is_color_allowed(void);
-internal void term_style_start(const char *style);
+internal void term_style_start(Os_File file, const char *style);
 internal void term_style_end(void);
 internal char *term_style_get(const char *style);
+
+// Global Variables
+//=============================================================================
+
+_Term_State _term_state = ZERO_STRUCT;
 
 #endif // BASE_TERM_H

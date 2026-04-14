@@ -9,16 +9,19 @@ internal bool term_is_color_allowed(void)
     return result;
 }
 
-internal void term_style_start(const char *style)
+internal void term_style_start(Os_File file, const char *style)
 {
+    _term_state.file = file;
     if (term_is_color_allowed())
     {
-        fmt_print(style);
+        fmt_fprint(file, style);
     }
 }
+
 internal void term_style_end(void)
 {
-    fmt_print(TERM_RESET);
+    fmt_fprint(_term_state.file, TERM_RESET);
+    _term_state.file = 0;
 }
 
 internal char *term_style_get(const char *style)
