@@ -16,7 +16,7 @@
 #include "../window_layer/window_layer_include.h"
 #include "../render/render_include.h"
 #include "../font/font.h"
-#include "../ui/ui.h"
+#include "../ui/ui_include.h"
 
 //- ak: implementation
 #include "../base/base_include.c"
@@ -24,20 +24,20 @@
 #include "../window_layer/window_layer_include.c"
 #include "../font/font.c"
 #include "../render/render_include.c"
-#include "../ui/ui.c"
+#include "../ui/ui_include.c"
 
-internal void print_help_message(Flags_Context *context)
+internal void print_help_message(Flags_Context *flags)
 {
-    term_style_start(TERM_UNDERLINE);
+    term_style_start(OS_STDOUT, TERM_UNDERLINE);
     fmt_println("USAGE:");
     term_style_end();
     Str8 *program_name = os_program_path_get();
     fmt_printfln("   %s [OPTIONS]", program_name->cstr);
-    term_style_start(TERM_UNDERLINE);
+    term_style_start(OS_STDOUT, TERM_UNDERLINE);
     fmt_println("OPTIONS:");
     term_style_end();
-    flags_print_help(context);
-    term_style_start(TERM_UNDERLINE);
+    flags_print_help(flags);
+    term_style_start(OS_STDOUT, TERM_UNDERLINE);
     fmt_println("VERSION:");
     term_style_end();
     fmt_println("   "APP_VERSION);
@@ -49,25 +49,24 @@ internal void base_main(void)
     // Command Line ===========================================================
     {
         Arena_Temp temp = arena_temp_begin(arena);
-        Flags_Context context = flags_begin(temp.arena);
+        Flags_Context *flags = flags_init(temp.arena);
         Flags_Option *option = NULL;
         bool help = false;
-        option = flags_option_bool(&context, str8("help"), &help, help, str8("Print help message"));
+        option = flags_option_bool(flags, str8("help"), &help, help, str8("Print help message"));
         flags_add_option_shortname(option, str8("h"));
         bool version = false;
-        option = flags_option_bool(&context, str8("version"), &version, version, str8("Print version message"));
+        option = flags_option_bool(flags, str8("version"), &version, version, str8("Print version message"));
         flags_add_option_shortname(option, str8("v"));
-        flags_add_color_flags(&context);
         Str8_Array *args = os_args_get();
-        if (!flags_parse(&context, args))
+        if (!flags_parse(flags, args))
         {
-            flags_print_error(&context);
-            print_help_message(&context);
+            flags_print_error(flags);
+            print_help_message(flags);
             os_exit(1);
         }
         if (help)
         {
-            print_help_message(&context);
+            print_help_message(flags);
             os_exit(0);
         }
         if (version)
@@ -87,7 +86,7 @@ internal void base_main(void)
     render_init();
     Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
     Render_Draw_List list = ZERO_STRUCT;
-    Ui_State *state = ui_state_alloc(arena);
+    UI_State *state = ui_state_alloc(arena);
     ui_state_select(state);
     // Program Loop ===========================================================
     while (!wl_should_window_close())
@@ -106,8 +105,8 @@ internal void base_main(void)
         render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
         // list_comp()
         {
-            ui_font_push(&font);
-            Ui_Box box = ui_box();
+            // ui_font_push(&font);
+            UI_Box box = ui_box();
             ui_parent_push(&box);
         //     ui_axis_push(Axies_X);
         //     ui_padding_push(...);
@@ -132,8 +131,8 @@ internal void base_main(void)
         //             ui_parent_push();
         //             ui_parent_pop();
         //         }
-        //         ui_parent_pop();
-        //     }
+                // ui_parent_pop();
+            // }
             ui_parent_pop();
         }
         render(&list);

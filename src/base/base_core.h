@@ -373,6 +373,25 @@ struct Txt_Rng
     Txt_Pt max;
 };
 
+//~ ak: Axis ==================================================================
+
+typedef enum Axis_2d
+{
+    Axis_2d_X,
+    Axis_2d_Y,
+    Axis_2d_COUNT,
+}
+Axis_2d;
+
+typedef enum Axis_3d
+{
+    Axis_3d_X,
+    Axis_3d_Y,
+    Axis_3d_Z,
+    Axis_3d_COUNT,
+}
+Axis_3d;
+
 // Functions
 // ============================================================================
 

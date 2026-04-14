@@ -4,6 +4,7 @@
 //- ak: headers
 #include "src/base/base_include.h"
 #include "src/os/os_include.h"
+#include "src/metadesk/metadesk_app.h"
 
 //- ak: implementation
 #include "src/base/base_include.c"
@@ -35,6 +36,7 @@ struct Build_Info
     Str8 version;
     Str8 entry_point;
     Str8 dir;
+    Str8 args;
     bool mingw;
     Build_Type type;
     uint8_t cmd[BUILD_CMD_SIZE];
@@ -45,7 +47,8 @@ struct Build_Info
 //=============================================================================
 
 
-global const char *help_message = "build.c: C file that build's C projects.\n"
+global const char *help_message = "DESCRIPTION:\n"
+"   build.c - C file that build's C projects.\n"
 "USAGE:\n"
 "   build.c [OPTIONS]\n"
 "OPTIONS:\n"
@@ -53,8 +56,8 @@ global const char *help_message = "build.c: C file that build's C projects.\n"
 "   run                  Run project\n"
 "   build-run            Build and Run project\n"
 "   build-debugger       Build for Debugger\n"
-"   gen-meta       Generate code from Metaprogram"
-"   --help -h       Print help\n";
+"   gen-meta             Generate code from Metaprogram\n"
+"   --help -h            Print help\n";
 
 //~ ak: Functions
 //=============================================================================
@@ -232,6 +235,7 @@ internal void build_run(Build_Info *info)
         build_cmd_append(info, "WINEARCH=win64 wine ");
     }
     build_cmd_append_output(info);
+    build_cmd_append(info, " %.*s", str8_varg(info->args));
     build_cmd_finish(info);
 }
 
@@ -323,9 +327,10 @@ internal void base_main(void)
         if (gen_meta_program)
         {
             info.type = Build_Type_Debug;
-            info.name = str8("MetaTable");
-            info.cmd_name = str8("metatable");
-            info.entry_point = str8("src/metadesk/metadesk_main.c");
+            info.name = str8(MDA_NAME);
+            info.cmd_name = str8(MDA_CMD_NAME);
+            info.entry_point = str8("src/metadesk/metadesk_app_main.c");
+            info.args = str8("./src");
             build_run_program = true;
         }
         if (info.type != Build_Type_None)
