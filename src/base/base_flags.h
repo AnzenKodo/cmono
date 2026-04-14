@@ -101,12 +101,20 @@ struct Flags_Arg
     size_t index;
     union
     {
+        Str8 str_value;
+        bool bool_value;
+        int64_t int_value;
+        uint64_t uint_value;
+        double float_value;
+    } default_value;
+    union
+    {
         Str8 *str_value;
         bool *bool_value;
         int64_t *int_value;
         uint64_t *uint_value;
         double *float_value;
-    } value;
+    } result_value;
     bool assigned;
     bool required;
 };
@@ -123,7 +131,6 @@ struct Flags_Context
     Flags_Arg *last_arg;
     size_t index_arg;
     bool has_error;
-    bool should_add_color_flags;
     bool has_program_name;
     Log_Context log_context;
 };
@@ -146,14 +153,13 @@ internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index);
 
 // Flags core functions =======================================================
 
-internal Flags_Context flags_begin(Arena *arena);
+internal Flags_Context *flags_init(Arena *arena);
 internal bool flags_parse(Flags_Context *context, Str8_Array *args);
 internal void flags_print_error(Flags_Context *context);
 internal void flags_print_help(Flags_Context *context);
 
 // Flags config functions =====================================================
 
-internal void flags_add_color_flags(Flags_Context *context);
 internal void flags_has_program_name(Flags_Context *context, bool has_name);
 internal void flags_add_option_shortname(Flags_Option *option, Str8 shortname);
 internal void flags_add_option_value_hint(Flags_Option *option, Str8 value_hint);
@@ -162,22 +168,22 @@ internal void flags_make_arg_required(Flags_Arg *arg);
 
 // Add option flag ============================================================
 
-internal Flags_Option *flags_option_string(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description);
+internal Flags_Option *flags_option_str(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description);
 internal Flags_Option *flags_option_int(Flags_Context *context, Str8 name, int64_t *result_value, int64_t default_value, Str8 description);
 internal Flags_Option *flags_option_uint(Flags_Context *context, Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description);
 internal Flags_Option *flags_option_float(Flags_Context *context, Str8 name, double *result_value, double default_value, Str8 description);
 internal Flags_Option *flags_option_bool(Flags_Context *context, Str8 name, bool *result_value, bool default_value, Str8 description);
 
-internal Flags_Option *flags_str_arr(Flags_Context *context, Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description);
-internal Flags_Option *flags_int_arr(Flags_Context *context, Str8 name, I64Array *result_value, I64Array *default_value, Str8 description);
-internal Flags_Option *flags_uint_arr(Flags_Context *context, Str8 name, U64Array *result_value, U64Array *default_value, Str8 description);
-internal Flags_Option *flags_float_arr(Flags_Context *context, Str8 name, F64Array *result_value, F64Array *default_value, Str8 description);
+internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description);
+internal Flags_Option *flags_option_int_arr(Flags_Context *context, Str8 name, I64Array *result_value, I64Array *default_value, Str8 description);
+internal Flags_Option *flags_option_uint_arr(Flags_Context *context, Str8 name, U64Array *result_value, U64Array *default_value, Str8 description);
+internal Flags_Option *flags_option_float_arr(Flags_Context *context, Str8 name, F64Array *result_value, F64Array *default_value, Str8 description);
 
 // Add value flag =============================================================
 
-internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *value);
-internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *value);
-internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *value);
-internal Flags_Arg *flags_arg_float(Flags_Context *context, double *value);
+internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *result_value, Str8 default_value);
+internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *result_value, int64_t default_value);
+internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *result_value, uint64_t default_value);
+internal Flags_Arg *flags_arg_float(Flags_Context *context, double *result_value, double default_value);
 
 #endif // BASE_FLAGS_h

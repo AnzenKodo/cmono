@@ -108,22 +108,17 @@ internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index)
 
 // Flags core functions =======================================================
 
-internal Flags_Context flags_begin(Arena *arena)
+internal Flags_Context *flags_init(Arena *arena)
 {
-    Flags_Context context = ZERO_STRUCT;
-    context.arena = arena;
-    context.has_program_name = true;
-    context.log_context = log_init();
+    Flags_Context *context = arena_push(arena, Flags_Context, 1);
+    context->arena = arena;
+    context->has_program_name = true;
+    context->log_context = log_init();
     return context;
 }
 
 internal bool flags_parse(Flags_Context *context, Str8_Array *args)
 {
-    bool nocolor = false;
-    if (context->should_add_color_flags)
-    {
-        flags_option_bool(context, str8("nocolor"), &nocolor, false, str8("Don't print color lines"));
-    }
     bool has_passthrough_option = false;
     Flags_Option *option = NULL;
     for (uint32_t index = context->has_program_name ? 1 : 0; index < args->length; index++)
@@ -140,7 +135,8 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
         {
             Str8 option_name = _flags_get_options_from_arg(arg);
             option = _flags_get_option(context, option_name);
-            if (option == NULL) {
+            if (option == NULL)
+            {
                 _flags_add_option_error(context, _Flags_Error_Kind_UnknownOption, option_name);
             }
             else
@@ -149,9 +145,14 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     _flags_add_option_error(context, _Flags_Error_Kind_DuplicateOption, option_name);
                 }
-                Str8 arg_next = *array_get(args, index+1);
+                Str8 arg_next = ZERO_STRUCT;
+                if (args->length < index+1)
+                {
+                    arg_next = *array_get(args, index+1);
+                }
                 bool is_arg_next_option = _flags_is_arg_option(arg_next);
-                if ((is_arg_next_option || arg_next.length == 0) && option->kind == _Flags_Option_Kind_Bool) {
+                if ((is_arg_next_option || arg_next.length == 0) && option->kind == _Flags_Option_Kind_Bool)
+                {
                     *option->result_value.bool_value = true;
                     option->assigned = true;
                 }
@@ -330,14 +331,14 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     case _Flags_Arg_Kind_Str:
                     {
-                        *farg->value.str_value = arg;
+                        *farg->result_value.str_value = arg;
                     }
                     break;
                     case _Flags_Arg_Kind_Int:
                     {
                         if (str8_is_integer(arg, base))
                         {
-                            *farg->value.int_value = str8_to_i64(arg, base);
+                            *farg->result_value.int_value = str8_to_i64(arg, base);
                         }
                         else
                         {
@@ -351,7 +352,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         {
                             if (str8_is_integer_unsigned(arg, base))
                             {
-                                *farg->value.uint_value = str8_to_u64(arg, base);
+                                *farg->result_value.uint_value = str8_to_u64(arg, base);
                             }
                             else
                             {
@@ -368,7 +369,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     {
                         if (str8_is_float(arg))
                         {
-                            *farg->value.float_value = str8_to_f64(arg);
+                            *farg->result_value.float_value = str8_to_f64(arg);
                         }
                         else
                         {
@@ -454,11 +455,29 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
             {
                 _flags_add_error_arg(context, _Flags_Error_Kind_RequireArg, farg->index, str8(""));
             }
+            else
+            {
+                switch (farg->kind)
+                {
+                    case _Flags_Arg_Kind_Str:
+                    {
+                        *farg->result_value.str_value = farg->default_value.str_value;
+                    } break;
+                    case _Flags_Arg_Kind_Int:
+                    {
+                        *farg->result_value.int_value = farg->default_value.int_value;
+                    } break;
+                    case _Flags_Arg_Kind_UInt:
+                    {
+                        *farg->result_value.uint_value = farg->default_value.uint_value;
+                    } break;
+                    case _Flags_Arg_Kind_Float:
+                    {
+                        *farg->result_value.float_value = farg->default_value.float_value;
+                    } break;
+                }
+            }
         }
-    }
-    if (nocolor)
-    {
-        context->log_context.enable_color_log = false;
     }
     return !context->has_error;
 }
@@ -535,11 +554,14 @@ internal void flags_print_error(Flags_Context *context)
             break;
             case _Flags_Error_Kind_OutIndexArg:
             {
-                if (context->index_arg > 0) {
+                if (context->index_arg > 0)
+                {
                     log_errorfln(&context->log_context,
                         "command only accepts >= (less equal to) %zu arguments without options.",
                         context->index_arg);
-                } else {
+                }
+                else
+                {
                     log_errorfln(&context->log_context,
                         "command don't accepts any arguments without options.");
                 }
@@ -580,7 +602,7 @@ internal void flags_print_help(Flags_Context *context)
 {
     for (Flags_Option *option = context->first_option; option != NULL; option = option->next)
     {
-        term_style_start(TERM_BOLD);
+        term_style_start(OS_STDOUT, TERM_BOLD);
         fmt_printf("    %s%s%s%s--%.*s",
             option->shortname.length > 0 ? "-" : "",
             option->shortname.length > 0 ? (char *)option->shortname.cstr : "",
@@ -591,7 +613,6 @@ internal void flags_print_help(Flags_Context *context)
         {
             fmt_printf(" %.*s", str8_varg(option->value_hint));
         }
-        term_style_end();
         if (option->required)
         {
             fmt_printf(" (required)");
@@ -720,10 +741,6 @@ internal void flags_print_help(Flags_Context *context)
 // Flags config functions
 // ============================================================================
 
-internal void flags_add_color_flags(Flags_Context *context)
-{
-    context->should_add_color_flags = true;
-}
 internal void flags_has_program_name(Flags_Context *context, bool has_name)
 {
     context->has_program_name = has_name;
@@ -748,7 +765,7 @@ internal void flags_make_arg_required(Flags_Arg *farg)
 
 // Add option ===================================================================
 
-internal Flags_Option *flags_option_string(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description)
+internal Flags_Option *flags_option_str(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description)
 {
     Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Str;
@@ -852,35 +869,39 @@ internal Flags_Option *flags_option_float_arr(Flags_Context *context, Str8 name,
 // Add value flag
 // ============================================================================
 
-internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *value)
+internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *result_value, Str8 default_value)
 {
     Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Str;
-    farg->value.str_value = value;
+    farg->result_value.str_value = result_value;
+    farg->default_value.str_value = default_value;
     _flags_add_arg(context, farg);
     return farg;
 }
-internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *value)
+internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *result_value, int64_t default_value)
 {
     Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Int;
-    farg->value.int_value = value;
+    farg->result_value.int_value = result_value;
+    farg->default_value.int_value = default_value;
     _flags_add_arg(context, farg);
     return farg;
 }
-internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *value)
+internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *result_value, uint64_t default_value)
 {
     Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_UInt;
-    farg->value.uint_value = value;
+    farg->result_value.uint_value = result_value;
+    farg->default_value.uint_value = default_value;
     _flags_add_arg(context, farg);
     return farg;
 }
-internal Flags_Arg *flags_arg_float(Flags_Context *context, double *value)
+internal Flags_Arg *flags_arg_float(Flags_Context *context, double *result_value, double default_value)
 {
     Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Float;
-    farg->value.float_value = value;
+    farg->result_value.float_value = result_value;
+    farg->default_value.float_value = default_value;
     _flags_add_arg(context, farg);
     return farg;
 }
