@@ -39,7 +39,7 @@ struct _Wl_X11_State
             free(reply); \
         } else { \
             name = XCB_ATOM_NONE; \
-            LogErrorLine(_os_core_state.log_context, "failed to load atom '"#name"'"); \
+            LogErrorLine(&_os_core_state.log_context, "failed to load atom '"#name"'"); \
         } \
     }
 

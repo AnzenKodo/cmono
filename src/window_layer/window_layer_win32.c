@@ -110,7 +110,7 @@ internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key)
     WPARAM result = 0;
     {
         local_persist int32_t initialized = 0;
-        local_persist WPARAM vkey_table[Wl_Key_COUNT] = {0};
+        local_persist WPARAM vkey_table[Wl_Key_COUNT] = ZERO_STRUCT;
         if(initialized == 0)
         {
             initialized = 1;
@@ -559,7 +559,7 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
     HDC hdc = GetDC(NULL);
     if (!hdc) return;
 
-    BITMAPINFO bmi = {0};
+    BITMAPINFO bmi = ZERO_STRUCT;
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = (LONG)width;
     bmi.bmiHeader.biHeight = -(LONG)height;  // Top-down DIB

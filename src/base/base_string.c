@@ -1079,7 +1079,7 @@ internal Str8 str8_get_indented(Str8 string, size_t size, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     read_only local_persist uint8_t indentation_bytes[] = "                                                                                                                                ";
-    Str8_List indented_strings = {0};
+    Str8_List indented_strings = ZERO_STRUCT;
     int64_t depth = 0;
     int64_t next_depth = 0;
     size_t line_begin_off = 0;
