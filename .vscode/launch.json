@@ -6,7 +6,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/cope_debug",
             "cwd": "${workspaceFolder}",
-            "type": "gdb",
+            "type": "cppdbg",
             // "arguments": "shaders/circles.frag",
             "preLaunchTask": "Build Program"
         },
@@ -15,7 +15,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
             "cwd": "${workspaceFolder}",
-            "type": "gdb",
+            "type": "cppdbg",
             "args": [ "build-run" ],
             "arguments": "build-run"
         },
