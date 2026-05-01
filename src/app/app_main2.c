@@ -16,7 +16,6 @@
 #include "../window_layer/window_layer_include.h"
 #include "../render/render_include.h"
 #include "../font/font.h"
-#include "../ui/ui_include.h"
 
 //- ak: implementation
 #include "../base/base_include.c"
@@ -24,7 +23,6 @@
 #include "../window_layer/window_layer_include.c"
 #include "../font/font.c"
 #include "../render/render_include.c"
-#include "../ui/ui_include.c"
 
 internal void print_help_message(Flags_Context *flags)
 {
@@ -88,8 +86,6 @@ internal void base_main(void)
     render_init();
     Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
     Render_Draw_List list = ZERO_STRUCT;
-    UI_State *state = ui_state_alloc(arena);
-    ui_state_select(state);
     
     // Program Loop ===========================================================
     while (!wl_should_window_close())
@@ -102,44 +98,10 @@ internal void base_main(void)
         {
             wl_set_window_close();
         }
-        // list_comp()
-        {
-            ui_font_push(&font);
-            ui_text_padding_push(5.0);
-            ui_background_color_push(APP_BACKGROUND_COLOR);
-            ui_text_color_push(APP_FOREGROUND_COLOR);
-            UI_Box box = ui_box();
-            state->root = &box;
-            ui_parent_push(&box);
-            // item_comp()
-            {
-                UI_Box box = ui_box();
-                ui_parent_push(&box);
-                {
-                    UI_Box box = ui_box();
-                    ui_box_equip_display_string(&box, str8("Hello"));
-                // ui_draw_text("Text") {
-                //     ui_parent_push();
-                //     ui_parent_pop();
-                // }
-                // ui_draw_text("Text") {
-                //     ui_parent_push();
-                //     ui_parent_pop();
-                // }
-                // ui_draw_text("Text") {
-                //     ui_parent_push();
-                //     ui_parent_pop();
-                // }
-                }
-                ui_parent_pop();
-            }
-            ui_parent_pop();
-        }
-        
-        for(UI_Box *box = ui_root_from_state(state); !ui_box_is_nil(box);)
-        {
-            fmt_print("");
-        }
+        render_draw_rect_push(temp.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, APP_BACKGROUND_COLOR);
+        Vec4_F32 size = (Vec4_F32){ 0.0, 0.0, (float)width, (float)row_height };
+        Vec4_F32 padding = (Vec4_F32){ 3.5f, 0.0f, 3.5f, 0.0f };
+        render_draw_rect_text_push(temp.arena, &list, &font, str8("Hello"), size, padding, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
         render(&list);
         arena_temp_end(temp);
     }
