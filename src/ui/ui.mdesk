@@ -4,7 +4,12 @@
 UI_StackTable:
 {
     //- ak: parents
-    { Parent    parent    `UI_Box *`    `&ui_nil_box` }
+    { Parent            parent              `UI_Box *`      `&ui_box_nil`                   }
+    { Axis              axis                Axis_2d         Axis_2d_X                       }
+    { Text_Padding      text_padding        float           0                               }
+    { Background_Color  background_color    Render_Color    `(Render_Color){ 0, 0, 0, 0}`   }
+    { Text_Color        text_color          Render_Color    `(Render_Color){ 0, 0, 0, 0}`   }
+    { Font              font                `Font *`        NULL                            }
 }
 
 //- ak: declaring stack node types
@@ -41,7 +46,7 @@ UI_StackTable:
     `#define UI_DeclStacks \\`;
     `struct\\`;
     `{\\`;
-        @expand(UI_StackTable a) `struct { UI_$(a.name)_Node *top; $(a.type) bottom_val; UI_$(a.name)_Node *free; U64 gen; B32 auto_pop; } $(a.name_lower)_stack;\\`;
+        @expand(UI_StackTable a) `struct { UI_$(a.name)_Node *top; $(a.type) bottom_val; UI_$(a.name)_Node *free; uint64_t gen; bool auto_pop; } $(a.name_lower)_stack;\\`;
         `}`;
 }
 
@@ -69,15 +74,15 @@ UI_StackTable:
 @gen
 {
     @expand(UI_StackTable a)
-        `internal $(a.type)ui_$(a.name_lower)_top(void);`
+        `internal $(a.type) ui_$(a.name_lower)_top(void);`
         @expand(UI_StackTable a)
-        `internal $(a.type)ui_$(a.name_lower)_bottom(void);`
+        `internal $(a.type) ui_$(a.name_lower)_bottom(void);`
         @expand(UI_StackTable a)
-        `internal $(a.type)ui_$(a.name_lower)_push($(a.type) v);`
+        `internal $(a.type) ui_$(a.name_lower)_push($(a.type) v);`
         @expand(UI_StackTable a)
-        `internal $(a.type)ui_$(a.name_lower)_pop(void);`
+        `internal $(a.type) ui_$(a.name_lower)_pop(void);`
         @expand(UI_StackTable a)
-        `internal $(a.type)ui_$(a.name_lower)_set_next($(a.type) v);`
+        `internal $(a.type) ui_$(a.name_lower)_set_next($(a.type) v);`
 }
 
 //- ak: decls for the stack operation implementations
@@ -85,13 +90,13 @@ UI_StackTable:
 @gen @c_file
 {
     @expand(UI_StackTable a)
-        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_top(void) { UI_StackTop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
+        `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_top(void) { UI_StackTop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
     @expand(UI_StackTable a)
-        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_bottom(void) { UI_StackBottom(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
+        `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_bottom(void) { UI_StackBottom(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
     @expand(UI_StackTable a)
-        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_push(" .. a.type .. " v) { UI_StackPush(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
+        `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_push(" .. a.type .. " v) { UI_StackPush(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
     @expand(UI_StackTable a)
-        `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_pop(void) { UI_StackPop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
+        `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_pop(void) { UI_StackPop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
     @expand(UI_StackTable a)
-         `$(a.manual_impl == "" -> "internal " .. a.type .. "ui_" .. a.name_lower .. "_set_next(" .. a.type .. " v) { UI_StackSetNext(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
+         `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_set_next(" .. a.type .. " v) { UI_StackSetNext(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
 }

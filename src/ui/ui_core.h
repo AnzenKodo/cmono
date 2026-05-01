@@ -13,8 +13,9 @@
 typedef unsigned int UI_Box_Flags;
 enum
 {
-    UI_Box_Flag_ScrollX = (1<<0),
-    UI_Box_Flag_ScrollY = (1<<1),
+    UI_Box_Flag_ScrollX          = (1<<0),
+    UI_Box_Flag_ScrollY          = (1<<1),
+    UI_Box_Flag_HasDisplayString = (1<<2),
 };
 
 typedef enum UI_Size_Kind
@@ -100,6 +101,15 @@ struct UI_Box
     // UI_Key default_nav_focus_active_key;
     // UI_Key default_nav_focus_next_hot_key;
     // UI_Key default_nav_focus_next_active_key;
+};
+
+typedef struct UI_State UI_State;
+struct UI_State
+{
+    Arena *arena;
+    UI_Box *root;
+    UI_DeclStackNils;
+    UI_DeclStacks;
 };
 
 //~ ak: Macro

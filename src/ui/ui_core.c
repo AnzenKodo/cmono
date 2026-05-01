@@ -6,25 +6,14 @@
 internal UI_Box ui_box()
 {
     UI_Box box = ZERO_STRUCT;
-    // box.font =
     return box;
 }
 
-typedef struct UI_State UI_State;
-struct UI_State
+internal void ui_box_equip_display_string(UI_Box *box, Str8 string)
 {
-    Arena *arena;
-    struct
-    {
-        UI_Parent_Node *top;
-        UI_Box *bottom_val;
-        UI_Parent_Node *free;
-        bool auto_pop;
-        size_t gen;
-    } parent_stack;
-    UI_DeclStackNils;
-    UI_Parent_Node parent_nil_stack_top;
-};
+    box->string = string;
+    box->flags |= UI_Box_Flag_HasDisplayString;
+}
 
 global UI_State *ui_state = 0;
 
@@ -40,5 +29,15 @@ internal UI_State *ui_state_alloc(Arena *arena)
 internal void ui_state_select(UI_State *state)
 {
     ui_state = state;
+}
+
+internal UI_Box *ui_root_from_state(UI_State *state)
+{
+    return state->root;
+}
+
+internal bool ui_box_is_nil(UI_Box *box)
+{
+    return box == 0 || box == &ui_box_nil;
 }
 
