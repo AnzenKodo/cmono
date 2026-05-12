@@ -49,8 +49,8 @@ internal void base_main(void)
     
     // Command Line ===========================================================
     {
-        Arena_Temp temp = arena_temp_begin(arena);
-        Flags_Context *flags = flags_init(temp.arena);
+        Arena_Temp scratch = arena_scratch_begin(0, 0);
+        Flags_Context *flags = flags_init(scratch.arena);
         Flags_Option *option = NULL;
         bool help = false;
         option = flags_option_bool(flags, str8("help"), &help, help, str8("Print help message"));
@@ -75,26 +75,25 @@ internal void base_main(void)
             fmt_print("v"APP_VERSION);
             os_exit(0);
         }
-        arena_temp_end(temp);
+        arena_scratch_end(scratch);
     }
     
     // Program Init ===========================================================
     unsigned int width = 150;
     unsigned int height = 300;
-    unsigned int row_height = 25;
+    // unsigned int row_height = 25;
     wl_window_open(str8(APP_NAME), width, height);
     wl_window_border_set(false);
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
-    Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
+    // Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
     Render_Draw_List list = ZERO_STRUCT;
     UI_State *state = ui_state_alloc(arena);
-    ui_state_select(state);
     
     // Program Loop ===========================================================
     while (!wl_should_window_close())
     {
-        Arena_Temp temp = arena_temp_begin(arena);
+        Arena_Temp scratch = arena_scratch_begin(0, 0);
         wl_set_fps(60);
         wl_update_events();
         if ((wl_is_key_pressed(Wl_Key_Esc)) ||
@@ -102,46 +101,36 @@ internal void base_main(void)
         {
             wl_set_window_close();
         }
-        // list_comp()
+        
+        // ak: build ui
+        ui_state_select(state);
+        ui_build_begin();
         {
-            ui_font_push(&font);
-            ui_text_padding_push(5.0);
-            ui_background_color_push(APP_BACKGROUND_COLOR);
-            ui_text_color_push(APP_FOREGROUND_COLOR);
-            UI_Box box = ui_box();
-            state->root = &box;
-            ui_parent_push(&box);
-            // item_comp()
-            {
-                UI_Box box = ui_box();
-                ui_parent_push(&box);
-                {
-                    UI_Box box = ui_box();
-                    ui_box_equip_display_string(&box, str8("Hello"));
-                // ui_draw_text("Text") {
-                //     ui_parent_push();
-                //     ui_parent_pop();
-                // }
-                // ui_draw_text("Text") {
-                //     ui_parent_push();
-                //     ui_parent_pop();
-                // }
-                // ui_draw_text("Text") {
-                //     ui_parent_push();
-                //     ui_parent_pop();
-                // }
-                }
-                ui_parent_pop();
-            }
-            ui_parent_pop();
+            // ui_pref_width_push(ui_em(20.f, 1.f));
+        //     ui_pref_height_push(ui_em(4.f, 1.f));
+        //     {
+        //         ui_labelf("Here is a panel.");
+        //         if (ui_buttonf("Hello World").clicked_left)
+        //         {
+        //             ui_buttonf("Hellow World");
+        //         }
+        //     }
         }
         
-        for(UI_Box *box = ui_root_from_state(state); !ui_box_is_nil(box);)
-        {
-            fmt_print("");
-        }
+        // ak: render ui
+        // for(UI_Box *box = ui_root_from_state(state); !ui_box_is_nil(box);)
+        // {
+        //     UI_Box_Step step = ui_box_step_reverse(box, &ui_box_nil);
+        //     if (box->flags & UI_Box_Flag_DrawBackground)
+        //     {
+        //         Vec2_F32 rect = box->rect;
+        //         render_draw_rect_push(scratch.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, APP_BACKGROUND_COLOR);
+        //     }
+        //     box = step.next;
+        // }
+        
         render(&list);
-        arena_temp_end(temp);
+        arena_temp_end(scratch);
     }
     
     // Free Everything ========================================================

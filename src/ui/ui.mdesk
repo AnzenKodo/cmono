@@ -4,12 +4,34 @@
 UI_StackTable:
 {
     //- ak: parents
-    { Parent            parent              `UI_Box *`      `&ui_box_nil`                   }
-    { Axis              axis                Axis_2d         Axis_2d_X                       }
-    { Text_Padding      text_padding        float           0                               }
-    { Background_Color  background_color    Render_Color    `(Render_Color){ 0, 0, 0, 0}`   }
-    { Text_Color        text_color          Render_Color    `(Render_Color){ 0, 0, 0, 0}`   }
-    { Font              font                `Font *`        NULL                            }
+    { Parent            parent              `UI_Box *`      `&ui_box_nil`                           }
+    { SeedKey           seed_key            UI_Key          `ui_key_zero()`                         }
+    
+    //- rjf: flags & interaction
+    {Flags              flags               UI_Box_Flags    0                                       }
+    
+    //- ak: layout
+    { Child_Layout_Axis child_layout_axis   Axis_2d         Axis_2d_X                               }
+    
+    //- ak: size/position
+    { Fixed_X           fixed_x             float           0                                       }
+    { Fixed_Y           fixed_y             float           0                                       }
+    { Pref_Width        pref_width          UI_Size         `ui_px(200.f, 1.f)`                     }
+    { Pref_Height       pref_height         UI_Size         `ui_px(2.f, 1.f)`                       }
+    
+    //- ak: font
+    { Font_Size         font_size           float           `16.f`                                  }
+    
+    //- ak: color
+    { Background_Color  background_color    Vec4_F32        `(Vec4_F32){ 0.3f, 0.3f, 0.3f, 0.8f }`  }
+    
+    //- ak: border
+    { Border_Color      border_color        Vec4_F32        `(Vec4_F32){ 1, 1, 1, 0.3f }`           }
+    { Border_Size       border_size         float           1                                       }
+    
+    //- ak: text
+    { Text_Color        text_color          Vec4_F32        `(Vec4_F32){ 1, 1, 1, 1 }`              }
+    { Text_Padding      text_padding        float           `0.f`                                   }
 }
 
 //- ak: declaring stack node types
@@ -65,7 +87,7 @@ UI_StackTable:
 {
     `#define UI_AutoPopStacks(state) \\`
         @expand(UI_StackTable a)
-        `if(state->$(a.name_lower)_stack.auto_pop) { ui_pop_$(a.name_lower)(); state->$(a.name_lower)_stack.auto_pop = 0; }\\`;
+        `if(state->$(a.name_lower)_stack.auto_pop) { ui_$(a.name_lower)_pop(); state->$(a.name_lower)_stack.auto_pop = 0; }\\`;
     ``;
 }
 
@@ -82,7 +104,7 @@ UI_StackTable:
         @expand(UI_StackTable a)
         `internal $(a.type) ui_$(a.name_lower)_pop(void);`
         @expand(UI_StackTable a)
-        `internal $(a.type) ui_$(a.name_lower)_set_next($(a.type) v);`
+        `internal $(a.type) ui_$(a.name_lower)_next_set($(a.type) v);`
 }
 
 //- ak: decls for the stack operation implementations
@@ -98,5 +120,5 @@ UI_StackTable:
     @expand(UI_StackTable a)
         `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_pop(void) { UI_StackPop(ui_state, " .. a.name .. ", " .. a.name_lower .. "); }")`;
     @expand(UI_StackTable a)
-         `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_set_next(" .. a.type .. " v) { UI_StackSetNext(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
+         `$(a.manual_impl == "" -> "internal " .. a.type .. " ui_" .. a.name_lower .. "_next_set(" .. a.type .. " v) { UI_StackSetNext(ui_state, " .. a.name .. ", " .. a.name_lower .. ", " .. a.type .. ", v); }")`;
 }
