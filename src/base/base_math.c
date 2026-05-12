@@ -32,8 +32,8 @@ internal double fmod_f64(double x, double y)
 internal float exp_f32(float a)
 {
     union { float f; int i; } u, v;
-    u.i = (int)(6051102 * a + 1056478197);
-    v.i = (int)(1056478197 - 6051102 * a);
+    u.i = (int)(6051102.0f * a + 1056478208.0f);
+    v.i = (int)(1056478208.0f - 6051102.0f * a);
     return u.f / v.f;
 }
 internal float exp2_f32(float x)
