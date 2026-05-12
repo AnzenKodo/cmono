@@ -18,6 +18,9 @@ internal inline bool mem_cmp(void const *s1, void const *s2, size_t size);
 #define MemMatchStruct(a,b) MemMatch((a),(b),sizeof(*(a)))
 #define MemMatchArray(a,b)  MemMatch((a),(b),sizeof(a))
 
+#define MemFromOffset(T,ptr,off) (T)((((uint8_t *)ptr)+(off)))
+#define MemFromPtr(T,ptr,m)      (void*)((((uint8_t *)ptr)+OffsetOf(T,m)))
+
 internal inline bool mem_match(void const *s1, void const *s2, size_t size);
 internal inline void *mem_move(void *dest, void const *source, size_t n);
 internal int32_t mem_is_zero(void *ptr, uint64_t size);
