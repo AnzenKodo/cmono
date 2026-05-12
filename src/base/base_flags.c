@@ -148,7 +148,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 Str8 arg_next = ZERO_STRUCT;
                 if (args->length < index+1)
                 {
-                    arg_next = *array_get(args, index+1);
+                    arg_next = array_get(args, index+1);
                 }
                 bool is_arg_next_option = _flags_is_arg_option(arg_next);
                 if ((is_arg_next_option || arg_next.length == 0) && option->kind == _Flags_Option_Kind_Bool)
@@ -180,7 +180,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     if (str8_is_integer(arg, base))
                     {
-                        *option->result_value.int_value = str8_to_i64(arg, base);
+                        *option->result_value.int_value = i64_from_str8(arg, base);
                     }
                     else
                     {
@@ -194,7 +194,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     {
                         if (str8_is_integer_unsigned(arg, base))
                         {
-                            *option->result_value.uint_value = str8_to_u64(arg, base);
+                            *option->result_value.uint_value = u64_from_str8(arg, base);
                         }
                         else
                         {
@@ -211,7 +211,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     if (str8_is_float(arg))
                     {
-                        *option->result_value.float_value = str8_to_f64(arg);
+                        *option->result_value.float_value = f64_from_str8(arg);
                     }
                     else
                     {
@@ -223,7 +223,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     if (str8_is_bool(arg))
                     {
-                        *option->result_value.bool_value = str8_to_bool(arg);
+                        *option->result_value.bool_value = bool_from_str8(arg);
                     }
                     else
                     {
@@ -256,7 +256,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         Str8 array_arg = args->v[index];
                         if (str8_is_integer(array_arg, base))
                         {
-                            array.v[array.length++] = str8_to_i64(array_arg, base);
+                            array.v[array.length++] = i64_from_str8(array_arg, base);
                         }
                         else
                         {
@@ -280,7 +280,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         {
                             if (str8_is_integer_unsigned(array_arg, base))
                             {
-                                array.v[array.length++] = str8_to_u64(array_arg, base);
+                                array.v[array.length++] = u64_from_str8(array_arg, base);
                             }
                             else
                             {
@@ -307,7 +307,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         Str8 array_arg = args->v[index];
                         if (str8_is_float(array_arg))
                         {
-                            array.v[array.length++] = str8_to_f64(array_arg);
+                            array.v[array.length++] = f64_from_str8(array_arg);
                         }
                         else
                         {
@@ -338,7 +338,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     {
                         if (str8_is_integer(arg, base))
                         {
-                            *farg->result_value.int_value = str8_to_i64(arg, base);
+                            *farg->result_value.int_value = i64_from_str8(arg, base);
                         }
                         else
                         {
@@ -352,7 +352,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         {
                             if (str8_is_integer_unsigned(arg, base))
                             {
-                                *farg->result_value.uint_value = str8_to_u64(arg, base);
+                                *farg->result_value.uint_value = u64_from_str8(arg, base);
                             }
                             else
                             {
@@ -369,7 +369,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     {
                         if (str8_is_float(arg))
                         {
-                            *farg->result_value.float_value = str8_to_f64(arg);
+                            *farg->result_value.float_value = f64_from_str8(arg);
                         }
                         else
                         {

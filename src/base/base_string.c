@@ -46,7 +46,7 @@ internal bool char_is_slash(uint8_t c)
     return(c == '/' || c == '\\');
 }
 
-internal uint8_t char_to_lower(uint8_t c)
+internal uint8_t lower_from_char(uint8_t c)
 {
     if (char_is_upper(c))
     {
@@ -54,7 +54,7 @@ internal uint8_t char_to_lower(uint8_t c)
     }
     return(c);
 }
-internal uint8_t char_to_upper(uint8_t c)
+internal uint8_t upper_from_char(uint8_t c)
 {
     if (char_is_lower(c))
     {
@@ -63,7 +63,7 @@ internal uint8_t char_to_upper(uint8_t c)
     return(c);
 }
 
-internal uint8_t char_to_correct_slash(uint8_t c)
+internal uint8_t correct_slash_from_char(uint8_t c)
 {
     if (char_is_slash(c))
     {
@@ -135,27 +135,27 @@ internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last, size_t size)
 //~ ak: String Stylization
 //=============================================================================
 
-internal Str8 str8_to_upper(Str8 string, Arena *arena)
+internal Str8 upper_from_str8(Str8 string, Arena *arena)
 {
     string = str8_copy(arena, string);
     for(size_t index = 0; index < string.length; index += 1)
     {
-        string.cstr[index] = char_to_upper(string.cstr[index]);
+        string.cstr[index] = upper_from_char(string.cstr[index]);
     }
     return string;
 }
 
-internal Str8 str8_to_lower(Str8 string, Arena *arena)
+internal Str8 lower_from_str8(Str8 string, Arena *arena)
 {
     string = str8_copy(arena, string);
     for(size_t index = 0; index < string.length; index += 1)
     {
-        string.cstr[index] = char_to_lower(string.cstr[index]);
+        string.cstr[index] = lower_from_char(string.cstr[index]);
     }
     return string;
 }
 
-internal Str8 str8_to_backslashed(Str8 string, Arena *arena)
+internal Str8 backslashed_from_str8(Str8 string, Arena *arena)
 {
     string = str8_copy(arena, string);
     for(size_t index = 0; index < string.length; index += 1)
@@ -187,13 +187,13 @@ internal bool str8_match(Str8 a, Str8 b, Str_Match_Flags flags)
             uint8_t bt = b.cstr[i];
             if (case_insensitive)
             {
-                at = char_to_upper(at);
-                bt = char_to_upper(bt);
+                at = upper_from_char(at);
+                bt = upper_from_char(bt);
             }
             if (slash_insensitive)
             {
-                at = char_to_correct_slash(at);
-                bt = char_to_correct_slash(bt);
+                at = correct_slash_from_char(at);
+                bt = correct_slash_from_char(bt);
             }
             if (at != bt)
             {
@@ -225,14 +225,14 @@ internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, Str_Ma
         uint8_t needle_first_char_adjusted = substr.cstr[0];
         if (adjusted_flags & Str_Match_Flag_CaseInsensitive)
         {
-            needle_first_char_adjusted = char_to_upper(needle_first_char_adjusted);
+            needle_first_char_adjusted = upper_from_char(needle_first_char_adjusted);
         }
         for (;p < stop_p; p += 1)
         {
             uint8_t haystack_char_adjusted = *p;
             if (adjusted_flags & Str_Match_Flag_CaseInsensitive)
             {
-                haystack_char_adjusted = char_to_upper(haystack_char_adjusted);
+                haystack_char_adjusted = upper_from_char(haystack_char_adjusted);
             }
             if (haystack_char_adjusted == needle_first_char_adjusted)
             {
@@ -350,7 +350,7 @@ internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2)
 
 //- ak: string -> integer
 
-internal bool str8_is_integer(Str8 str, uint32_t radix)
+internal bool str8_is_integer(Str8 str, size_t radix)
 {
   bool result = false;
   Str8 sign = str8_prefix(str, 1);
@@ -366,7 +366,7 @@ internal bool str8_is_integer(Str8 str, uint32_t radix)
 }
 
 
-internal bool str8_is_integer_unsigned(Str8 str, uint32_t radix)
+internal bool str8_is_integer_unsigned(Str8 str, size_t radix)
 {
     bool result = false;
     if (str.length > 0)
@@ -388,7 +388,7 @@ internal bool str8_is_integer_unsigned(Str8 str, uint32_t radix)
     return result;
 }
 
-internal int64_t str8_to_sign(Str8 str, Str8 *string_tail)
+internal int64_t sign_from_str8(Str8 str, Str8 *string_tail)
 {
     //- ak: count negative signs
     size_t neg_count = 0;
@@ -409,7 +409,7 @@ internal int64_t str8_to_sign(Str8 str, Str8 *string_tail)
     return sign;
 }
 
-internal uint64_t str8_to_u64(Str8 str, uint32_t radix)
+internal uint64_t u64_from_str8(Str8 str, size_t radix)
 {
     uint64_t x = 0;
     if (1 < radix && radix <= 16)
@@ -423,31 +423,31 @@ internal uint64_t str8_to_u64(Str8 str, uint32_t radix)
     return x;
 }
 
-internal uint32_t str8_to_u32(Str8 str, uint32_t radix)
+internal uint32_t u32_from_str8(Str8 str, size_t radix)
 {
-    uint64_t x64 = str8_to_u64(str, radix);
+    uint64_t x64 = u64_from_str8(str, radix);
     uint32_t x32 = safe_cast_u32(x64);
     return x32;
 }
 
-internal int64_t str8_to_i64(Str8 str, uint32_t radix)
+internal int64_t i64_from_str8(Str8 str, size_t radix)
 {
-    int64_t sign = str8_to_sign(str, &str);
-    int64_t x = (int64_t)str8_to_u64(str, radix) * sign;
+    int64_t sign = sign_from_str8(str, &str);
+    int64_t x = (int64_t)u64_from_str8(str, radix) * sign;
     return x;
 }
 
-internal int32_t str8_to_i32(Str8 str, uint32_t radix)
+internal int32_t i32_from_str8(Str8 str, size_t radix)
 {
-    int64_t x64 = str8_to_i64(str, radix);
+    int64_t x64 = i64_from_str8(str, radix);
     int32_t x32 = safe_cast_s32(x64);
     return x32;
 }
 
-internal bool str8_c_rules_to_u64_try(Str8 string, uint64_t *x)
+internal bool try_u64_from_str8_c_rules(Str8 string, uint64_t *x)
 {
     // ak: unpack radix / prefix size based on string prefix
-    uint64_t radix = 0;
+    size_t radix = 0;
     uint64_t prefix_size = 0;
     {
         // hex
@@ -476,17 +476,17 @@ internal bool str8_c_rules_to_u64_try(Str8 string, uint64_t *x)
     bool is_integer = str8_is_integer(integer, radix);
     if (is_integer)
     {
-        *x = str8_to_u64(integer, radix);
+        *x = u64_from_str8(integer, radix);
     }
     return is_integer;
 }
 
-internal bool str8_c_rules_to_i64_try(Str8 string, int64_t  *x)
+internal bool try_s64_from_str8_c_rules(Str8 string, int64_t  *x)
 {
     Str8 string_tail    = ZERO_STRUCT;
-    int64_t  sign       = str8_to_sign(string, &string_tail);
+    int64_t  sign       = sign_from_str8(string, &string_tail);
     uint64_t x_u64      = 0;
-    bool     is_integer = str8_c_rules_to_u64_try(string_tail, &x_u64);
+    bool     is_integer = try_u64_from_str8_c_rules(string_tail, &x_u64);
     *x = x_u64*sign;
     return is_integer;
 }
@@ -554,7 +554,7 @@ internal bool str8_is_float(Str8 str)
     return has_digits;
 }
 
-internal double str8_to_f64(Str8 str)
+internal double f64_from_str8(Str8 str)
 {
     double result = 0;
     if (str.length > 0)
@@ -599,7 +599,7 @@ internal bool str8_is_bool(Str8 str)
     bool result = str8_match(str, str8("true"), 0) || str8_match(str, str8("false"), 0);
     return result;
 }
-internal bool str8_to_bool(Str8 str)
+internal bool bool_from_str8(Str8 str)
 {
     bool result = str8_match(str, str8("true"), 0) ? true : false;
     return result;
@@ -1075,7 +1075,7 @@ internal Str32 str32_from_8(Arena *arena, Str8 in)
 //~ ak: Basic Text Indentation
 //=============================================================================
 
-internal Str8 str8_get_indented(Str8 string, size_t size, Arena *arena)
+internal Str8 indented_from_string(Str8 string, size_t size, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     read_only local_persist uint8_t indentation_bytes[] = "                                                                                                                                ";
@@ -1122,7 +1122,7 @@ internal Str8 str8_get_indented(Str8 string, size_t size, Arena *arena)
 //~ ak: Text Escaping
 //=============================================================================
 
-internal Str8 str8_escaped_to_raw(Str8 string, Arena *arena)
+internal Str8 raw_from_escaped_str8(Str8 string, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     Str8_List strs = ZERO_STRUCT;
@@ -1172,15 +1172,15 @@ internal Str8 str8_escaped_to_raw(Str8 string, Arena *arena)
 //~ ak: String Hash
 //=============================================================================
 
-internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 str)
+internal uint64_t u64_hash_from_seed_str8(uint64_t seed, Str8 str)
 {
     uint64_t result = XXH3_64bits_withSeed(str.cstr, str.length, seed);
     return result;
 }
 
-internal uint64_t str8_hash_u64(Str8 str)
+internal uint64_t u64_hash_from_str8(Str8 str)
 {
-    uint64_t result = str8_hash_u64_from_seed(5381, str);
+    uint64_t result = u64_hash_from_seed_str8(5381, str);
     return result;
 }
 

@@ -104,9 +104,9 @@ internal bool    char_is_lower(uint8_t c);
 internal bool    char_is_alpha(uint8_t c);
 internal bool    char_is_digit(uint8_t c, uint32_t base);
 internal bool    char_is_slash(uint8_t c);
-internal uint8_t char_to_lower(uint8_t c);
-internal uint8_t char_to_upper(uint8_t c);
-internal uint8_t char_to_correct_slash(uint8_t c);
+internal uint8_t lower_from_char(uint8_t c);
+internal uint8_t upper_from_char(uint8_t c);
+internal uint8_t correct_slash_from_char(uint8_t c);
 
 //~ ak: C-String Measurement ==================================================
 
@@ -116,9 +116,9 @@ internal size_t cstr32_length(uint32_t *c);
 
 //~ ak: String Constructors ===================================================
 
-#define str8(S)      str8_init((uint8_t*)(S), sizeof(S) - 1)
-#define str8_lit(S)  { (uint8_t*)(S), sizeof(S) - 1, sizeof(S) - 1 }
-#define str8_varg(S) (int)((S).length), ((S).cstr)
+#define str8(str)      str8_init((uint8_t*)(str), sizeof(str) - 1)
+#define str8_comp(str) { (uint8_t*)(str), sizeof(str) - 1, sizeof(str) - 1 }
+#define str8_varg(str) (int)((str).length), ((str).cstr)
 internal Str8  str8_init(uint8_t *str, size_t size);
 internal Str8  str8_from_cstr(char *c);
 internal Str16 str16_init(uint16_t *str, size_t size);
@@ -129,9 +129,9 @@ internal Str8  str8_range(uint8_t *first, uint8_t *one_past_last, size_t size);
 
 //~ ak: String Stylization ====================================================
 
-internal Str8 str8_to_upper(Str8 string, Arena *arena);
-internal Str8 str8_to_lower(Str8 string, Arena *arena);
-internal Str8 str8_to_backslashed(Str8 string, Arena *arena);
+internal Str8 upper_from_str8(Str8 string, Arena *arena);
+internal Str8 lower_from_str8(Str8 string, Arena *arena);
+internal Str8 backslashed_from_str8(Str8 string, Arena *arena);
 
 //~ ak: String Matching =======================================================
 
@@ -153,29 +153,29 @@ internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2);
 //~ ak: String Conversions ====================================================
 
 //- ak: string -> integer
-internal bool     str8_is_integer(Str8 str, uint32_t radix);
-internal bool     str8_is_integer_unsigned(Str8 str, uint32_t radix);
-internal int64_t  str8_to_sign(Str8 str, Str8 *string_tail);
-internal uint64_t str8_to_u64(Str8 str, uint32_t radix);
-internal uint32_t str8_to_u32(Str8 str, uint32_t radix);
-internal int64_t  str8_to_i64(Str8 str, uint32_t radix);
-internal int32_t  str8_to_i32(Str8 str, uint32_t radix);
-internal bool     str8_c_rules_to_u64_try(Str8 string, uint64_t *x);
-internal bool     str8_c_rules_to_i64_try(Str8 string, int64_t  *x);
+internal bool     str8_is_integer(Str8 str, size_t radix);
+internal bool     str8_is_integer_unsigned(Str8 str, size_t radix);
+internal int64_t  sign_from_str8(Str8 str, Str8 *string_tail);
+internal uint64_t u64_from_str8(Str8 str, size_t radix);
+internal uint32_t u32_from_str8(Str8 str, size_t radix);
+internal int64_t  i64_from_str8(Str8 str, size_t radix);
+internal int32_t  i32_from_str8(Str8 str, size_t radix);
+internal bool     try_u64_from_str8_c_rules(Str8 string, uint64_t *x);
+internal bool     try_s64_from_str8_c_rules(Str8 string, int64_t  *x);
 
 //- ak: string -> float
 internal bool     str8_is_float(Str8 str);
-internal double   str8_to_f64(Str8 str);
+internal double   f64_from_str8(Str8 str);
 
 //- ak: string -> bool
 internal bool     str8_is_bool(Str8 str);
-internal bool     str8_to_bool(Str8 str);
+internal bool     bool_from_str8(Str8 str);
 internal Str8     str8_from_bool(bool value);
 
 //~ ak: String List Construction Functions ====================================
 
 internal Str8_Node *str8_list_push(Arena *arena, Str8_List *list, Str8 str);
-internal Str8_Node *str8_list_pushf(Arena *arena, Str8_List *list, char *fmt, ...) FmtTypeCheck(3, 4);
+internal Str8_Node *str8_list_pushf(Arena *arena, Str8_List *list, PRINTF_FORMAT_CHECK char *fmt, ...) FmtTypeCheck(3, 4);
 
 //~ ak: String Arrays Construction Functions ==================================
 
@@ -198,7 +198,7 @@ internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_p
 
 internal Str8 str8_copy(Arena *arena, Str8 s);
 internal Str8 str8fv(Arena *arena, char *format, va_list args);
-internal Str8 str8f(Arena *arena, char *format, ...) FmtTypeCheck(2, 3);
+internal Str8 str8f(Arena *arena, PRINTF_FORMAT_CHECK char *format, ...) FmtTypeCheck(2, 3);
 
 //~ ak: UTF-8 & UTF-16 Decoding/Encoding ======================================
 
@@ -217,16 +217,16 @@ internal Str32 str32_from_8(Arena *arena, Str8 in);
 
 //~ ak: Basic Text Indentation ================================================
 
-internal Str8 str8_get_indented(Str8 string, size_t size, Arena *arena);
+internal Str8 indented_from_string(Str8 string, size_t size, Arena *arena);
 
 //~ ak: Text Escaping =========================================================
 
-internal Str8 str8_escaped_to_raw(Str8 string, Arena *arena);
+internal Str8 raw_from_escaped_str8(Str8 string, Arena *arena);
 
 //~ ak: String Hash ===========================================================
 
-internal uint64_t str8_hash_u64_from_seed(uint64_t seed, Str8 str);
-internal uint64_t str8_hash_u64(Str8 str);
+internal uint64_t u64_hash_from_seed_str8(uint64_t seed, Str8 str);
+internal uint64_t u64_hash_from_str8(Str8 str);
 
 //~ ak: Globals
 //=============================================================================
