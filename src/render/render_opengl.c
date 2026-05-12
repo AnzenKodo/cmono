@@ -296,7 +296,7 @@ internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2
     glBindTexture(GL_TEXTURE_2D, tex2d->id);
     {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, format_info.internal_format, width, height, 0, format_info.format, format_info.base_type, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format_info.internal_format, (GLsizei)width, (GLsizei)height, 0, format_info.format, format_info.base_type, data);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

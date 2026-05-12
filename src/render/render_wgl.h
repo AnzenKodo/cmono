@@ -60,7 +60,9 @@
     X(glBindAttribLocation, void, (GLuint programObj, GLuint index, char *name))\
     X(glValidateProgram, void, (GLuint program))\
     X(glUniform2f, void, (GLint location, GLfloat v0, GLfloat v1))\
-    X(glUniform4f, void, (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3))
+    X(glUniform4f, void, (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3))\
+    X(glBufferSubData, void, (GLenum target, GLintptr offset, GLsizeiptr size, const void *data))
+
 // Defines
 // ============================================================================
 

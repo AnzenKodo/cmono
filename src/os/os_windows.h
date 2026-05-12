@@ -42,7 +42,7 @@ struct _Os_Win32_Walk_Iter
 // Helpers functions ==========================================================
 
 internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time);
-internal FilePropertyFlags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes);
+internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes);
 internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in);
 internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
 

@@ -152,7 +152,8 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
     return total_read_size;
 }
 
-internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
+
+internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
 {
     uint64_t src_off = 0;
     uint64_t dst_off = rng.min;
@@ -181,16 +182,16 @@ internal uint64_t os_file_write(Os_File file, Rng1_U64 rng, void *data)
     return src_off;
 }
 
-internal size_t os_file_write_append(Os_File file, void *data, size_t size);
+internal size_t os_file_write_append(Os_File file, void *data, size_t size)
 {
     DWORD total_num_bytes_written;
-    WriteFile(file, data, (DWORD)size, &total_num_bytes_written, NULL);
+    WriteFile((HANDLE)file, data, (DWORD)size, &total_num_bytes_written, NULL);
     return total_num_bytes_written;
 }
 
-internal Os_FileProperties os_file_properties(Os_File file)
+internal Os_File_Properties os_file_properties(Os_File file)
 {
-    Os_FileProperties props = ZERO_STRUCT;
+    Os_File_Properties props = ZERO_STRUCT;
     BY_HANDLE_FILE_INFORMATION info;
     BOOL info_good = GetFileInformationByHandle((HANDLE)file, &info);
     if(info_good)
@@ -230,9 +231,9 @@ internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     Str8 path_with_wildcard = str8_cat(scratch.arena, path, str8("\\*"));
     Str16 path16 = str16_from_8(scratch.arena, path_with_wildcard);
-    Os_File_Walk *iter = push_array(arena, Os_File_Walk, 1);
-    iter->flags = flags;
-    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
+    Os_File_Walk *walk = arena_push(arena, Os_File_Walk, 1);
+    walk->flags = flags;
+    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)walk->memory;
     if(path.size == 0)
     {
         win32_walk->is_volume_iter = 1;
@@ -241,7 +242,7 @@ internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_
         Str8_List drive_strings = ZERO_STRUCT;
         for(uint64_t off = 0; off < (uint64_t)length;)
         {
-            Str16 next_drive_string_16 = str16_from_cstr((U16 *)buffer+off);
+            Str16 next_drive_string_16 = str16_from_cstr((uint16_t *)buffer+off);
             off += next_drive_string_16.size+1;
             Str8 next_drive_string = str8_from_16(arena, next_drive_string_16);
             next_drive_string = str8_chop_last_slash(next_drive_string);
@@ -255,93 +256,88 @@ internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_
         win32_walk->handle = FindFirstFileExW((WCHAR*)path16.cstr, FindExInfoBasic, &win32_walk->find_data, FindExSearchNameMatch, 0, FIND_FIRST_EX_LARGE_FETCH);
     }
     arena_scratch_end(scratch);
-    return iter;
+    return walk;
 }
 
 internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *info_out)
 {
     bool result = 0;
-    Os_File_Walk_Flags flags = iter->flags;
-    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
-    switch(win32_walk->is_volume_iter)
+    Os_File_Walk_Flags flags = walk->flags;
+    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)walk->memory;
+    if (win32_walk->is_volume_iter)
+    {
+        //- ak: volume iteration
+        result = win32_walk->drive_strings_iter_idx < win32_walk->drive_strings.length;
+        if(result != 0)
+        {
+            MemSetZeroStruct(info_out);
+            info_out->name = win32_walk->drive_strings.v[win32_walk->drive_strings_iter_idx];
+            info_out->props.flags |= Os_File_Property_Flag_IsFolder;
+            win32_walk->drive_strings_iter_idx += 1;
+        }
+    }
+    else
     {
         //- ak: file iteration
-        default:
-        case 0:
+        if (!(flags & Os_File_Walk_Flag_Done) && win32_walk->handle != INVALID_HANDLE_VALUE)
+        {
+            do
             {
-                if (!(flags & Os_File_Walk_Flag_Done) && win32_walk->handle != INVALID_HANDLE_VALUE)
-                {
-                    do
-                    {
-                        //- ak: check is usable
-                        bool usable_file = 1;
+                //- ak: check is usable
+                bool usable_file = 1;
 
-                        WCHAR *file_name = win32_walk->find_data.cFileName;
-                        DWORD attributes = win32_walk->find_data.dwFileAttributes;
-                        if (file_name[0] == '.'){
-                            if (flags & Os_FileIterFlag_SkipHiddenFiles){
-                                usable_file = 0;
-                            }
-                            else if (file_name[1] == 0){
-                                usable_file = 0;
-                            }
-                            else if (file_name[1] == '.' && file_name[2] == 0){
-                                usable_file = 0;
-                            }
-                        }
-                        if (attributes & FILE_ATTRIBUTE_DIRECTORY){
-                            if (flags & Os_FileIterFlag_SkipFolders){
-                                usable_file = 0;
-                            }
-                        }
-                        else{
-                            if (flags & Os_FileIterFlag_SkipFiles){
-                                usable_file = 0;
-                            }
-                        }
-                        //- ak: emit if usable
-                        if (usable_file){
-                            info_out->name = str8_from_16(arena, str16_from_cstr((U16*)file_name));
-                            info_out->props.size = (uint64_t)win32_walk->find_data.nFileSizeLow | (((uint64_t)win32_walk->find_data.nFileSizeHigh)<<32);
-                            _os_win32_dense_time_from_file_time(&info_out->props.created,  &win32_walk->find_data.ftCreationTime);
-                            _os_win32_dense_time_from_file_time(&info_out->props.modified, &win32_walk->find_data.ftLastWriteTime);
-                            info_out->props.flags = _os_win32_file_property_flags_from_dwFileAttributes(attributes);
-                            result = 1;
-                            if (!FindNextFileW(win32_walk->handle, &win32_walk->find_data)){
-                                iter->flags |= Os_File_Walk_Flag_Done;
-                            }
-                            break;
-                        }
-                    }while(FindNextFileW(win32_walk->handle, &win32_walk->find_data));
+                WCHAR *file_name = win32_walk->find_data.cFileName;
+                DWORD attributes = win32_walk->find_data.dwFileAttributes;
+                if (file_name[0] == '.') {
+                    if (flags & Os_File_Walk_Flag_SkipHiddenFiles) {
+                        usable_file = 0;
+                    }
+                    else if (file_name[1] == 0) {
+                        usable_file = 0;
+                    }
+                    else if (file_name[1] == '.' && file_name[2] == 0) {
+                        usable_file = 0;
+                    }
                 }
-            }break;
-
-            //- ak: volume iteration
-        case 1:
-            {
-                result = win32_walk->drive_strings_iter_idx < win32_walk->drive_strings.count;
-                if(result != 0)
-                {
-                    MemorySetZero(info_out);
-                    info_out->name = win32_walk->drive_strings.v[win32_walk->drive_strings_iter_idx];
-                    info_out->props.flags |= Os_File_Property_Flag_IsFolder;
-                    win32_walk->drive_strings_iter_idx += 1;
+                if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    if (flags & Os_File_Walk_Flag_SkipFolders) {
+                        usable_file = 0;
+                    }
                 }
-            }break;
+                else{
+                    if (flags & Os_File_Walk_Flag_SkipFiles) {
+                        usable_file = 0;
+                    }
+                }
+                //- ak: emit if usable
+                if (usable_file) {
+                    info_out->name = str8_from_16(arena, str16_from_cstr((uint16_t*)file_name));
+                    info_out->props.size = (uint64_t)win32_walk->find_data.nFileSizeLow | (((uint64_t)win32_walk->find_data.nFileSizeHigh)<<32);
+                    _os_win32_dense_time_from_file_time(&info_out->props.created,  &win32_walk->find_data.ftCreationTime);
+                    _os_win32_dense_time_from_file_time(&info_out->props.modified, &win32_walk->find_data.ftLastWriteTime);
+                    info_out->props.flags = _os_win32_file_property_flags_from_dwFileAttributes(attributes);
+                    result = 1;
+                    if (!FindNextFileW(win32_walk->handle, &win32_walk->find_data)) {
+                        walk->flags |= Os_File_Walk_Flag_Done;
+                    }
+                    break;
+                }
+            }while(FindNextFileW(win32_walk->handle, &win32_walk->find_data));
+        }
     }
     if(!result)
     {
-        iter->flags |= Os_File_Walk_Flag_Done;
+        walk->flags |= Os_File_Walk_Flag_Done;
     }
     return result;
 }
 
 internal void os_file_walk_end(Os_File_Walk *walk)
 {
-    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)iter->memory;
+    _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)walk->memory;
     HANDLE zero_handle;
-    MemorySetZero(&zero_handle);
-    if(!MemoryMatchStruct(&zero_handle, &win32_walk->handle))
+    MemSetZeroStruct(&zero_handle);
+    if(!MemMatchStruct(&zero_handle, &win32_walk->handle))
     {
         FindClose(win32_walk->handle);
     }
@@ -397,7 +393,8 @@ internal void os_sleep_millisec(uint32_t millisec)
 internal bool os_is_term_mode(Os_File file)
 {
     bool result = false;
-    result = GetConsoleMode((HANDLE)file, NULL);
+    DWORD dmode;
+    result = GetConsoleMode((HANDLE)file, &dmode);
     return result;
 }
 
@@ -439,7 +436,7 @@ int main(void)
     //- ak: Setup argument array
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
-    _os_core_state.args = array_push(scratch.arena, Str8_Array, args_count);
+    _os_core_state.args = array_alloc(scratch.arena, Str8_Array, args_count);
     for(int i = 0; i < args_count; i++)
     {
         Str16 str16 = str16_from_cstr(args[i]);

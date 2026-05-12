@@ -42,6 +42,9 @@ struct _Render_Opengl_State
     GLuint default_texture;
 };
 
+typedef ptrdiff_t GLintptr;
+typedef ptrdiff_t GLsizeiptr;
+
 // X Macro
 //=============================================================================
 
@@ -88,7 +91,17 @@ struct _Render_Opengl_State
 #define GL_ARRAY_BUFFER                 0x8892
 #define GL_STATIC_DRAW                  0x88E4
 
+#define GL_CLAMP_TO_EDGE                0x812f
+
 #define GL_RG                           0x8227
+#define GL_R8                           0x8229
+#define GL_RG8                          0x822b
+#define GL_RG                           0x8227
+#define GL_R16                          0x822a
+#define GL_R32                          0x822e
+#define GL_R32F                         0x822e
+#define GL_RG32F                        0x8230
+#define GL_RGBA32F                      0x8814
 
 // Functions
 //=============================================================================

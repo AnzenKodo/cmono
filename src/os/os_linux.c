@@ -359,7 +359,7 @@ internal Str8 os_env_get(Str8 name)
 int main(int argc, char *argv[])
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
-    _os_core_state.args = array_push(scratch.arena, Str8_Array, argc);
+    _os_core_state.args = array_alloc(scratch.arena, Str8_Array, argc);
     for (int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);
