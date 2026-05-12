@@ -418,14 +418,14 @@ internal int64_t mdg_eval_table_expand_expr_numeric(MDG_Str_Expr *expr, MDG_Tabl
                 Str8_List result_strs = ZERO_STRUCT;
                 mdg_eval_table_expand_expr_string(expr, info, &result_strs, scratch.arena);
                 Str8 result_str = str8_list_join(scratch.arena, &result_strs, 0);
-                str8_c_rules_to_i64_try(result_str, &result);
+                try_s64_from_str8_c_rules(result_str, &result);
                 arena_scratch_end(scratch);
             }
         } break;
         
         case MDG_Str_Expr_Op_Null:
         {
-            str8_c_rules_to_i64_try(expr->node->string, &result);
+            try_s64_from_str8_c_rules(expr->node->string, &result);
         } break;
         
         //- ak: numeric arithmetic binary ops
@@ -568,7 +568,7 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
                     // NOTE(ak): numeric column lookup (column index)
                     if (right_node->flags & MD_Node_Flag_Numeric)
                     {
-                        str8_c_rules_to_u64_try(column_lookup, &column_idx);
+                        try_u64_from_str8_c_rules(column_lookup, &column_idx);
                     }
                     // NOTE(ak): string column lookup (column name)
                     if (right_node->flags & (MD_Node_Flag_Identifier|MD_Node_Flag_StringLiteral))
@@ -587,9 +587,9 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
                 bool is_multiline = (str8_find_substr(lookup_string, 0, str8("\n"), 0) < lookup_string.length);
                 if (is_multiline)
                 {
-                    lookup_string = str8_get_indented(lookup_string, 4, arena);
-                    lookup_string = str8_escaped_to_raw(lookup_string, arena);
-                    lookup_string = str8_escaped_to_raw(lookup_string, arena);
+                    lookup_string = indented_from_string(lookup_string, 4, arena);
+                    lookup_string = raw_from_escaped_str8(lookup_string, arena);
+                    lookup_string = raw_from_escaped_str8(lookup_string, arena);
                 }
                 str8_list_push(arena, out, lookup_string);
             }
@@ -701,7 +701,7 @@ internal void mdg_loop_table_column_expansion(Str8 strexpr, MDG_TableExpand_Info
             Str8 expansion_str = str8_list_join(arena, &expansion_strs, 0);
             if (expansion_str.length != 0)
             {
-                expansion_str = str8_escaped_to_raw(expansion_str, arena);
+                expansion_str = raw_from_escaped_str8(expansion_str, arena);
                 str8_list_push(arena, out, expansion_str);
             }
         }
@@ -715,7 +715,7 @@ internal Str8_List mdg_str_list_from_table_gen(MDG_Map grid_name_map, MDG_Map gr
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     if (md_node_is_nil(gen->first) && gen->string.length != 0)
     {
-        str8_list_push(arena, &result, str8_escaped_to_raw(gen->string, arena));
+        str8_list_push(arena, &result, raw_from_escaped_str8(gen->string, arena));
         str8_list_push(arena, &result, str8("\n"));
     }
     else for (MD_Node *strexpr_node = gen->first; !md_node_is_nil(strexpr_node); strexpr_node = strexpr_node->next)
@@ -768,7 +768,7 @@ internal Str8_List mdg_str_list_from_table_gen(MDG_Map grid_name_map, MDG_Map gr
             }
             else
             {
-                str8_list_push(arena, &result, str8_escaped_to_raw(strexpr_node->string, arena));
+                str8_list_push(arena, &result, raw_from_escaped_str8(strexpr_node->string, arena));
             }
         }
     }
