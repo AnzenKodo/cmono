@@ -53,17 +53,17 @@ internal void log_errorln(Log_Context *log, const char *format);
 
 //- ak: print with format
 internal void log_vprintf(Log_Context *log, Log_Level level, const char *format, va_list args);
-internal void log_infof(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_debugf(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_warnf(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_errorf(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_infof(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_debugf(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_warnf(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_errorf(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
 
 //- ak: print with format and newline
 internal void log_vprintfln(Log_Context *log, Log_Level level, const char *format, va_list args);
-internal void log_infofln(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_debugfln(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_warnfln(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
-internal void log_errorfln(Log_Context *log, const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_infofln(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_debugfln(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_warnfln(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal void log_errorfln(Log_Context *log, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
 
 //~ ak: Macros
 //=============================================================================
