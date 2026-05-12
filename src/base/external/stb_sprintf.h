@@ -1,3 +1,10 @@
+// ----------------------------------------------------------------------------
+//
+// NOTE(ak): This has been modified to support extra format specifiers
+// for the this project - this is *not* an unmodified copy of the original
+// stb_sprintf v1.10 code.
+//
+// ----------------------------------------------------------------------------
 // stb_sprintf - v1.10 - public domain snprintf() implementation
 // originally by Jeff Roberts / RAD Game Tools, 2015/10/20
 // http://github.com/nothings/stb
@@ -158,6 +165,10 @@ PERFORMANCE vs MSVC 2008 32-/64-bit (GCC is even slower than MSVC):
  #if defined(__SANITIZE_ADDRESS__) && __SANITIZE_ADDRESS__
   #define STBSP__ASAN __attribute__((__no_sanitize_address__))
  #endif
+#elif defined(_MSC_VER)
+  #if defined(__SANITIZE_ADDRESS__)
+    #define STBSP__ASAN __declspec(no_sanitize_address)
+  #endif
 #endif
 
 #ifndef STBSP__ASAN
@@ -165,14 +176,14 @@ PERFORMANCE vs MSVC 2008 32-/64-bit (GCC is even slower than MSVC):
 #endif
 
 #ifdef STB_SPRINTF_STATIC
-#define STBSP__PUBLICDEC static
+#define STBSP__PUBLICDEC static STBSP__ASAN
 #define STBSP__PUBLICDEF static STBSP__ASAN
 #else
 #ifdef __cplusplus
-#define STBSP__PUBLICDEC extern "C"
+#define STBSP__PUBLICDEC extern "C" STBSP__ASAN
 #define STBSP__PUBLICDEF extern "C" STBSP__ASAN
 #else
-#define STBSP__PUBLICDEC extern
+#define STBSP__PUBLICDEC extern STBSP__ASAN
 #define STBSP__PUBLICDEF STBSP__ASAN
 #endif
 #endif
@@ -585,6 +596,20 @@ STBSP__PUBLICDEF int STB_SPRINTF_DECORATE(vsprintfcb)(STBSP_SPRINTFCB *callback,
          char const *sn;
 
       case 's':
+      {
+         if (f[1] == '8')
+         {
+            ++f;
+            Str8 string = va_arg(va, Str8);
+            s = (char *)string.cstr;
+            l = (uint32_t)string.length;
+            lead[0] = 0;
+            tail[0] = 0;
+            pr = 0;
+            dp = 0;
+            cs = 0;
+            goto scopy;
+         }
          // get the string
          s = va_arg(va, char *);
          if (s == 0)
@@ -599,6 +624,7 @@ STBSP__PUBLICDEF int STB_SPRINTF_DECORATE(vsprintfcb)(STBSP_SPRINTFCB *callback,
          cs = 0;
          // copy the string in
          goto scopy;
+      }
 
       case 'c': // char
          // get the character
