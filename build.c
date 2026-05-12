@@ -38,6 +38,7 @@ struct Build_Info
     Str8 dir;
     Str8 args;
     bool mingw;
+    bool dry_run;
     Build_Type type;
     uint8_t cmd[BUILD_CMD_SIZE];
     Log_Context log_context;
@@ -55,6 +56,7 @@ global const char *help_message = "DESCRIPTION:\n"
 "   build                Build project\n"
 "   run                  Run project\n"
 "   build-run            Build and Run project\n"
+"   build-dry            Build producing any output files\n"
 "   build-debugger       Build for Debugger\n"
 "   gen-meta             Generate code from Metaprogram\n"
 "   --help -h            Print help\n";
@@ -62,7 +64,7 @@ global const char *help_message = "DESCRIPTION:\n"
 //~ ak: Functions
 //=============================================================================
 
-internal void build_cmd_append(Build_Info *info, const char *format, ...) FmtTypeCheck(2, 3);
+internal void build_cmd_append(Build_Info *info, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
 internal void build_cmd_finish(Build_Info *info);
 internal void build_cmd_run(Build_Info *info);
 internal char *build_type_to_str8(Build_Info *info);
@@ -92,6 +94,10 @@ internal void build_cmd_append_output(Build_Info *info)
 internal void build_compile_msvc(Build_Info *info)
 {
     build_cmd_append(info, "setup_x64.bat & cl.exe %s", info->entry_point.cstr);
+    if (info->dry_run)
+    {
+        build_cmd_append(info, " -Zs");
+    }
     //~ ak: Looks
     build_cmd_append(info, " -nologo -diagnostics:caret");
     //~ ak: Output
@@ -133,7 +139,7 @@ internal void build_compile_msvc(Build_Info *info)
         " -GS"                //~ ak: Canary insertion
         " -guard:cf"          //~ ak: Control-flow protection
     );
-    if (info->type != Build_Type_Debug || info->type != Build_Type_Release)
+    if (info->type != Build_Type_Debug && info->type != Build_Type_Release)
     {
         build_cmd_append(info, " -fsanitize=address");
     }
@@ -148,6 +154,10 @@ internal void build_compile_gcc(Build_Info *info)
     else
     {
         build_cmd_append(info, "gcc");
+    }
+    if (info->dry_run)
+    {
+        build_cmd_append(info, " -fsyntax-only");
     }
     build_cmd_append(info, " %s", info->entry_point.cstr);
     //~ ak: Output
@@ -234,6 +244,10 @@ internal void build_run(Build_Info *info)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");
     }
+    if (info->os == Context_Os_Windows)
+    {
+        build_cmd_append(info, "setup_x64.bat & ");
+    }
     build_cmd_append_output(info);
     build_cmd_append(info, " %.*s", str8_varg(info->args));
     build_cmd_finish(info);
@@ -287,6 +301,11 @@ internal void base_main(void)
             }
             build_run_program = true;
         }
+        else if (str8_match(arg1, str8("build-dry"), 0))
+        {
+            info.type = Build_Type_Dev;
+            info.dry_run = true;
+        }
         else if (str8_match(arg1, str8("build-debugger"), 0))
         {
             info.type = Build_Type_Debug;
@@ -330,7 +349,7 @@ internal void base_main(void)
             info.name = str8(MDA_NAME);
             info.cmd_name = str8(MDA_CMD_NAME);
             info.entry_point = str8("src/metadesk/metadesk_app_main.c");
-            info.args = str8("./src");
+            info.args = str8("src");
             build_run_program = true;
         }
         if (info.type != Build_Type_None)
