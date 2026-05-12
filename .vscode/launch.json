@@ -4,7 +4,7 @@
         {
             "name": "Debug Program",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cope_debug",
+            "program": "${workspaceFolder}/build/app_debug",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
             // "arguments": "shaders/circles.frag",
@@ -17,10 +17,28 @@
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
             "args": [ "build-run" ],
-            "arguments": "build-run"
+            "arguments": "build-run",
+            "preLaunchTask": "Build Build"
+        },
+                {
+            "name": "Debug Meta",
+            "request": "launch",
+            "program": "${workspaceFolder}/a.out",
+            "cwd": "${workspaceFolder}",
+            "type": "cppdbg",
+            "args": [ "build-run" ],
+            "arguments": "build-run",
+            "preLaunchTask": "Build Meta"
         },
         {
             "name": "Debug Program Windows",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/cope_debug.exe",
+            "cwd": "${workspaceFolder}",
+            "type": "cppvsdbg",
+        },
+        {
+            "name": "Build & Debug Program Windows",
             "request": "launch",
             "program": "${workspaceFolder}/build/cope_debug.exe",
             "cwd": "${workspaceFolder}",
@@ -36,6 +54,17 @@
             // "args": [ "build-run" ],
             "args": [ "-name=jone" ],
             "arguments": "build-run"
+        },
+        {
+            "name": "Debug Meta Windows",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/mdg_debug.exe",
+            "cwd": "${workspaceFolder}",
+            "type": "cppvsdbg",
+            // "args": [ "build-run" ],
+            "args": [ "src" ],
+            "arguments": "src",
+            // "preLaunchTask": "Build Meta"
         },
     ]
 }

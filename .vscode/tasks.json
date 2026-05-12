@@ -69,6 +69,26 @@
                     "message": 5
                 }
             }
+        },
+        {
+            "label": "Build Meta",
+            "type": "shell",
+            "command": ".\\a.exe gen-meta",
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
         }
     ]
 }

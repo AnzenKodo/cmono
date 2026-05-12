@@ -1,7 +1,3 @@
--- TODO(ak): Add every build user command and debug also make helper functions
--- for making them.
--- TODO(ak): replace build command variables with single function
-
 -- ak: Build Initialization
 -- ============================================================================
 
@@ -10,26 +6,35 @@ local build_command = ""
 local cc_command = ""
 if (vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1) then
     build_command = "setup_x64.bat && cl.exe build.c -nologo -Z7 -Fo:build\\ -Fe:"..build_dir.."\\build.exe"
-    cc_command = build_command.." && "..build_dir.."\\build.exe "
+    cc_command = build_dir.."\\build.exe "
 else
     build_command = "cc -ggdb build.c"
-    cc_command = build_command.." && ./a.out "
+    cc_command = "./a.out "
 end
 
 -- ak: Build user commands
 -- ============================================================================
 
 -- NOTE(ak): run with `:make` below command
-vim.opt.makeprg = cc_command .. "build-run --nocolor"
+vim.opt.makeprg = cc_command .. "build-dry"
+vim.api.nvim_create_user_command("Run",  function()
+    vim.opt.makeprg = cc_command .. "build-run"
+    vim.cmd('make')
+    vim.opt.makeprg = cc_command .. "build-dry"
+end, { desc = "Bootstrap build system"})
 vim.api.nvim_create_user_command("Build",  function()
     vim.opt.makeprg = build_command
     vim.cmd('make')
-    vim.opt.makeprg = cc_command .. "build-run --nocolor"
+    vim.opt.makeprg = cc_command .. "build-dry"
 end, { desc = "Bootstrap build system"})
 vim.api.nvim_create_user_command("Meta",  function()
-    vim.opt.makeprg = cc_command .. "gen-meta --nocolor"
+    vim.opt.makeprg = cc_command .. "gen-meta"
     vim.cmd('make')
-    vim.opt.makeprg = cc_command .. "build-run --nocolor"
+    vim.opt.makeprg = cc_command .. "build-dry"
+    local success = vim.v.shell_error == 0
+    if (success) then
+        vim.cmd('make')
+    end
 end, { desc = "Bootstrap build system"})
 
 -- ak: Setup Termdebug
