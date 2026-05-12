@@ -8,7 +8,7 @@ internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
     if (first)
     {
         first = 0;
-        MemorySetZeroArray(key_table);
+        MemSetZeroArray(key_table);
         key_table[(unsigned int)'A'] = Wl_Key_A;
         key_table[(unsigned int)'B'] = Wl_Key_B;
         key_table[(unsigned int)'C'] = Wl_Key_C;
@@ -598,7 +598,7 @@ internal void wl_window_border_set(bool enable)
     }
     // Apply the new style
     SetWindowLongPtr(_wl_win32_state.handle, GWL_STYLE, style);
-    // NOTE(aman.v): Force Windows to recalculate the window frame and client area
+    // NOTE(ak): Force Windows to recalculate the window frame and client area
     // Without this, the non-client area (border/title) may not update properly
     SetWindowPos(_wl_win32_state.handle,
          NULL,

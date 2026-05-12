@@ -232,8 +232,10 @@ internal bool wl_is_key_pressed(Wl_Key key);
 
 // Window property ============================================================
 
-internal Vec2_U64 wl_window_size_get(void);
-internal Vec2_U64 wl_display_size_get(void);
+internal uint32_t wl_display_width_get(void);
+internal uint32_t wl_display_height_get(void);
+internal uint32_t wl_window_width_get(void);
+internal uint32_t wl_window_height_get(void);
 internal void wl_window_pos_set(int x, int y);
 internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height);
 internal void wl_window_border_set(bool enable);

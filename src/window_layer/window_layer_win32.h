@@ -13,7 +13,7 @@ struct _Wl_Win32_State
     bool window_resize;
     Wl_Event event;
 
-    // NOTE(aman.v): For software render
+    // NOTE(ak): For software render
     HBITMAP bitmap;
     BITMAPINFO bitmap_info;
     HDC hdc;

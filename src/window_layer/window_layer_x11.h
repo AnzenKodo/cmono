@@ -18,7 +18,7 @@ struct _Wl_X11_State
     xcb_window_t window;
     xcb_atom_t wm_delete_window;
 
-    // NOTE(aman.v): For software render
+    // NOTE(ak): For software render
     xcb_pixmap_t pixmap;
     xcb_gcontext_t gc;
     xcb_image_t *image;

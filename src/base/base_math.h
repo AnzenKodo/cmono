@@ -424,7 +424,7 @@ union Rng2_I64
 #define Sign(x)        ((x) >= 0 ? 1 : -1)
 #define Mod(a, m)      (((a) % (m)) >= 0 ? ((a) % (m)) : (((a) % (m)) + (m)))
 
-// NOTE(aman.v): function list comes: https://en.wikipedia.org/wiki/C_mathematical_functions
+// NOTE(ak): function list comes: https://en.wikipedia.org/wiki/C_mathematical_functions
 
 internal float remainder_f32(float x, float y);
 internal float fmod_f32(float x, float y);

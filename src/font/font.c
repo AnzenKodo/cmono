@@ -44,9 +44,9 @@ internal Font font_load(Str8 name, size_t atlas_width, size_t atlas_height, Aren
         font.line_height = (ascent - descent + line_gap) * font.scale;
         font.height = (ascent - descent) * font.scale;
         stbtt_pack_context pc;
-        stbtt_PackBegin(&pc, font.pixels, atlas_width, atlas_height, 0, 1, NULL);
+        stbtt_PackBegin(&pc, font.pixels, (int)atlas_width, (int)atlas_height, 0, 1, NULL);
         {
-            stbtt_PackFontRange(&pc, ttf_buffer, 0, font.size, 32, 224, font.data);
+            stbtt_PackFontRange(&pc, ttf_buffer, 0, (float)font.size, 32, 224, font.data);
         }
         stbtt_PackEnd(&pc);
     }
@@ -77,7 +77,7 @@ internal void font_quad_push(Font *font, Str8 text, Vec2_F32 pos, Render_Color c
         else
         {
             stbtt_aligned_quad q;
-            stbtt_GetPackedQuad(font->data, font->atlas_width, font->atlas_height, *c - 32, &x, &y, &q, true);
+            stbtt_GetPackedQuad(font->data, (int)font->atlas_width, (int)font->atlas_height, *c - 32, &x, &y, &q, true);
             Render_Draw_Node *node = arena_push(arena, Render_Draw_Node, 1);
             Render_Draw_Rect *rect = &node->param_rect;
             rect->dst = (Vec4_F32){ q.x0, q.y0, q.x1-q.x0, q.y1-q.y0 };

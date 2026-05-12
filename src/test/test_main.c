@@ -159,7 +159,7 @@ int main(void)
     TCTX tctx;
     Arena *arena = arena_alloc();
 
-    wl_window_open(str8_lit("Scuttle"), 960, 540);
+    wl_window_open(str8_comp("Scuttle"), 960, 540);
     // wl_set_window_icon((const uint8_t *)SCUTTLEICON);
 
     // float monitor_refresh_rate = 60;

@@ -107,7 +107,7 @@ date_time_from_unix_time(uint64_t unix_time)
                 case Month_Oct: c = 31; break;
                 case Month_Nov: c = 30; break;
                 case Month_Dec: c = 31; break;
-                default: INVALID_CODE_PATH;
+                case Month_COUNT: UNREACHABLE();
             }
             if(date.day <= c)
             {
