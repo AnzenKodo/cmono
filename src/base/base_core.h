@@ -1,12 +1,12 @@
 #ifndef BASE_CORE_H
 #define BASE_CORE_H
 
-// External Includes
+// ak: External Includes
 //=============================================================================
 
 #include <stdarg.h>
 
-// Code Keywords
+// ak: Code Keywords
 //=============================================================================
 
 #if COMPILER_CLANG || COMPILER_GCC
@@ -40,7 +40,7 @@
 #   error no_inline not defined for this compiler.
 #endif
 
-#ifdef OS_WINDOWS
+#if COMPILER_MSVC
 #   define PragmaPop() __pragma(warning(pop))
 #elif COMPILER_CLANG || COMPILER_GCC
 #   define PragmaPop() _Pragma("GCC diagnostic pop")
@@ -48,7 +48,10 @@
 #   error pragma pop not defined for this compiler
 #endif
 
-#if COMPILER_CLANG || COMPILER_GCC
+#if COMPILER_MSVC
+#   define PragmaNoWarnMissingFieldInitPush() \
+        __pragma(warning(push))
+#elif COMPILER_CLANG || COMPILER_GCC
 #   define PragmaNoWarnMissingFieldInitPush() \
         _Pragma("GCC diagnostic push") \
         _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"")
@@ -56,7 +59,7 @@
 #   error pragma missing field initializers not defined for this compiler
 #endif
 
-// Constants
+// ak: Constants
 //=============================================================================
 
 global const uint32_t bitmask1  = 0x00000001;
@@ -189,78 +192,19 @@ global const uint64_t bit62 = (1ull<<61);
 global const uint64_t bit63 = (1ull<<62);
 global const uint64_t bit64 = (1ull<<63);
 
-// Link Lists
+// ak: Misc. Macros
 //=============================================================================
 
-// Linked List macro helpers ==================================================
-#define CheckNil(nil,p) ((p) == 0 || (p) == nil)
-#define SetNil(nil,p) ((p) = nil)
-
-// Doubly-Linked-Lists ========================================================
-#define DLLInsert_NPZ(nil,f,l,p,n,next,prev) (CheckNil(nil,f) ? \
-((f) = (l) = (n), SetNil(nil,(n)->next), SetNil(nil,(n)->prev)) :\
-CheckNil(nil,p) ? \
-((n)->next = (f), (f)->prev = (n), (f) = (n), SetNil(nil,(n)->prev)) :\
-((p)==(l)) ? \
-((l)->next = (n), (n)->prev = (l), (l) = (n), SetNil(nil, (n)->next)) :\
-(((!CheckNil(nil,p) && CheckNil(nil,(p)->next)) ? (0) : ((p)->next->prev = (n))), ((n)->next = (p)->next), ((p)->next = (n)), ((n)->prev = (p))))
-#define DLLPushBack_NPZ(nil,f,l,n,next,prev) DLLInsert_NPZ(nil,f,l,l,n,next,prev)
-#define DLLPushFront_NPZ(nil,f,l,n,next,prev) DLLInsert_NPZ(nil,l,f,f,n,prev,next)
-#define DLLRemove_NPZ(nil,f,l,n,next,prev) (((n) == (f) ? (f) = (n)->next : (0)),\
-((n) == (l) ? (l) = (l)->prev : (0)),\
-(CheckNil(nil,(n)->prev) ? (0) :\
-((n)->prev->next = (n)->next)),\
-(CheckNil(nil,(n)->next) ? (0) :\
-((n)->next->prev = (n)->prev)))
-
-// Singly-Linked, Doubly-Headed Lists (Queues) ================================
-#define SLLQueuePush_NZ(nil,f,l,n,next) (CheckNil(nil,f)?\
-((f)=(l)=(n),SetNil(nil,(n)->next)):\
-((l)->next=(n),(l)=(n),SetNil(nil,(n)->next)))
-#define SLLQueuePushFront_NZ(nil,f,l,n,next) (CheckNil(nil,f)?\
-((f)=(l)=(n),SetNil(nil,(n)->next)):\
-((n)->next=(f),(f)=(n)))
-#define SLLQueuePop_NZ(nil,f,l,next) ((f)==(l)?\
-(SetNil(nil,f),SetNil(nil,l)):\
-((f)=(f)->next))
-
-// Singly-Linked, Singly-Headed Lists (Stacks) ================================
-#define SLLStackPush_N(f,n,next) ((n)->next=(f), (f)=(n))
-#define SLLStackPop_N(f,next) ((f)=(f)->next)
-
-// Doubly-Linked-List helpers =================================================
-#define DLLInsert_NP(f,l,p,n,next,prev) DLLInsert_NPZ(0,f,l,p,n,next,prev)
-#define DLLPushBack_NP(f,l,n,next,prev) DLLPushBack_NPZ(0,f,l,n,next,prev)
-#define DLLPushFront_NP(f,l,n,next,prev) DLLPushFront_NPZ(0,f,l,n,next,prev)
-#define DLLRemove_NP(f,l,n,next,prev) DLLRemove_NPZ(0,f,l,n,next,prev)
-#define DLLInsert(f,l,p,n) DLLInsert_NPZ(0,f,l,p,n,next,prev)
-#define DLLPushBack(f,l,n) DLLPushBack_NPZ(0,f,l,n,next,prev)
-#define DLLPushFront(f,l,n) DLLPushFront_NPZ(0,f,l,n,next,prev)
-#define DLLRemove(f,l,n) DLLRemove_NPZ(0,f,l,n,next,prev)
-
-// Singly-Linked, Doubly-Headed List helpers ==================================
-#define SLLQueuePush_N(f,l,n,next) SLLQueuePush_NZ(0,f,l,n,next)
-#define SLLQueuePushFront_N(f,l,n,next) SLLQueuePushFront_NZ(0,f,l,n,next)
-#define SLLQueuePop_N(f,l,next) SLLQueuePop_NZ(0,f,l,next)
-#define SLLQueuePush(f,l,n) SLLQueuePush_NZ(0,f,l,n,next)
-#define SLLQueuePushFront(f,l,n) SLLQueuePushFront_NZ(0,f,l,n,next)
-#define SLLQueuePop(f,l) SLLQueuePop_NZ(0,f,l,next)
-
-// Singly-Linked, Singly-Headed List helpers ==================================
-#define SLLStackPush(f,n) SLLStackPush_N(f,n,next)
-#define SLLStackPop(f) SLLStackPop_N(f,next)
-
-// Misc. Macros
-//=============================================================================
-
-#define Unused(var)   (void)var
-#define Min(A,B)     (((A)<(B))?(A):(B))
-#define Max(A,B)     (((A)>(B))?(A):(B))
-#define Clamp(A,X,B) (((X)<(A))?(A):((X)>(B))?(B):(X))
+#define Unused(var)     (void)var
+#define TempUnused(var) Unused(var)
+#define Min(A,B)        (((A)<(B))?(A):(B))
+#define Max(A,B)        (((A)>(B))?(A):(B))
+#define Clamp(A,X,B)    (((X)<(A))?(A):((X)>(B))?(B):(X))
 #define IsPow2(x)       ((x != 0) && ((x & (x - 1)) == 0))
 #define AlignPow2(x,b)  (((x) + (b) - 1)&(~((b) - 1)))
+#define OffsetOf(T,m)   offsetof(T, m)
 
-// Alignment ==================================================================
+// ak: Alignment ==============================================================
 
 #if COMPILER_MSVC
 #   define AlignOf(T) __alignof(T)
@@ -272,28 +216,28 @@ CheckNil(nil,p) ? \
 #   error AlignOf not defined for this compiler.
 #endif
 
-// Asserts ====================================================================
+// ak: Asserts ================================================================
 
 #if COMPILER_MSVC
 #   define Break() __debugbreak()
 #elif COMPILER_CLANG || COMPILER_GCC
 #   define Break() __builtin_trap()
 #elif COMPILER_TCC
-#   define Break() asm volatile("ud2");
+#   define Break() asm volatile("ud2")
 #else
 #   error Unknown trap intrinsic for this compiler.
 #endif
 
-#define AssertAlways(x) do{if(!(x)) {Break();}}while(0)
+#define AssertAlways(x) ((void)(!(x) ? (Break(), 0) : 0))
 #if BUILD_DEBUG
 #   define Assert(x) AssertAlways(x)
 #else
 #   define Assert(x) (void)(x)
 #endif
-#define INVALID_CODE_PATH Assert(!"Invalid Path!")
-#define NOT_IMPLEMENTED   Assert(!"Not Implemented!")
+#define UNREACHABLE(msg) Assert(!""msg)
+#define TODO(msg)        Assert(!msg)
 
-// ak: Linkage Keyword Macros =================================================
+// ak: ak: Linkage Keyword Macros =============================================
 
 #if OS_WINDOWS
 #   define shared_function C_LINKAGE __declspec(dllexport)
@@ -323,8 +267,8 @@ CheckNil(nil,p) ? \
 #   define AsanUnpoisonMemoryRegion(addr, size) ((void)(addr), (void)(size))
 #endif
 
-// Image
-// ============================================================================
+// ak: Image
+//=============================================================================
 
 typedef enum Img_Format
 {
@@ -357,7 +301,7 @@ typedef enum Corner
     Corner_COUNT
 } Corner;
 
-//~ ak: Text 2D Coordinates & Ranges ==========================================
+// ak: Text 2D Coordinates & Ranges ===========================================
 
 typedef struct Txt_Pt Txt_Pt;
 struct Txt_Pt
@@ -373,7 +317,7 @@ struct Txt_Rng
     Txt_Pt max;
 };
 
-//~ ak: Axis ==================================================================
+// ak: Axis ===================================================================
 
 typedef enum Axis_2d
 {
@@ -382,6 +326,7 @@ typedef enum Axis_2d
     Axis_2d_COUNT,
 }
 Axis_2d;
+#define Axis_2d_Flip(a) ((Axis_2d)(!(a)))
 
 typedef enum Axis_3d
 {
@@ -392,8 +337,8 @@ typedef enum Axis_3d
 }
 Axis_3d;
 
-// Functions
-// ============================================================================
+// ak: Functions
+//=============================================================================
 
 internal void base_main(void);
 

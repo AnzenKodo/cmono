@@ -1,13 +1,13 @@
 #ifndef BASE_TYPE_H
 #define BASE_TYPE_H
 
-// External Includes
+// ak: External Includes
 //=============================================================================
 
 #include <stdint.h>
 #include <stddef.h>
 
-// Base Types
+// ak: Base Types
 //=============================================================================
 
 #if LANGUAGE_C
@@ -17,7 +17,7 @@
 #endif
 typedef void Void_Proc(void);
 
-// Base Type Array ============================================================
+// ak: Base Type Array ========================================================
 
 typedef struct U8Array U8Array;
 struct U8Array
@@ -92,11 +92,10 @@ struct F64Array
     double  *v;
 };
 
-// Macros
+// ak: Macros
 //=============================================================================
 
 #define Swap(T,a,b)   do{T t__ = a; a = b; b = t__;}while(0)
-#define ArrayLength(a) (sizeof(a) / sizeof((a)[0]))
 #define TypeOf(T)     __typeof__(T)
 
 #if LANGUAGE_C
@@ -105,9 +104,9 @@ struct F64Array
 #   define ZERO_STRUCT {}
 #endif
 
-// NOTE: MSVC C++ compiler does not support compound literals (C99 feature)
-// Plain structures in C++ (without constructors) can be initialized with { }
-// This is called aggregate initialization (C++11 feature)
+// NOTE(ak): MSVC C++ compiler does not support compound literals
+// (C99 feature) Plain structures in C++ (without constructors) can be
+// initialized with { } This is called aggregate initialization (C++11 feature)
 #if defined(__cplusplus)
     #define Literal(type)      type
 #else
@@ -130,18 +129,80 @@ struct F64Array
 #   define read_only
 #endif
 
-// Array Macros ===============================================================
+// ak: Array Macros ===========================================================
 
-#define array_push(a, T, s) \
+#define ArrayLength(a) (sizeof(a) / sizeof((a)[0]))
+#define array_alloc(a, T, s) \
     (T){ \
         .size = (s), \
         .length = 0, \
         .v = arena_push((a), TypeOf(((T){0}).v[0]), (s)) \
     }
-#define array_append(array, data) ((array)->v[(array)->length] = (data), &(array)->v[(array)->length++])
-#define array_get(array, index) ((index) < (array)->length ? &(array)->v[(index)] : NULL)
+#define array_append(array, data) (Assert((array)->length < (array)->size), (array)->v[(array)->length++] = (data))
+#define array_get(array, index) (Assert((index) <= (array)->size), (array)->v[(index)])
+#define carray_get(array, index) (Assert((size_t)index < ArrayLength(array)), array[(size_t)index])
 
-// Constants
+// ak: Link Lists =============================================================
+
+// ak: Linked List helper macros
+#define CheckNil(nil,p) ((p) == 0 || (p) == nil)
+#define SetNil(nil,p) ((p) = nil)
+
+// ak: Singly-Linked, Singly-Headed List helpers
+#define SLLStackPush(f,n) SLLStackPush_N(f,n,next)
+#define SLLStackPop(f) SLLStackPop_N(f,next)
+
+// ak: Singly-Linked, Singly-Headed Lists (Stacks)
+#define SLLStackPush_N(f,n,next) ((n)->next=(f), (f)=(n))
+#define SLLStackPop_N(f,next) ((f)=(f)->next)
+
+// ak: Singly-Linked, Doubly-Headed List helpers
+#define SLLQueuePush_N(f,l,n,next) SLLQueuePush_NZ(0,f,l,n,next)
+#define SLLQueuePushFront_N(f,l,n,next) SLLQueuePushFront_NZ(0,f,l,n,next)
+#define SLLQueuePop_N(f,l,next) SLLQueuePop_NZ(0,f,l,next)
+#define SLLQueuePush(f,l,n) SLLQueuePush_NZ(0,f,l,n,next)
+#define SLLQueuePushFront(f,l,n) SLLQueuePushFront_NZ(0,f,l,n,next)
+#define SLLQueuePop(f,l) SLLQueuePop_NZ(0,f,l,next)
+
+// ak: Doubly-Linked-Lists
+#define DLLInsert_NPZ(nil,f,l,p,n,next,prev) (CheckNil(nil,f) ? \
+((f) = (l) = (n), SetNil(nil,(n)->next), SetNil(nil,(n)->prev)) :\
+CheckNil(nil,p) ? \
+((n)->next = (f), (f)->prev = (n), (f) = (n), SetNil(nil,(n)->prev)) :\
+((p)==(l)) ? \
+((l)->next = (n), (n)->prev = (l), (l) = (n), SetNil(nil, (n)->next)) :\
+(((!CheckNil(nil,p) && CheckNil(nil,(p)->next)) ? (0) : ((p)->next->prev = (n))), ((n)->next = (p)->next), ((p)->next = (n)), ((n)->prev = (p))))
+#define DLLPushBack_NPZ(nil,f,l,n,next,prev) DLLInsert_NPZ(nil,f,l,l,n,next,prev)
+#define DLLPushFront_NPZ(nil,f,l,n,next,prev) DLLInsert_NPZ(nil,l,f,f,n,prev,next)
+#define DLLRemove_NPZ(nil,f,l,n,next,prev) (((n) == (f) ? (f) = (n)->next : (0)),\
+((n) == (l) ? (l) = (l)->prev : (0)),\
+(CheckNil(nil,(n)->prev) ? (0) :\
+((n)->prev->next = (n)->next)),\
+(CheckNil(nil,(n)->next) ? (0) :\
+((n)->next->prev = (n)->prev)))
+
+// ak: Singly-Linked, Doubly-Headed Lists (Queues)
+#define SLLQueuePush_NZ(nil,f,l,n,next) (CheckNil(nil,f)?\
+((f)=(l)=(n),SetNil(nil,(n)->next)):\
+((l)->next=(n),(l)=(n),SetNil(nil,(n)->next)))
+#define SLLQueuePushFront_NZ(nil,f,l,n,next) (CheckNil(nil,f)?\
+((f)=(l)=(n),SetNil(nil,(n)->next)):\
+((n)->next=(f),(f)=(n)))
+#define SLLQueuePop_NZ(nil,f,l,next) ((f)==(l)?\
+(SetNil(nil,f),SetNil(nil,l)):\
+((f)=(f)->next))
+
+// ak: Doubly-Linked-List helpers
+#define DLLInsert_NP(f,l,p,n,next,prev) DLLInsert_NPZ(0,f,l,p,n,next,prev)
+#define DLLPushBack_NP(f,l,n,next,prev) DLLPushBack_NPZ(0,f,l,n,next,prev)
+#define DLLPushFront_NP(f,l,n,next,prev) DLLPushFront_NPZ(0,f,l,n,next,prev)
+#define DLLRemove_NP(f,l,n,next,prev) DLLRemove_NPZ(0,f,l,n,next,prev)
+#define DLLInsert(f,l,p,n) DLLInsert_NPZ(0,f,l,p,n,next,prev)
+#define DLLPushBack(f,l,n) DLLPushBack_NPZ(0,f,l,n,next,prev)
+#define DLLPushFront(f,l,n) DLLPushFront_NPZ(0,f,l,n,next,prev)
+#define DLLRemove(f,l,n) DLLRemove_NPZ(0,f,l,n,next,prev)
+
+// ak: Constants
 //=============================================================================
 
 global uint64_t max_u64 = 0xffffffffffffffffull;
@@ -176,10 +237,10 @@ read_only global uint8_t integer_symbol_reverse[128] =
     0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
 };
 
-// Functions
+// ak: Functions
 //=============================================================================
 
-// Safe Casts =================================================================
+// ak: Safe Casts =============================================================
 
 internal uint16_t safe_cast_u16(uint32_t x);
 internal uint32_t safe_cast_u32(uint64_t x);
