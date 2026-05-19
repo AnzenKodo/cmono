@@ -6,7 +6,6 @@
 
 typedef struct Arena Arena;
 struct Arena {
-    char   *buffer;
     size_t reserve_size;
     size_t commit_size;
     size_t commit_pos;

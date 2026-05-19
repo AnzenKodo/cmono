@@ -4,7 +4,7 @@
         {
             "name": "Debug Program",
             "request": "launch",
-            "program": "${workspaceFolder}/build/app_debug",
+            "program": "${workspaceFolder}/build/cope_debug",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
             // "arguments": "shaders/circles.frag",
@@ -23,11 +23,11 @@
                 {
             "name": "Debug Meta",
             "request": "launch",
-            "program": "${workspaceFolder}/a.out",
+            "program": "${workspaceFolder}/build/mdg_debug",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
-            "args": [ "build-run" ],
-            "arguments": "build-run",
+            "args": [ "src" ],
+            "arguments": "src",
             "preLaunchTask": "Build Meta"
         },
         {
