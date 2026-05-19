@@ -103,32 +103,31 @@ internal void base_main(void)
         }
         
         // ak: build ui
-        ui_state_select(state);
-        ui_build_begin();
+        ui_build_begin(state);
         {
-            // ui_pref_width_push(ui_em(20.f, 1.f));
-        //     ui_pref_height_push(ui_em(4.f, 1.f));
-        //     {
+            ui_pref_width_push(ui_em(20.f, 1.f));
+            ui_pref_height_push(ui_em(4.f, 1.f));
+            {
         //         ui_labelf("Here is a panel.");
         //         if (ui_buttonf("Hello World").clicked_left)
-        //         {
+                {
         //             ui_buttonf("Hellow World");
-        //         }
-        //     }
+                }
+            }
         }
+        ui_build_end();
         
         // ak: render ui
-        // for(UI_Box *box = ui_root_from_state(state); !ui_box_is_nil(box);)
-        // {
-        //     UI_Box_Step step = ui_box_step_reverse(box, &ui_box_nil);
-        //     if (box->flags & UI_Box_Flag_DrawBackground)
-        //     {
+        UI_Box_Rec rec;
+        for(UI_Box *box = ui_root_from_state(state); !ui_box_is_nil(box); box = rec.next)
+        {
+            rec = ui_box_rec_df_post(box, &ui_box_nil);
+            if (box->flags & UI_Box_Flag_DrawBackground)
+            {
         //         Vec2_F32 rect = box->rect;
-        //         render_draw_rect_push(scratch.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, APP_BACKGROUND_COLOR);
-        //     }
-        //     box = step.next;
-        // }
-        
+                render_draw_rect_push(scratch.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, APP_BACKGROUND_COLOR);
+            }
+        }
         render(&list);
         arena_temp_end(scratch);
     }

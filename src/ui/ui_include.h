@@ -39,7 +39,6 @@
 //     UI_Box_Flag_DrawBorder        = (1<<10),
 // };
 
-// #include "./generated/ui.meta.h"
 #include "./ui_core.h"
 // #include "./ui_basic_widgets.h"
 

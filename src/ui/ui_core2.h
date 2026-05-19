@@ -193,8 +193,6 @@ struct UI_State
     {\
         state->name_lower##_stack.bottom_val = (node->v);\
     }\
-    state->name_lower##_stack.auto_pop = false;\
-    state->name_lower##_stack.gen += 1;\
     return old_value
 
 #define UI_StackPop(state, name_upper, name_lower) \
@@ -203,8 +201,6 @@ struct UI_State
     {\
         SLLStackPop(state->name_lower##_stack.top);\
         SLLStackPush(state->name_lower##_stack.free, popped);\
-        state->name_lower##_stack.auto_pop = false;\
-        state->name_lower##_stack.gen += 1;\
     }\
     return popped->v
 
@@ -216,8 +212,6 @@ struct UI_State
     type old_value = state->name_lower##_stack.top->v;\
     node->v = new_value;\
     SLLStackPush(state->name_lower##_stack.top, node);\
-    state->name_lower##_stack.auto_pop = 1;\
-    state->name_lower##_stack.gen += 1;\
     return old_value;
 
 #define ui_box_step_reverse(box, root) ui_box_step_next(box, root, OffsetOf(UI_Box, prev), OffsetOf(UI_Box, last))
