@@ -64,9 +64,9 @@ global const char *help_message = "DESCRIPTION:\n"
 //~ ak: Functions
 //=============================================================================
 
-internal void build_cmd_append(Build_Info *info, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
 internal void build_cmd_finish(Build_Info *info);
 internal void build_cmd_run(Build_Info *info);
+internal void build_cmd_append(Build_Info *info, const char *format, ...);
 internal char *build_type_to_str8(Build_Info *info);
 
 internal void build_cmd_append_output(Build_Info *info)

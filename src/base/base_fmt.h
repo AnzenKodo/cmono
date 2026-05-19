@@ -8,19 +8,6 @@
 // #define STB_SPRINTF_STATIC
 #include "./external/stb_sprintf.h"
 
-#if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
-#   define FmtTypeCheck(fmt_idx, arg_idx) __attribute__((format(printf, fmt_idx, arg_idx)))
-#   define PRINTF_FORMAT_CHECK
-#elif defined(COMPILER_MSVC)
-#   define FmtTypeCheck(fmt_idx, arg_idx)
-#   include <sal.h>
-#   if _MSC_VER > 1400
-#       define PRINTF_FORMAT_CHECK _Printf_format_string_
-#   endif
-#else
-#   error printf type-safety check is not defined for this compiler.
-#endif
-
 // Functions
 // ============================================================================
 
@@ -29,26 +16,26 @@
 internal uint64_t fmt_fprint(Os_File file, const char *string);
 internal uint64_t fmt_fprintln(Os_File file, const char *string);
 internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args);
-internal uint64_t fmt_fprintf(Os_File file, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal uint64_t fmt_fprintf(Os_File file, const char *format, ...);
 internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args);
-internal uint64_t fmt_fprintfln(Os_File file, PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(2, 3);
+internal uint64_t fmt_fprintfln(Os_File file, const char *format, ...);
 
 // Print ======================================================================
 
 internal void fmt_print(const char *string);
 internal void fmt_println(const char *string);
 internal void fmt_vprintf(const char *format, va_list args);
-internal void fmt_printf(PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(1, 2);
+internal void fmt_printf(const char *format, ...);
 internal void fmt_vprintfln(const char *format, va_list args);
-internal void fmt_printfln(PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(1, 2);
+internal void fmt_printfln(const char *format, ...);
 
 // EPrint =====================================================================
 
 internal void fmt_eprint(const char *string);
 internal void fmt_eprintln(const char *string);
 internal void fmt_veprintf(const char *format, va_list args);
-internal void fmt_eprintf(PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(1, 2);
+internal void fmt_eprintf(const char *format, ...);
 internal void fmt_veprintfln(const char *format, va_list args);
-internal void fmt_eprintfln(PRINTF_FORMAT_CHECK const char *format, ...) FmtTypeCheck(1, 2);
+internal void fmt_eprintfln(const char *format, ...);
 
 #endif // BASE_FMT_H
