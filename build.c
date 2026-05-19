@@ -64,9 +64,9 @@ global const char *help_message = "DESCRIPTION:\n"
 //~ ak: Functions
 //=============================================================================
 
-internal void build_cmd_finish(Build_Info *info);
-internal void build_cmd_run(Build_Info *info);
 internal void build_cmd_append(Build_Info *info, const char *format, ...);
+internal int build_cmd_finish(Build_Info *info);
+internal int build_cmd_run(Build_Info *info);
 internal char *build_type_to_str8(Build_Info *info);
 
 internal void build_cmd_append_output(Build_Info *info)
@@ -212,7 +212,7 @@ internal void build_compile_gcc(Build_Info *info)
 
 //~ ak: Build types functions =================================================
 
-internal void build_compile(Build_Info *info)
+internal int build_compile(Build_Info *info)
 {
     if (os_dir_make(info->dir))
     {
@@ -232,12 +232,12 @@ internal void build_compile(Build_Info *info)
     {
         fmt_eprintf("Error: OS build compile is not supported.");
     }
-    build_cmd_finish(info);
+    return build_cmd_finish(info);
 }
 
 //~ ak: Build run functions ===================================================
 
-internal void build_run(Build_Info *info)
+internal int build_run(Build_Info *info)
 {
     fmt_println("# Running ------------------------------------------------------------------- #");
     if (info->mingw)
@@ -250,7 +250,7 @@ internal void build_run(Build_Info *info)
     }
     build_cmd_append_output(info);
     build_cmd_append(info, " %.*s", str8_varg(info->args));
-    build_cmd_finish(info);
+    return build_cmd_finish(info);
 }
 
 internal void base_main(void)
@@ -265,6 +265,7 @@ internal void base_main(void)
     bool should_print_help = false;
     bool build_run_program = false;
     bool gen_meta_program = false;
+    int exit_code = 0;
     Str8_Array *args = os_args_get();
     if (args->length >= 2)
     {
@@ -339,6 +340,7 @@ internal void base_main(void)
             info.log_context.enable_color_log = false;
         }
     }
+    
     if (!should_print_help)
     {
         fmt_println("# Build Output ============================================================== #");
@@ -354,17 +356,18 @@ internal void base_main(void)
         }
         if (info.type != Build_Type_None)
         {
-            build_compile(&info);
+            exit_code = build_compile(&info);
         }
-        if (build_run_program)
+        if (exit_code == 0 && build_run_program)
         {
-            build_run(&info);
+            exit_code = build_run(&info);
         }
     }
     else
     {
         fmt_printf("%s", help_message);
     }
+    os_exit(exit_code);
 }
 
 internal void build_cmd_append(Build_Info *info, const char *format, ...)
@@ -379,21 +382,23 @@ internal void build_cmd_append(Build_Info *info, const char *format, ...)
     va_end(args);
 }
 
-internal void build_cmd_run(Build_Info *info)
+internal int build_cmd_run(Build_Info *info)
 {
     fmt_printf("Command: %s\n", info->cmd);
-    int err = system((const char *)info->cmd);
-    if (err)
+    int status = system((const char *)info->cmd);
+    if (status == -1)
     {
-        fmt_eprintf("\nError: %s\n", strerror(err));
-        os_exit(err);
+        fmt_eprintf("\nError: %s\n", strerror(errno));
     }
+    int exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+    return exit_code;
 }
 
-internal void build_cmd_finish(Build_Info *info)
+internal int build_cmd_finish(Build_Info *info)
 {
-    build_cmd_run(info);
+    int exit_code = build_cmd_run(info);
     mem_set(info->cmd, 0, cstr8_length((uint8_t *)info->cmd));
+    return exit_code;
 }
 
 internal char *build_type_to_str8(Build_Info *info)
