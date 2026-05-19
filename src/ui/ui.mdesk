@@ -107,7 +107,18 @@ UI_StackTable:
         `internal $(a.type) ui_$(a.name_lower)_next_set($(a.type) v);`
 }
 
-//- ak: decls for the stack operation implementations
+
+// ak: defer-loop helpers
+
+@gen @c_file
+{
+    `#if 0`;
+    @expand(UI_StackTable a)
+        `#define UI_$(a.name)(v) DeferLoop(ui_$(a.name_lower)_push(v), ui_$(a.name_lower)_pop())`
+    `#endif`;
+}
+
+// ak: decls for the stack operation implementations
 
 @gen @c_file
 {
