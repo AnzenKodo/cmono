@@ -68,6 +68,17 @@
 
 #define GL_LINK_STATUS                  0x8b82
 #define GL_DYNAMIC_DRAW                 0x88e8
+#define GL_CLAMP_TO_EDGE                0x812f
+
+#define GL_RG                           0x8227
+#define GL_R8                           0x8229
+#define GL_RG8                          0x822b
+#define GL_RG                           0x8227
+#define GL_R16                          0x822a
+#define GL_R32                          0x822e
+#define GL_R32F                         0x822e
+#define GL_RG32F                        0x8230
+#define GL_RGBA32F                      0x8814
 #define GL_BGRA                         0x80e1
 
 // OpenGL setup function pointers
