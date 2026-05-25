@@ -263,7 +263,7 @@ internal uint64_t mdg_hash_from_string(Str8 string);
 
 internal void mdg_msg_list_push(MDG_Msg_List *msgs, MDG_Msg *msg, Arena *arena);
 
-//~ rjf: C-String-Izing =======================================================
+// ak: C-String-Izing =======================================================
 
 internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *arena);
 internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena);

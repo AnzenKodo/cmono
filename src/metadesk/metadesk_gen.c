@@ -22,7 +22,7 @@ internal void mdg_msg_list_push(MDG_Msg_List *msgs, MDG_Msg *msg, Arena *arena)
     msgs->count += 1;
 }
 
-//~ rjf: C-String-Izing
+// ak: C-String-Izing
 //=============================================================================
 
 internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *arena)
@@ -358,14 +358,14 @@ internal size_t mdg_column_index_from_name(MDG_Column_Desc_Array descs, Str8 nam
 internal Str8 mdg_string_from_row_desc_index(MD_Node *row_parent, MDG_Column_Desc_Array descs, size_t index)
 {
     Str8 result = ZERO_STRUCT;
-    // rjf: grab relevant column description
+    // ak: grab relevant column description
     MDG_Column_Desc *desc = 0;
     if(index < descs.count)
     {
         desc = descs.v + index;
     }
     
-    // rjf: grab node
+    // ak: grab node
     if(desc != 0)
     {
         switch (desc->kind)
@@ -373,7 +373,7 @@ internal Str8 mdg_string_from_row_desc_index(MD_Node *row_parent, MDG_Column_Des
             default: break;
             case MDG_Column_Kind_DirectCell:
             {
-                 // rjf: determine grid index (shifted by synthetic columns)
+                 // ak: determine grid index (shifted by synthetic columns)
                  size_t cell_idx = index;
                  for (size_t col_idx = 0; col_idx < descs.count && col_idx < index; col_idx += 1)
                  {

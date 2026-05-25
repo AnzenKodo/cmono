@@ -254,7 +254,7 @@ internal bool md_node_is_nil(MD_Node *node);
 internal MD_Node *md_node_push(MD_Node_Kind kind, MD_Node_Flags flags, Str8 string, Str8 raw_string, uint64_t src_offset, Arena *arena);
 internal void md_node_child_push(MD_Node *parent, MD_Node *node);
 
-//- rjf: tree introspection
+// ak: tree introspection
 internal MD_Node *md_node_from_chain_string(MD_Node *first, MD_Node *opl, Str8 string, Str_Match_Flags flags);
 internal MD_Node *md_node_from_chain_index(MD_Node *first, MD_Node *opl, size_t index);
 internal MD_Node *md_tag_from_string(MD_Node *node, Str8 tag_string, Str_Match_Flags flags);

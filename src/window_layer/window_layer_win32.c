@@ -292,7 +292,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         // {
         // } break;
         //
-        //     //- rjf: [custom border]
+        //     // ak: [custom border]
         // case WM_NCPAINT:
         // {
         // } break;

@@ -278,7 +278,7 @@ internal void ui_build_begin(void)
     ui_state->root = &ui_box_nil;
     UI_InitStacks(ui_state);
     
-    //- rjf: prune all of the stale boxes
+    // ak: prune all of the stale boxes
     for(uint64_t slot = 0; slot < ui_state->box_table_size; slot += 1)
     {
         for(UI_Box *box = ui_state->box_table[slot].first, *next = 0; !ui_box_is_nil(box); box = next)
@@ -294,7 +294,7 @@ internal void ui_build_begin(void)
         }
     }
 
-    //- rjf: zero hot key on pruned boxes
+    // ak: zero hot key on pruned boxes
     // UI_Box *box = UI_BoxFromKey(ui_state->hot_key);
     // if(UI_BoxIsNil(box) &&
     //         (ui_key_match(ui_key_zero(), ui_state->active_key[UI_MouseButtonSlot_Left]) ||

@@ -7,7 +7,7 @@ UI_StackTable:
     { Parent            parent              `UI_Box *`      `&ui_box_nil`                           }
     { SeedKey           seed_key            UI_Key          `ui_key_zero()`                         }
     
-    //- rjf: flags & interaction
+    // ak: flags & interaction
     {Flags              flags               UI_Box_Flags    0                                       }
     
     //- ak: layout
