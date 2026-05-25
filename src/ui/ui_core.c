@@ -2,7 +2,7 @@ internal UI_State *ui_state_alloc(Arena *arena)
 {
     UI_State *state = arena_push(arena, UI_State, 1);
     state->arena = arena;
-    state->build_arena = arena_alloc(MB(10), MB(1));
+    state->build_arena = arena_alloc();
     state->box_table_size = 4096;
     state->box_table = arena_push(state->arena, UI_BoxHashSlot, state->box_table_size);
     UI_InitStackNils(state);
@@ -33,7 +33,7 @@ internal bool ui_key_match(UI_Key a, UI_Key b)
 
 internal UI_Key ui_key_zero(void)
 {
-    UI_Key result = {0};
+    UI_Key result = ZERO_STRUCT;
     return result;
 }
 
@@ -239,5 +239,4 @@ internal void ui_build_end(void)
     ui_state->build_index += 1;
     arena_clear(ui_build_arena());
 }
-
 

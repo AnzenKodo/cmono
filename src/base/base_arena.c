@@ -1,16 +1,12 @@
-// TODO(ak): Enable Asan
-// - https://gemini.google.com/share/b66bedbce69c
-// - https://grok.com/share/c2hhcmQtMi1jb3B5_2aebf27c-9d5c-4f48-8e23-92e27aefbdf2
-
-// Arena
+// ak: Arena
 //=============================================================================
 
-internal Arena *arena_alloc(size_t reserve_size, size_t commit_size)
+internal Arena *_arena_alloc(ArenaParams *params)
 {
     Arena *result = NULL;
     size_t pagesize = os_pagesize_get();
-    reserve_size = AlignPow2(reserve_size, pagesize);
-    commit_size = AlignPow2(commit_size, pagesize);
+    size_t reserve_size = AlignPow2(params->reserve_size, pagesize);
+    size_t commit_size = AlignPow2(params->commit_size, pagesize);
     Arena* arena = os_mem_reserve(reserve_size);
     if (os_mem_commit(arena, commit_size))
     {
@@ -19,13 +15,14 @@ internal Arena *arena_alloc(size_t reserve_size, size_t commit_size)
         arena->pos = ARENA_HEADER_SIZE;
         arena->commit_pos = commit_size;
         result = arena;
+        AsanPoisonMemoryRegion(arena, commit_size);
+        AsanUnpoisonMemoryRegion(arena, ARENA_HEADER_SIZE);
     }
-    // AsanPoisonMemoryRegion(arena, commit_size);
-    // AsanUnpoisonMemoryRegion(arena, ARENA_HEADER_SIZE);
     return result;
 }
 internal void arena_free(Arena* arena)
 {
+    AsanUnpoisonMemoryRegion(arena, arena->reserve_size);
     os_mem_release(arena, arena->reserve_size);
 }
 
@@ -52,11 +49,12 @@ internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_ze
             if (os_mem_commit(mem, commit_size))
             {
                 arena->commit_pos = commit_pos_new;
+                AsanPoisonMemoryRegion(mem, commit_size);
             }
-            // AsanUnpoisonMemoryRegion(mem, commit_size);
         }
         arena->pos = pos_new;
         result = (char*)arena + pos_align;
+        AsanUnpoisonMemoryRegion(result, size);
         if (fill_zero) {
             mem_set(result, 0, size);
         }
@@ -67,7 +65,7 @@ internal void arena_pop(Arena *arena, size_t size)
 {
     size = Min(size, arena->pos - ARENA_HEADER_SIZE);
     arena->pos -= size;
-    // AsanPoisonMemoryRegion(arena, commit_size);
+    AsanPoisonMemoryRegion((char*)arena + arena->pos, size);
 }
 internal void arena_pop_to(Arena *arena, size_t pos)
 {
@@ -79,8 +77,8 @@ internal void arena_clear(Arena *arena)
     arena_pop_to(arena, ARENA_HEADER_SIZE);
 }
 
-// Temp Arena
-// ============================================================================
+// ak: Temp Arena
+//=============================================================================
 
 internal Arena_Temp arena_temp_begin(Arena *arena)
 {
@@ -94,8 +92,8 @@ internal void arena_temp_end(Arena_Temp temp)
     arena_pop_to(temp.arena, temp.pos);
 }
 
-// Scratch Arena
-// ============================================================================
+// ak: Scratch Arena
+//=============================================================================
 
 internal Arena *arena_scratch(Arena **conflicts, size_t length)
 {
@@ -118,11 +116,10 @@ internal Arena *arena_scratch(Arena **conflicts, size_t length)
             result = *arena_ptr;
             if (result == NULL)
             {
-                result = arena_alloc(MB(10), MB(1));
+                result = arena_alloc();
             }
             break;
         }
     }
-
     return result;
 }

@@ -117,7 +117,7 @@ struct UI_State
 #define UI_StackPush(state, name_upper, name_lower, type, new_value) \
     UI_##name_upper##_Node *node = state->name_lower##_stack.free;\
     if(node != 0) {SLLStackPop(state->name_lower##_stack.free);}\
-    else {node = arena_push(state->arena, UI_##name_upper##_Node, 1);}\
+    else {node = arena_push(ui_build_arena(), UI_##name_upper##_Node, 1);}\
     type old_value = state->name_lower##_stack.top->v;\
     node->v = new_value;\
     SLLStackPush(state->name_lower##_stack.top, node);\
@@ -139,7 +139,7 @@ struct UI_State
 #define UI_StackSetNext(state, name_upper, name_lower, type, new_value) \
     UI_##name_upper##_Node *node = state->name_lower##_stack.free;\
     if(node != 0) {SLLStackPop(state->name_lower##_stack.free);}\
-    else {node = arena_push(state->arena, UI_##name_upper##_Node, 1);}\
+    else {node = arena_push(ui_build_arena(), UI_##name_upper##_Node, 1);}\
     type old_value = state->name_lower##_stack.top->v;\
     node->v = new_value;\
     SLLStackPush(state->name_lower##_stack.top, node);\

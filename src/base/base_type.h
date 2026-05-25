@@ -136,7 +136,7 @@ struct F64Array
     (T){ \
         .size = (s), \
         .length = 0, \
-        .v = arena_push((a), TypeOf(((T){0}).v[0]), (s)) \
+        .v = arena_push((a), TypeOf(((T)ZERO_STRUCT).v[0]), (s)) \
     }
 #define array_append(array, data) (Assert((array)->length < (array)->size), (array)->v[(array)->length++] = (data))
 #define array_get(array, index) (Assert((index) <= (array)->size), (array)->v[(index)])

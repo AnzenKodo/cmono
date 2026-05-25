@@ -85,12 +85,12 @@ internal void base_main(void)
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
     Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
-    Render_Draw_List list = ZERO_STRUCT;
     
     // Program Loop ===========================================================
     while (!wl_should_window_close())
     {
         Arena_Temp temp = arena_temp_begin(arena);
+        Render_Draw_List list = ZERO_STRUCT;
         wl_set_fps(60);
         wl_update_events();
         if ((wl_is_key_pressed(Wl_Key_Esc)) ||
