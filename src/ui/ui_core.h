@@ -35,28 +35,31 @@ struct UI_Size
     float strictness;
 };
 
+typedef struct UI_Key UI_Key;
+struct UI_Key
+{
+  uint64_t u64[1];
+};
+
 typedef struct UI_Box UI_Box;
 struct UI_Box
 {
+    UI_Box *hash_next;
+    UI_Box *hash_prev;
     UI_Box *parent;
     UI_Box *next_sibling;
     UI_Box *prev_sibling;
     UI_Box *first_child;
     UI_Box *last_child;
+    UI_Key key;
     UI_Box_Flags flags;
-    float text_padding;
-    Axis_2d child_layout_axis;
     size_t child_count;
-    // ak: size
+    float text_padding;
+    Axis_2d child_axis;
     UI_Size pref_size[Axis_2d_COUNT];
     Vec2_F32 fixed_size;
-    Vec2_F32 min_size;
-    Rng2_F32 rect;
-    
-    Vec2_F32 fixed_position;
-    Vec2_F32 position_delta;
-    Vec2_F32 view_bounds;
-    Vec2_F32 view_off;
+    size_t first_touched_build_index;
+    size_t last_touched_build_index;
 };
 
 
@@ -68,6 +71,13 @@ struct UI_Box_Rec
     size_t pop_count;
 };
 
+typedef struct UI_BoxHashSlot UI_BoxHashSlot;
+struct UI_BoxHashSlot
+{
+    UI_Box *hash_first;
+    UI_Box *hash_last;
+};
+
 #include "./generated/ui.meta.h"
 
 typedef struct UI_State UI_State;
@@ -75,6 +85,15 @@ struct UI_State
 {
     UI_Box *root;
     Arena *arena;
+    Arena *build_arena;
+    size_t build_box_count;
+    size_t build_index;
+    
+    // ak: box cache
+    UI_Box *first_free_box;
+    size_t box_table_size;
+    UI_BoxHashSlot *box_table;
+
     UI_DeclStackNils;
     UI_DeclStacks;
 };
@@ -141,7 +160,8 @@ PragmaNoWarnMissingFieldInitPush()
 
 read_only global UI_Box ui_box_nil =
 {
-    
+    &ui_box_nil,
+    &ui_box_nil,
     &ui_box_nil,
     &ui_box_nil,
     &ui_box_nil,

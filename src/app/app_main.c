@@ -125,7 +125,7 @@ internal void base_main(void)
             if (box->flags & UI_Box_Flag_DrawBackground)
             {
         //         Vec2_F32 rect = box->rect;
-                render_draw_rect_push(scratch.arena, &list, (Vec4_F32){ 0, 0, (float)width, (float)height }, APP_BACKGROUND_COLOR);
+                render_draw_rect_push(scratch.arena, &list, (Vec4_F32){ 0, 0, box->fixed_size.x, box->fixed_size.y }, APP_BACKGROUND_COLOR);
             }
         }
         render(&list);
