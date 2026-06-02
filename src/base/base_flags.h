@@ -1,8 +1,8 @@
 #ifndef BASE_FLAGS_H
 #define BASE_FLAGS_H
 
-// Types
-// ============================================================================
+// ak: Types
+//=============================================================================
 
 typedef enum _Flags_Error_Kind
 {
@@ -13,12 +13,12 @@ typedef enum _Flags_Error_Kind
     _Flags_Error_Kind_SingleValue,
     _Flags_Error_Kind_InvalidBool,
     _Flags_Error_Kind_OutIndexArg,
-    // Option Enums
+    // ak: Option Enums
     _Flags_Error_Kind_RequireOption,
     _Flags_Error_Kind_InvalidIntOption,
     _Flags_Error_Kind_UIntMinusOption,
     _Flags_Error_Kind_InvalidFloatOption,
-    // Arg Enums
+    // ak: Arg Enums
     _Flags_Error_Kind_RequireArg,
     _Flags_Error_Kind_InvalidIntArg,
     _Flags_Error_Kind_UIntMinusArg,
@@ -119,8 +119,8 @@ struct Flags_Arg
     bool required;
 };
 
-typedef struct Flags_Context Flags_Context;
-struct Flags_Context
+typedef struct _Flags_State _Flags_State;
+struct _Flags_State
 {
     Arena *arena;
     Flags_Option *first_option;
@@ -135,55 +135,62 @@ struct Flags_Context
     Log_Context log_context;
 };
 
-// Functions
-// ============================================================================
+// ak: Functions
+//=============================================================================
 
-// Private functions ==========================================================
+// ak: Private functions ======================================================
 
-internal Flags_Option *_flags_get_options(Flags_Context *context, Str8 name);
-internal void _flags_add_option(Flags_Context *context, Flags_Option *option);
-internal Flags_Arg *_flags_get_arg(Flags_Context *context, size_t index);
-internal void _flags_add_arg(Flags_Context *context, Flags_Arg *arg);
-internal void _flags_add_option_error(Flags_Context *context, _Flags_Error_Kind kind, Str8 name);
-internal void _flags_add_option_error_value(Flags_Context *context, _Flags_Error_Kind kind, Str8 name, Str8 value);
-internal void _flags_add_error_arg(Flags_Context *context, _Flags_Error_Kind kind, size_t index, Str8 value);
+internal Flags_Option *_flags_get_options(Str8 name);
+internal void _flags_add_option(Flags_Option *option);
+internal Flags_Arg *_flags_get_arg(size_t index);
+internal void _flags_add_arg(Flags_Arg *arg);
+internal void _flags_add_option_error(_Flags_Error_Kind kind, Str8 name);
+internal void _flags_add_option_error_value(_Flags_Error_Kind kind, Str8 name, Str8 value);
+internal void _flags_add_error_arg(_Flags_Error_Kind kind, size_t index, Str8 value);
 internal bool _flags_is_arg_option(Str8 arg);
 internal Str8 _flags_get_options_from_arg(Str8 arg);
 internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index);
 
-// Flags core functions =======================================================
+// ak: Flags core functions ===================================================
 
-internal Flags_Context *flags_init(Arena *arena);
-internal bool flags_parse(Flags_Context *context, Str8_Array *args);
-internal void flags_print_error(Flags_Context *context);
-internal void flags_print_help(Flags_Context *context);
+internal void flags_begin(void);
+internal void flags_end(void);
+#define FlagsScope(arena) DeferLoop(flags_begin(arena), flags_end())
+internal bool flags_parse(Str8_Array *args);
+internal void flags_print_error(void);
+internal void flags_print_help(void);
 
-// Flags config functions =====================================================
+// ak: Flags config functions =================================================
 
-internal void flags_has_program_name(Flags_Context *context, bool has_name);
+internal void flags_has_program_name(bool has_name);
 internal void flags_add_option_shortname(Flags_Option *option, Str8 shortname);
 internal void flags_add_option_value_hint(Flags_Option *option, Str8 value_hint);
 internal void flags_make_option_required(Flags_Option *option);
 internal void flags_make_arg_required(Flags_Arg *arg);
 
-// Add option flag ============================================================
+// ak: Add option flag ========================================================
 
-internal Flags_Option *flags_option_str(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description);
-internal Flags_Option *flags_option_int(Flags_Context *context, Str8 name, int64_t *result_value, int64_t default_value, Str8 description);
-internal Flags_Option *flags_option_uint(Flags_Context *context, Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description);
-internal Flags_Option *flags_option_float(Flags_Context *context, Str8 name, double *result_value, double default_value, Str8 description);
-internal Flags_Option *flags_option_bool(Flags_Context *context, Str8 name, bool *result_value, bool default_value, Str8 description);
+internal Flags_Option *flags_option_str(Str8 name, Str8 *result_value, Str8 default_value, Str8 description);
+internal Flags_Option *flags_option_int(Str8 name, int64_t *result_value, int64_t default_value, Str8 description);
+internal Flags_Option *flags_option_uint(Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description);
+internal Flags_Option *flags_option_float(Str8 name, double *result_value, double default_value, Str8 description);
+internal Flags_Option *flags_option_bool(Str8 name, bool *result_value, bool default_value, Str8 description);
 
-internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description);
-internal Flags_Option *flags_option_int_arr(Flags_Context *context, Str8 name, I64Array *result_value, I64Array *default_value, Str8 description);
-internal Flags_Option *flags_option_uint_arr(Flags_Context *context, Str8 name, U64Array *result_value, U64Array *default_value, Str8 description);
-internal Flags_Option *flags_option_float_arr(Flags_Context *context, Str8 name, F64Array *result_value, F64Array *default_value, Str8 description);
+internal Flags_Option *flags_option_str_arr(Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description);
+internal Flags_Option *flags_option_int_arr(Str8 name, I64Array *result_value, I64Array *default_value, Str8 description);
+internal Flags_Option *flags_option_uint_arr(Str8 name, U64Array *result_value, U64Array *default_value, Str8 description);
+internal Flags_Option *flags_option_float_arr(Str8 name, F64Array *result_value, F64Array *default_value, Str8 description);
 
-// Add value flag =============================================================
+// ak: Add value flag =========================================================
 
-internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *result_value, Str8 default_value);
-internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *result_value, int64_t default_value);
-internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *result_value, uint64_t default_value);
-internal Flags_Arg *flags_arg_float(Flags_Context *context, double *result_value, double default_value);
+internal Flags_Arg *flags_arg_str(Str8 *result_value, Str8 default_value);
+internal Flags_Arg *flags_arg_int(int64_t *result_value, int64_t default_value);
+internal Flags_Arg *flags_arg_uint(uint64_t *result_value, uint64_t default_value);
+internal Flags_Arg *flags_arg_float(double *result_value, double default_value);
 
-#endif // BASE_FLAGS_h
+// ak: Globals
+//=============================================================================
+
+global _Flags_State *_flags_state = 0;
+
+#endif // BASE_FLAGS_H

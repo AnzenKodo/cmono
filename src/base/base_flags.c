@@ -1,10 +1,10 @@
-// Private functions
-// ============================================================================
+// ak: Private functions
+//=============================================================================
 
-internal Flags_Option *_flags_get_option(Flags_Context *context, Str8 name)
+internal Flags_Option *_flags_get_option(Str8 name)
 {
     Flags_Option *result = NULL;
-    for (Flags_Option *option = context->first_option; option != NULL; option = option->next)
+    for (Flags_Option *option = _flags_state->first_option; option != NULL; option = option->next)
     {
         if (str8_match(name, option->name, 0))
         {
@@ -17,17 +17,17 @@ internal Flags_Option *_flags_get_option(Flags_Context *context, Str8 name)
     }
     return result;
 }
-internal void _flags_add_option(Flags_Context *context, Flags_Option *option)
+internal void _flags_add_option(Flags_Option *option)
 {
-    // Error on finding dublicate flags
-    Assert(_flags_get_option(context, option->name) == NULL);
-    SLLQueuePush(context->first_option, context->last_option, option);
+    // ak: Error on finding dublicate flags
+    Assert(_flags_get_option(option->name) == NULL);
+    SLLQueuePush(_flags_state->first_option, _flags_state->last_option, option);
 }
 
-internal Flags_Arg *_flags_get_arg(Flags_Context *context, size_t index)
+internal Flags_Arg *_flags_get_arg(size_t index)
 {
     Flags_Arg *result = NULL;
-    for (Flags_Arg *farg = context->first_arg; farg != NULL; farg = farg->next)
+    for (Flags_Arg *farg = _flags_state->first_arg; farg != NULL; farg = farg->next)
     {
         if (farg->index == index)
         {
@@ -36,38 +36,38 @@ internal Flags_Arg *_flags_get_arg(Flags_Context *context, size_t index)
     }
     return result;
 }
-internal void _flags_add_arg(Flags_Context *context, Flags_Arg *farg)
+internal void _flags_add_arg(Flags_Arg *farg)
 {
-    Assert(_flags_get_arg(context, farg->index) == NULL);
-    SLLQueuePush(context->first_arg, context->last_arg, farg);
-    farg->index = context->index_arg++;
+    Assert(_flags_get_arg(farg->index) == NULL);
+    SLLQueuePush(_flags_state->first_arg, _flags_state->last_arg, farg);
+    farg->index = _flags_state->index_arg++;
 }
 
-internal void _flags_add_option_error(Flags_Context *context, _Flags_Error_Kind kind, Str8 name)
+internal void _flags_add_option_error(_Flags_Error_Kind kind, Str8 name)
 {
-    _Flags_Error *error = arena_push(context->arena, _Flags_Error, 1);
+    _Flags_Error *error = arena_push(_flags_state->arena, _Flags_Error, 1);
     error->kind = kind;
     error->flag_name = name;
-    SLLQueuePush(context->first_error, context->last_error, error);
-    context->has_error = true;
+    SLLQueuePush(_flags_state->first_error, _flags_state->last_error, error);
+    _flags_state->has_error = true;
 }
-internal void _flags_add_option_error_value(Flags_Context *context, _Flags_Error_Kind kind, Str8 name, Str8 value)
+internal void _flags_add_option_error_value(_Flags_Error_Kind kind, Str8 name, Str8 value)
 {
-    _Flags_Error *error = arena_push(context->arena, _Flags_Error, 1);
+    _Flags_Error *error = arena_push(_flags_state->arena, _Flags_Error, 1);
     error->kind = kind;
     error->flag_name = name;
     error->value = value;
-    SLLQueuePush(context->first_error, context->last_error, error);
-    context->has_error = true;
+    SLLQueuePush(_flags_state->first_error, _flags_state->last_error, error);
+    _flags_state->has_error = true;
 }
-internal void _flags_add_error_arg(Flags_Context *context, _Flags_Error_Kind kind, size_t index, Str8 value)
+internal void _flags_add_error_arg(_Flags_Error_Kind kind, size_t index, Str8 value)
 {
-    _Flags_Error *error = arena_push(context->arena, _Flags_Error, 1);
+    _Flags_Error *error = arena_push(_flags_state->arena, _Flags_Error, 1);
     error->kind = kind;
     error->value = value;
     error->arg_index = index;
-    SLLQueuePush(context->first_error, context->last_error, error);
-    context->has_error = true;
+    SLLQueuePush(_flags_state->first_error, _flags_state->last_error, error);
+    _flags_state->has_error = true;
 }
 
 internal bool _flags_is_arg_option(Str8 arg)
@@ -106,22 +106,27 @@ internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index)
     return count;
 }
 
-// Flags core functions =======================================================
+// ak: Flags core functions ===================================================
 
-internal Flags_Context *flags_init(Arena *arena)
+internal void flags_begin(void)
 {
-    Flags_Context *context = arena_push(arena, Flags_Context, 1);
-    context->arena = arena;
-    context->has_program_name = true;
-    context->log_context = log_init();
-    return context;
+    Arena *arena = arena_alloc();
+    _flags_state = arena_push(arena, _Flags_State, 1);
+    _flags_state->arena = arena;
+    _flags_state->has_program_name = true;
+    _flags_state->log_context = log_init();
 }
 
-internal bool flags_parse(Flags_Context *context, Str8_Array *args)
+internal void flags_end(void)
+{
+    arena_free(_flags_state->arena);
+}
+
+internal bool flags_parse(Str8_Array *args)
 {
     bool has_passthrough_option = false;
     Flags_Option *option = NULL;
-    for (uint32_t index = context->has_program_name ? 1 : 0; index < args->length; index++)
+    for (uint32_t index = _flags_state->has_program_name ? 1 : 0; index < args->length; index++)
     {
         Str8 arg = args->v[index];
         Base base = Base_10;
@@ -134,16 +139,16 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
         if (_flags_is_arg_option(arg))
         {
             Str8 option_name = _flags_get_options_from_arg(arg);
-            option = _flags_get_option(context, option_name);
+            option = _flags_get_option(option_name);
             if (option == NULL)
             {
-                _flags_add_option_error(context, _Flags_Error_Kind_UnknownOption, option_name);
+                _flags_add_option_error(_Flags_Error_Kind_UnknownOption, option_name);
             }
             else
             {
                 if (option->assigned)
                 {
-                    _flags_add_option_error(context, _Flags_Error_Kind_DuplicateOption, option_name);
+                    _flags_add_option_error(_Flags_Error_Kind_DuplicateOption, option_name);
                 }
                 Str8 arg_next = ZERO_STRUCT;
                 if (args->length < index+1)
@@ -158,7 +163,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 }
                 if (is_arg_next_option && option->kind != _Flags_Option_Kind_Bool)
                 {
-                    _flags_add_option_error(context, _Flags_Error_Kind_MissingValue, option_name);
+                    _flags_add_option_error(_Flags_Error_Kind_MissingValue, option_name);
                 }
             }
         }
@@ -166,7 +171,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
         {
             if (option->assigned)
             {
-                _flags_add_option_error(context, _Flags_Error_Kind_SingleValue, option->name);
+                _flags_add_option_error(_Flags_Error_Kind_SingleValue, option->name);
             }
             option->assigned = true;
             switch (option->kind)
@@ -184,7 +189,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     }
                     else
                     {
-                        _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidIntOption, option->name, arg);
+                        _flags_add_option_error_value(_Flags_Error_Kind_InvalidIntOption, option->name, arg);
                     }
                 }
                 break;
@@ -198,12 +203,12 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         }
                         else
                         {
-                            _flags_add_option_error_value(context, _Flags_Error_Kind_UIntMinusOption, option->name, arg);
+                            _flags_add_option_error_value(_Flags_Error_Kind_UIntMinusOption, option->name, arg);
                         }
                     }
                     else
                     {
-                        _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidIntOption, option->name, arg);
+                        _flags_add_option_error_value(_Flags_Error_Kind_InvalidIntOption, option->name, arg);
                     }
                 }
                 break;
@@ -215,7 +220,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     }
                     else
                     {
-                        _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidFloatOption, option->name, arg);
+                        _flags_add_option_error_value(_Flags_Error_Kind_InvalidFloatOption, option->name, arg);
                     }
                 }
                 break;
@@ -227,7 +232,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                     }
                     else
                     {
-                        _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidBool, option->name, arg);
+                        _flags_add_option_error_value(_Flags_Error_Kind_InvalidBool, option->name, arg);
                     }
                 }
                 break;
@@ -235,7 +240,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     Str8_Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = arena_push(context->arena, Str8, items_count);
+                    array.v = arena_push(_flags_state->arena, Str8, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -250,7 +255,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     I64Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = arena_push(context->arena, int64_t, items_count);
+                    array.v = arena_push(_flags_state->arena, int64_t, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -260,7 +265,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         }
                         else
                         {
-                            _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidIntOption, option->name, array_arg);
+                            _flags_add_option_error_value(_Flags_Error_Kind_InvalidIntOption, option->name, array_arg);
                         }
                         index++;
                     }
@@ -272,7 +277,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     U64Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = arena_push(context->arena, uint64_t, index);
+                    array.v = arena_push(_flags_state->arena, uint64_t, index);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -284,12 +289,12 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                             }
                             else
                             {
-                                _flags_add_option_error_value(context, _Flags_Error_Kind_UIntMinusOption, option->name, array_arg);
+                                _flags_add_option_error_value(_Flags_Error_Kind_UIntMinusOption, option->name, array_arg);
                             }
                         }
                         else
                         {
-                            _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidIntOption, option->name, array_arg);
+                            _flags_add_option_error_value(_Flags_Error_Kind_InvalidIntOption, option->name, array_arg);
                         }
                         index++;
                     }
@@ -301,7 +306,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                 {
                     F64Array array = ZERO_STRUCT;
                     uint64_t items_count = _flags_get_values_count(args, index);
-                    array.v = arena_push(context->arena, double, items_count);
+                    array.v = arena_push(_flags_state->arena, double, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
                         Str8 array_arg = args->v[index];
@@ -311,7 +316,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         }
                         else
                         {
-                            _flags_add_option_error_value(context, _Flags_Error_Kind_InvalidIntOption, option->name, array_arg);
+                            _flags_add_option_error_value(_Flags_Error_Kind_InvalidIntOption, option->name, array_arg);
                         }
                         index++;
                     }
@@ -323,7 +328,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
         }
         else
         {
-            Flags_Arg *farg = _flags_get_arg(context, index - (context->has_program_name ? 1: 0));
+            Flags_Arg *farg = _flags_get_arg(index - (_flags_state->has_program_name ? 1: 0));
             if (farg != NULL)
             {
                 farg->assigned = true;
@@ -342,7 +347,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         }
                         else
                         {
-                            _flags_add_error_arg(context, _Flags_Error_Kind_InvalidIntArg, index, arg);
+                            _flags_add_error_arg(_Flags_Error_Kind_InvalidIntArg, index, arg);
                         }
                     }
                     break;
@@ -356,12 +361,12 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                             }
                             else
                             {
-                                _flags_add_error_arg(context, _Flags_Error_Kind_UIntMinusArg, index, arg);
+                                _flags_add_error_arg(_Flags_Error_Kind_UIntMinusArg, index, arg);
                             }
                         }
                         else
                         {
-                            _flags_add_error_arg(context, _Flags_Error_Kind_InvalidIntArg, index, arg);
+                            _flags_add_error_arg(_Flags_Error_Kind_InvalidIntArg, index, arg);
                         }
                     }
                     break;
@@ -373,7 +378,7 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
                         }
                         else
                         {
-                            _flags_add_error_arg(context, _Flags_Error_Kind_InvalidFloatArg, index, arg);
+                            _flags_add_error_arg(_Flags_Error_Kind_InvalidFloatArg, index, arg);
                         }
                     }
                     break;
@@ -381,18 +386,18 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
             }
             else
             {
-                _flags_add_error_arg(context, _Flags_Error_Kind_OutIndexArg, index, arg);
+                _flags_add_error_arg(_Flags_Error_Kind_OutIndexArg, index, arg);
             }
         }
     }
-    // Assign defaults and handle require
-    for (Flags_Option *foption = context->first_option; foption != NULL; foption = foption->next)
+    // ak: Assign defaults and handle require
+    for (Flags_Option *foption = _flags_state->first_option; foption != NULL; foption = foption->next)
     {
         if (!foption->assigned)
         {
             if (foption->required)
             {
-                _flags_add_option_error(context, _Flags_Error_Kind_RequireOption, foption->name);
+                _flags_add_option_error(_Flags_Error_Kind_RequireOption, foption->name);
             }
             else
             {
@@ -447,13 +452,13 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
             }
         }
     }
-    for (Flags_Arg *farg = context->first_arg; farg != NULL; farg = farg->next)
+    for (Flags_Arg *farg = _flags_state->first_arg; farg != NULL; farg = farg->next)
     {
         if (!farg->assigned)
         {
             if (farg->required)
             {
-                _flags_add_error_arg(context, _Flags_Error_Kind_RequireArg, farg->index, str8(""));
+                _flags_add_error_arg(_Flags_Error_Kind_RequireArg, farg->index, str8(""));
             }
             else
             {
@@ -479,118 +484,118 @@ internal bool flags_parse(Flags_Context *context, Str8_Array *args)
             }
         }
     }
-    return !context->has_error;
+    return !_flags_state->has_error;
 }
 
-internal void flags_print_error(Flags_Context *context)
+internal void flags_print_error(void)
 {
-    for (_Flags_Error *error = context->first_error; error != NULL; error = error->next)
+    for (_Flags_Error *error = _flags_state->first_error; error != NULL; error = error->next)
     {
         switch (error->kind)
         {
             case _Flags_Error_Kind_MissingValue:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "opiton '%.*s' requires a value. Example: '--%.*s <value>'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UnknownOption:
             {
-                log_errorfln(&context->log_context, "opiton '%.*s' is invalid.", str8_varg(error->flag_name));
+                log_errorfln(&_flags_state->log_context, "opiton '%.*s' is invalid.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_NoFlagPrefix:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "'%.*s' is not recognized as a opiton. Option must start with '-', '--', or '/' (Windows only). Examples: '-%.*s', '--%.*s', '/%.*s'.",
                     str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_DuplicateOption:
             {
-                log_errorfln(&context->log_context, "option '%.*s' was specified multiple times.", str8_varg(error->flag_name));
+                log_errorfln(&_flags_state->log_context, "option '%.*s' was specified multiple times.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_RequireOption:
             {
-                log_errorfln(&context->log_context, "missing required option '--%.*s'.", str8_varg(error->flag_name));
+                log_errorfln(&_flags_state->log_context, "missing required option '--%.*s'.", str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_InvalidIntOption:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "option '%.*s' expects an integer value, but '%.*s' was given. Examples: '--%.*s 42', '--%.*s -7', '--%.*s 123'.",
                     str8_varg(error->flag_name), str8_varg(error->value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_UIntMinusOption:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "option '%.*s' does not accept negative values (got '%.*s'). Use a positive integer instead.",
                     str8_varg(error->flag_name), str8_varg(error->value));
             }
             break;
             case _Flags_Error_Kind_InvalidFloatOption:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "option '%.*s' expects a floating-point number, but '%.*s' was given. Examples: '--%.*s .14', '--%.*s -0.5', '--%.*s 2', '--%.*s 2.0'.",
                     str8_varg(error->flag_name), str8_varg(error->value), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name), str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_InvalidBool:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "option '%.*s' expects a boolean value, but '%.*s' was given. Enter 'true', 'false' or no value for true.",
                     str8_varg(error->flag_name), str8_varg(error->value));
             }
             break;
             case _Flags_Error_Kind_SingleValue:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "option '%.*s' only accepts single value.",
                     str8_varg(error->flag_name));
             }
             break;
             case _Flags_Error_Kind_OutIndexArg:
             {
-                if (context->index_arg > 0)
+                if (_flags_state->index_arg > 0)
                 {
-                    log_errorfln(&context->log_context,
+                    log_errorfln(&_flags_state->log_context,
                         "command only accepts >= (less equal to) %zu arguments without options.",
-                        context->index_arg);
+                        _flags_state->index_arg);
                 }
                 else
                 {
-                    log_errorfln(&context->log_context,
+                    log_errorfln(&_flags_state->log_context,
                         "command don't accepts any arguments without options.");
                 }
             }
             break;
             case _Flags_Error_Kind_RequireArg:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "at least %zu argument without option is required.",
                     error->arg_index + 1);
             }
             break;
             case _Flags_Error_Kind_InvalidIntArg:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "%zu argument without option should be integer. Examples: '42', '-7', '123'.",
                     error->arg_index + 1);
             }
             break;
             case _Flags_Error_Kind_UIntMinusArg:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "%zu argument without option does not accept negative values (got '%.*s'). Use a positive integer instead.",
                     error->arg_index + 1, str8_varg(error->value));
             }
             break;
             case _Flags_Error_Kind_InvalidFloatArg:
             {
-                log_errorfln(&context->log_context,
+                log_errorfln(&_flags_state->log_context,
                     "%zu argument without option expects a floating-point number, but '%.*s' was given. Examples: '.14', '-0.5', '2', '2.0'.",
                     error->arg_index + 1, str8_varg(error->value));
             }
@@ -598,9 +603,9 @@ internal void flags_print_error(Flags_Context *context)
         }
     }
 }
-internal void flags_print_help(Flags_Context *context)
+internal void flags_print_help(void)
 {
-    for (Flags_Option *option = context->first_option; option != NULL; option = option->next)
+    for (Flags_Option *option = _flags_state->first_option; option != NULL; option = option->next)
     {
         term_style_start(OS_STDOUT, TERM_BOLD);
         fmt_printf("    %s%s%s%s--%.*s",
@@ -738,12 +743,12 @@ internal void flags_print_help(Flags_Context *context)
     }
 }
 
-// Flags config functions
-// ============================================================================
+// ak: Flags config functions
+//=============================================================================
 
-internal void flags_has_program_name(Flags_Context *context, bool has_name)
+internal void flags_has_program_name(bool has_name)
 {
-    context->has_program_name = has_name;
+    _flags_state->has_program_name = has_name;
 }
 
 internal void flags_add_option_shortname(Flags_Option *option, Str8 shortname)
@@ -763,146 +768,146 @@ internal void flags_make_arg_required(Flags_Arg *farg)
     farg->required = true;
 }
 
-// Add option ===================================================================
+// ak: Add option =============================================================
 
-internal Flags_Option *flags_option_str(Flags_Context *context, Str8 name, Str8 *result_value, Str8 default_value, Str8 description)
+internal Flags_Option *flags_option_str(Str8 name, Str8 *result_value, Str8 default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Str;
     option->name = name;
     option->default_value.str_value = default_value;
     option->description = description;
     option->result_value.str_value = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_int(Flags_Context *context, Str8 name, int64_t *result_value, int64_t default_value, Str8 description)
+internal Flags_Option *flags_option_int(Str8 name, int64_t *result_value, int64_t default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Int;
     option->name = name;
     option->default_value.int_value = default_value;
     option->description = description;
     option->result_value.int_value = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_uint(Flags_Context *context, Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description)
+internal Flags_Option *flags_option_uint(Str8 name, uint64_t *result_value, uint64_t default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_UInt;
     option->name = name;
     option->default_value.uint_value = default_value;
     option->description = description;
     option->result_value.uint_value = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_float(Flags_Context *context, Str8 name, double *result_value, double default_value, Str8 description)
+internal Flags_Option *flags_option_float(Str8 name, double *result_value, double default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Float;
     option->name = name;
     option->default_value.float_value = default_value;
     option->description = description;
     option->result_value.float_value = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_bool(Flags_Context *context, Str8 name, bool *result_value, bool default_value, Str8 description)
+internal Flags_Option *flags_option_bool(Str8 name, bool *result_value, bool default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_Bool;
     option->name = name;
     option->default_value.bool_value = default_value;
     option->description = description;
     option->result_value.bool_value = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
 
-internal Flags_Option *flags_option_str_arr(Flags_Context *context, Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description)
+internal Flags_Option *flags_option_str_arr(Str8 name, Str8_Array *result_value, Str8_Array *default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_StrArr;
     option->name = name;
     option->default_value.str_value_arr = default_value;
     option->description = description;
     option->result_value.str_value_arr = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_int_arr(Flags_Context *context, Str8 name, I64Array *result_value, I64Array *default_value, Str8 description)
+internal Flags_Option *flags_option_int_arr(Str8 name, I64Array *result_value, I64Array *default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_IntArr;
     option->name = name;
     option->default_value.int_value_arr = default_value;
     option->description = description;
     option->result_value.int_value_arr = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_uint_arr(Flags_Context *context, Str8 name, U64Array *result_value, U64Array *default_value, Str8 description)
+internal Flags_Option *flags_option_uint_arr(Str8 name, U64Array *result_value, U64Array *default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_UIntArr;
     option->name = name;
     option->default_value.uint_value_arr = default_value;
     option->description = description;
     option->result_value.uint_value_arr = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
-internal Flags_Option *flags_option_float_arr(Flags_Context *context, Str8 name, F64Array *result_value, F64Array *default_value, Str8 description)
+internal Flags_Option *flags_option_float_arr(Str8 name, F64Array *result_value, F64Array *default_value, Str8 description)
 {
-    Flags_Option *option = arena_push(context->arena, Flags_Option, 1);
+    Flags_Option *option = arena_push(_flags_state->arena, Flags_Option, 1);
     option->kind = _Flags_Option_Kind_FloatArr;
     option->name = name;
     option->default_value.float_value_arr = default_value;
     option->description = description;
     option->result_value.float_value_arr = result_value;
-    _flags_add_option(context, option);
+    _flags_add_option(option);
     return option;
 }
 
-// Add value flag
-// ============================================================================
+// ak: Add value flag
+//=============================================================================
 
-internal Flags_Arg *flags_arg_str(Flags_Context *context, Str8 *result_value, Str8 default_value)
+internal Flags_Arg *flags_arg_str(Str8 *result_value, Str8 default_value)
 {
-    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Str;
     farg->result_value.str_value = result_value;
     farg->default_value.str_value = default_value;
-    _flags_add_arg(context, farg);
+    _flags_add_arg(farg);
     return farg;
 }
-internal Flags_Arg *flags_arg_int(Flags_Context *context, int64_t *result_value, int64_t default_value)
+internal Flags_Arg *flags_arg_int(int64_t *result_value, int64_t default_value)
 {
-    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Int;
     farg->result_value.int_value = result_value;
     farg->default_value.int_value = default_value;
-    _flags_add_arg(context, farg);
+    _flags_add_arg(farg);
     return farg;
 }
-internal Flags_Arg *flags_arg_uint(Flags_Context *context, uint64_t *result_value, uint64_t default_value)
+internal Flags_Arg *flags_arg_uint(uint64_t *result_value, uint64_t default_value)
 {
-    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_UInt;
     farg->result_value.uint_value = result_value;
     farg->default_value.uint_value = default_value;
-    _flags_add_arg(context, farg);
+    _flags_add_arg(farg);
     return farg;
 }
-internal Flags_Arg *flags_arg_float(Flags_Context *context, double *result_value, double default_value)
+internal Flags_Arg *flags_arg_float(double *result_value, double default_value)
 {
-    Flags_Arg *farg = arena_push(context->arena, Flags_Arg, 1);
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
     farg->kind = _Flags_Arg_Kind_Float;
     farg->result_value.float_value = result_value;
     farg->default_value.float_value = default_value;
-    _flags_add_arg(context, farg);
+    _flags_add_arg(farg);
     return farg;
 }
 
