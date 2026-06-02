@@ -1,11 +1,11 @@
-// External Includes
+// ak: ak: External Includes
 //=============================================================================
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include "./external/stb_sprintf.h"
 
-// FPrint
-// ============================================================================
+// ak: FPrint
+//=============================================================================
 
 internal uint64_t fmt_fprint(Os_File file, const char *string)
 {
@@ -77,8 +77,8 @@ internal uint64_t fmt_fprintfln(Os_File file, const char *format, ...)
     return written;
 }
 
-// Print
-// ============================================================================
+// ak: Print
+//=============================================================================
 
 internal void fmt_print(const char *string)
 {
@@ -111,8 +111,8 @@ internal void fmt_printfln(const char *format, ...)
     va_end(args);
 }
 
-// EPrint
-// ============================================================================
+// ak: EPrint
+//=============================================================================
 
 internal void fmt_eprint(const char *string)
 {

@@ -87,6 +87,4 @@ internal void log_errorfln(Log_Context *log, const char *format, ...);
     LogPrintfLine(log, Log_Level_Error, format, ##__VA_ARGS__); \
 } while(0)
 
-
-
 #endif // BASE_LOG_H

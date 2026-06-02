@@ -1,8 +1,16 @@
+// TODO(aman.v): Add better window error handling.
+
 #ifndef WINDOW_LAYER_CORE_H
 #define WINDOW_LAYER_CORE_H
 
 // Types
 //=============================================================================
+
+typedef struct Wl_Window Wl_Window;
+struct Wl_Window
+{
+    uint32_t u64[1];
+};
 
 typedef enum Wl_EventType Wl_EventType;
 enum Wl_EventType

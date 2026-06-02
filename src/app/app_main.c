@@ -1,10 +1,7 @@
-// TODO(ak): make metaprogramming lang
-// TODO(ak): make config file
-// TODO(ak): handle config using command line args
-// TODO(ak): embead font in exe
-// TODO(ak): setup Github Action
-// TODO(ak): change program version
-// TODO(ak): add freelist in render texture
+// TODO(ak): add multi-window support
+// TODO(ak): update event handling
+// TODO(ak): make flags state based
+// TODO(ak): make fmt printf's internal
 
 //~ ak: Includes
 //=============================================================================
@@ -26,57 +23,9 @@
 #include "../render/render_include.c"
 #include "../ui/ui_include.c"
 
-internal void print_help_message(Flags_Context *flags)
-{
-    term_style_start(OS_STDOUT, TERM_UNDERLINE);
-    fmt_println("USAGE:");
-    term_style_end();
-    Str8 *program_name = os_program_path_get();
-    fmt_printfln("   %s [OPTIONS]", program_name->cstr);
-    term_style_start(OS_STDOUT, TERM_UNDERLINE);
-    fmt_println("OPTIONS:");
-    term_style_end();
-    flags_print_help(flags);
-    term_style_start(OS_STDOUT, TERM_UNDERLINE);
-    fmt_println("VERSION:");
-    term_style_end();
-    fmt_println("   "APP_VERSION);
-}
-
 internal void base_main(void)
 {
     Arena *arena = arena_alloc();
-    
-    // Command Line ===========================================================
-    {
-        Arena_Temp scratch = arena_scratch_begin(0, 0);
-        Flags_Context *flags = flags_init(scratch.arena);
-        Flags_Option *option = NULL;
-        bool help = false;
-        option = flags_option_bool(flags, str8("help"), &help, help, str8("Print help message"));
-        flags_add_option_shortname(option, str8("h"));
-        bool version = false;
-        option = flags_option_bool(flags, str8("version"), &version, version, str8("Print version message"));
-        flags_add_option_shortname(option, str8("v"));
-        Str8_Array *args = os_args_get();
-        if (!flags_parse(flags, args))
-        {
-            flags_print_error(flags);
-            print_help_message(flags);
-            os_exit(1);
-        }
-        if (help)
-        {
-            print_help_message(flags);
-            os_exit(0);
-        }
-        if (version)
-        {
-            fmt_print("v"APP_VERSION);
-            os_exit(0);
-        }
-        arena_scratch_end(scratch);
-    }
     
     // Program Init ===========================================================
     unsigned int width = 150;
