@@ -29,7 +29,7 @@ internal void print_help_message(Flags_Context *flags)
 
 void base_main(void)
 {
-    Arena *arena = arena_alloc(MB(10), MB(1));
+    Arena *arena = arena_alloc();
     Str8 src_path = str8("./src");
     Str8 defulat_gen_dirname = str8("generated");
     
