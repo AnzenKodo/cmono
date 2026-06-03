@@ -51,6 +51,9 @@ internal void render_begin(void)
         Arena *arena = arena_alloc();
         render_state = arena_push(arena, Render_State, 1);
         render_state->arena = arena;
+        render_state->render_begin_arena_pos = arena_pos(arena);
+    } else {
+        arena_pop_to(render_state->arena, render_state->render_begin_arena_pos);
     }
     render_state->list = render_draw_list_zero();
 }

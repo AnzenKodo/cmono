@@ -79,6 +79,7 @@ struct Render_State
 {
     Render_Draw_List list;
     Arena *arena;
+    size_t render_begin_arena_pos;
 };
 
 // Define Render Backends
