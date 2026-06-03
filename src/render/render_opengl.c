@@ -230,7 +230,7 @@ internal void render_deinit(void)
     _render_opengl_deinit();
 }
 
-internal void render(Render_Draw_List *list)
+internal void render_end()
 {
     uint32_t win_width = wl_window_width_get();
     uint32_t win_height = wl_window_height_get();
@@ -241,7 +241,7 @@ internal void render(Render_Draw_List *list)
     glUseProgram(_render_opengl_state.shader);
     glBindVertexArray(_render_opengl_state.vao);
     glUniform2f(glGetUniformLocation(_render_opengl_state.shader, "u_resolution"), (GLfloat)win_width, (GLfloat)win_height);
-    for (Render_Draw_Node *node = list->first; node != NULL; node = node->next)
+    for (Render_Draw_Node *node = render_state->list.first; node != NULL; node = node->next)
     {
         switch (node->type)
         {

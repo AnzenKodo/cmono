@@ -36,23 +36,42 @@ inline internal Vec4_F32 render_color_to_vec4_f32(Render_Color color)
     return result;
 }
 
+internal Render_Draw_List render_draw_list_zero(void)
+{
+    Render_Draw_List result = ZERO_STRUCT;
+    return result;
+}
+
+// ak: Core functions
+//=============================================================================
+
+internal void render_begin(void)
+{
+    if (render_state == NULL) {
+        Arena *arena = arena_alloc();
+        render_state = arena_push(arena, Render_State, 1);
+        render_state->arena = arena;
+    }
+    render_state->list = render_draw_list_zero();
+}
+
 //~ ak: Draw functions
 //=============================================================================
 
-internal void render_draw_rect_push(Arena *arena, Render_Draw_List *list, Vec4_F32 dst, Render_Color color)
+internal void render_draw_rect_push(Vec4_F32 dst, Render_Color color)
 {
-    Render_Draw_Node *node = arena_push(arena, Render_Draw_Node, 1);
+    Render_Draw_Node *node = arena_push(render_state->arena, Render_Draw_Node, 1);
     node->type = Render_Draw_Type_Rect;
     Render_Draw_Rect *rect = &node->param_rect;
     rect->dst = dst;
     rect->color = render_color_to_vec4_f32(color);
     rect->texture = render_handle_zero();
-    SLLQueuePush(list->first, list->last, node);
+    SLLQueuePush(render_state->list.first, render_state->list.last, node);
 }
 
-internal void render_draw_rect_text_push(Arena *arena, Render_Draw_List *list, Font *font, Str8 text, Vec4_F32 dst, Vec4_F32 padding, Render_Color color, Render_Color font_color)
+internal void render_draw_rect_text_push(Font *font, Str8 text, Vec4_F32 dst, Vec4_F32 padding, Render_Color color, Render_Color font_color)
 {
-    render_draw_rect_push(arena, list, dst, color);
+    render_draw_rect_push(dst, color);
     Vec2_F32 font_pos = (Vec2_F32){ dst.x+padding.z, dst.y+padding.x };
-    font_quad_push(font, text, font_pos, font_color, list, arena);
+    font_quad_push(font, text, font_pos, font_color, &render_state->list, render_state->arena);
 }

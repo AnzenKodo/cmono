@@ -33,7 +33,7 @@ typedef enum Render_Tex2D_Format
 }
 Render_Tex2D_Format;
 
-//~ ak: Draw Types ============================================================
+// ak: Draw Types =============================================================
 
 typedef enum Render_Draw_Type {
     Render_Draw_Type_Rect,
@@ -74,6 +74,13 @@ struct Render_Draw_List
     Render_Draw_Node *last;
 };
 
+typedef struct Render_State Render_State;
+struct Render_State
+{
+    Render_Draw_List list;
+    Arena *arena;
+};
+
 // Define Render Backends
 //=============================================================================
 
@@ -92,29 +99,36 @@ struct Render_Draw_List
 #endif
 
 
-//- ak: Functions
+// ak: Functions
 //=============================================================================
 
-//~ ak: Helper functions ======================================================
+// ak: Helper functions =======================================================
 
 internal Render_Handle render_handle_zero(void);
 inline internal Render_Color render_hex_to_color(unsigned int hex);
 inline internal unsigned int render_color_to_hex(Render_Color color);
 inline internal Vec4_F32 render_color_to_vec4_f32(Render_Color color);
+internal Render_Draw_List render_draw_list_zero(void);
 
-//- ak: Core functions ========================================================
+// ak: Core functions =========================================================
 
 internal void render_init(void);
-internal void render(Render_Draw_List *list);
+internal void render_begin(void);
+internal void render_end(void);
 internal void render_deinit(void);
 
-//- ak: Texture functions =====================================================
+// ak: Texture functions ======================================================
 
 internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2D_Format format, size_t width, size_t height, void *data, Arena *arena);
 internal void render_tex2d_free(Render_Handle handle);
 
-//- ak: Draw functions ========================================================
+// ak: Draw functions =========================================================
 
-internal void render_draw_rect_push(Arena *arena, Render_Draw_List *list, Vec4_F32 dst, Render_Color color);
+internal void render_draw_rect_push(Vec4_F32 dst, Render_Color color);
+
+// ak: Global
+//=============================================================================
+
+global Render_State *render_state = NULL;
 
 #endif // RENDER_CORE_H
