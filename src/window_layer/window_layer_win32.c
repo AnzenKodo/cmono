@@ -1,4 +1,4 @@
-// Helper functions
+// ak: Helper functions
 //=============================================================================
 
 internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey)
@@ -220,7 +220,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         {
             result = DefWindowProcW(handle, message, w_param, l_param);
         } break;
-        // Window Size ========================================================
+        // ak: window size
         case WM_SIZE:
         {
             _wl_core_state.win_width  = LOWORD(l_param);
@@ -230,12 +230,12 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         case WM_PAINT:
         {
         } break;
-        // Window Close =======================================================
+        // ak: window close
         case WM_CLOSE:
         {
             _wl_win32_state.window_close = true;
         } break;
-        // Window Resize ======================================================
+        // ak: window resize
         case WM_ENTERSIZEMOVE:
         {
             // event.type = Wl_EventType_WindowResize;
@@ -292,7 +292,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         // {
         // } break;
         //
-        //     // ak: [custom border]
+        // ak: [custom border]
         // case WM_NCPAINT:
         // {
         // } break;
@@ -322,7 +322,7 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
     return result;
 }
 
-// Basic window functions
+// ak: Basic window functions
 //=============================================================================
 
 internal void wl_window_open(Str8 title, unsigned int width, unsigned int height)
@@ -362,7 +362,7 @@ internal void wl_window_open(Str8 title, unsigned int width, unsigned int height
     }
     ShowWindow(_wl_win32_state.handle, SW_SHOW);
     UpdateWindow(_wl_win32_state.handle);
-    // Get Display Size =======================================================
+    // ak: get display size
     _wl_core_state.display_width = GetSystemMetrics(SM_CXSCREEN);
     _wl_core_state.display_height = GetSystemMetrics(SM_CYSCREEN);
     arena_scratch_end(scratch);
@@ -373,7 +373,7 @@ internal void wl_window_close(void)
     DestroyWindow(_wl_win32_state.handle);
 }
 
-// Event Functions
+// ak: Event Functions
 //=============================================================================
 
 internal Wl_Event wl_get_event(void)
@@ -398,7 +398,7 @@ internal Wl_Event wl_get_event(void)
                     _wl_win32_state.window_resize = false;
                 }
             } break;
-            // Keyboard key presses/releases ======================================
+            // ak: Keyboard key presses/releases
             case WM_SYSKEYDOWN: case WM_SYSKEYUP:
             {
                 if (msg.wParam != VK_MENU &&
@@ -452,7 +452,7 @@ internal Wl_Event wl_get_event(void)
                 Unused(is_repeat);
                 Unused(right_sided);
             } break;
-            // Mouse button presses/releases ======================================
+            // ak: mouse button presses/releases
             case WM_LBUTTONUP:
             case WM_MBUTTONUP:
             case WM_RBUTTONUP:
@@ -497,7 +497,7 @@ internal Wl_Event wl_get_event(void)
                     SetCapture(_wl_win32_state.handle);
                 }
             } break;
-            // Mouse Motion =======================================================
+            // ak: mouse motion
             case WM_MOUSEMOVE:
             {
                 event.pos.x = (float)(int16_t)LOWORD(msg.lParam);
@@ -537,8 +537,8 @@ internal Wl_Event wl_get_event(void)
     return event;
 }
 
-// Window property
-// ============================================================================
+// ak: window property
+//=============================================================================
 
 internal void wl_window_pos_set(int x, int y)
 {
@@ -573,8 +573,8 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
 
     if (!hBitmap || !pBits) return;
 
-    // The icon_data is ARGB in uint32_t, which in little-endian memory is BGRA byte order,
-    // matching Windows 32bpp DIB exactly. Direct copy.
+    // ak: The icon_data is ARGB in uint32_t, which in little-endian memory is
+    // BGRA byte order, matching Windows 32bpp DIB exactly. Direct copy.
     memcpy(pBits, icon_data, width * height * sizeof(uint32_t));
 
     HICON hIcon = CopyImage(hBitmap, IMAGE_ICON, (int)width, (int)height, LR_DEFAULTCOLOR);
@@ -589,14 +589,14 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
 
 internal void wl_window_border_set(bool enable)
 {
-    // Get current window style
+    // ak: get current window style
     LONG_PTR style = GetWindowLongPtr(_wl_win32_state.handle, GWL_STYLE);
     if (!enable)
     {
-        // Borderless window
+        // ak: borderless window
         style = WS_POPUP | WS_VISIBLE;
     }
-    // Apply the new style
+    // ak: apply the new style
     SetWindowLongPtr(_wl_win32_state.handle, GWL_STYLE, style);
     // NOTE(ak): Force Windows to recalculate the window frame and client area
     // Without this, the non-client area (border/title) may not update properly
@@ -606,8 +606,8 @@ internal void wl_window_border_set(bool enable)
          SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 }
 
-// Software Render
-// ============================================================================
+// ak: Software Render
+//-============================================================================
 
 internal void wl_render_init(void *render_buffer)
 {

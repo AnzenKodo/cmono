@@ -1,13 +1,13 @@
 #ifndef WINDOW_LAYER_XCB_H
 #define WINDOW_LAYER_XCB_H
 
-// External Includes
+// ak: External Includes
 //=============================================================================
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_image.h>
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef struct _Wl_X11_State _Wl_X11_State;
@@ -25,8 +25,8 @@ struct _Wl_X11_State
     void *render_buffer;
 };
 
-// Macros
-// ============================================================================
+// ak: Macros
+//=============================================================================
 
 #define WlX11LoadAtom(name) \
     local_persist xcb_atom_t name = XCB_ATOM_NONE; \
@@ -43,7 +43,7 @@ struct _Wl_X11_State
         } \
     }
 
-// Global variables
+// ak: Global Variables
 //=============================================================================
 
 global _Wl_X11_State _wl_x11_state = ZERO_STRUCT;

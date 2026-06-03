@@ -3,7 +3,7 @@
 #ifndef WINDOW_LAYER_CORE_H
 #define WINDOW_LAYER_CORE_H
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef struct Wl_Window Wl_Window;
@@ -219,26 +219,26 @@ struct _Wl_Core_State {
     uint32_t fps;
 };
 
-// Functions
-// ============================================================================
+// ak: Functions
+//=============================================================================
 
-// Basic window functions =====================================================
+// ak: Basic window functions =================================================
 
 internal void wl_window_open(Str8 title, uint32_t width, uint32_t height);
 internal void wl_window_close(void);
 
-// Window close functions =====================================================
+// ak: Window close functions =================================================
 
 internal void wl_set_window_close(void);
 internal bool wl_should_window_close(void);
 
-// Event functions ============================================================
+// ak: Event functions ========================================================
 
 internal void wl_update_events(void);
 internal Wl_Event wl_get_event(void);
 internal bool wl_is_key_pressed(Wl_Key key);
 
-// Window property ============================================================
+// ak: Window property ========================================================
 
 internal uint32_t wl_display_width_get(void);
 internal uint32_t wl_display_height_get(void);
@@ -248,14 +248,14 @@ internal void wl_window_pos_set(int x, int y);
 internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height);
 internal void wl_window_border_set(bool enable);
 
-// Software render ============================================================
+// ak: Software render ========================================================
 
 internal void wl_render_init(void *render_buffer);
 internal void wl_render_deinit(void);
 internal void wl_render_begin(void);
 internal void wl_render_end(void);
 
-// Global variables
+// ak: Global variables
 //=============================================================================
 
 global _Wl_Core_State _wl_core_state = ZERO_STRUCT;

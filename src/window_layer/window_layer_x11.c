@@ -1,4 +1,4 @@
-// Basic window functions
+// ak: Basic window functions
 //=============================================================================
 
 internal void wl_window_open(Str8 title, uint32_t width, uint32_t height)
@@ -6,7 +6,7 @@ internal void wl_window_open(Str8 title, uint32_t width, uint32_t height)
     _wl_x11_state.connection = xcb_connect(NULL, NULL);
     xcb_window_t window = xcb_generate_id(_wl_x11_state.connection);
     xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(_wl_x11_state.connection)).data;
-    // Create Window ==========================================================
+    // ak: create window
     uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32_t value_list[] = {
         screen->black_pixel,
@@ -22,7 +22,8 @@ internal void wl_window_open(Str8 title, uint32_t width, uint32_t height)
         0, 0, width, height, 0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, mask, value_list
     );
-    // Set Window Title =======================================================
+    
+    // ak: set window title
     xcb_change_property(
         _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME,
         XCB_ATOM_STRING, 8, title.length, title.cstr
@@ -35,23 +36,23 @@ internal void wl_window_open(Str8 title, uint32_t width, uint32_t height)
     //     _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS,
     //     XCB_ATOM_STRING, 8, sizeof("title""\0""Title"), "title\0Title"
     // );
-    // Handle Close Event =====================================================
+    // ak: handle close event
     WlX11LoadAtom(WM_PROTOCOLS);
     WlX11LoadAtom(WM_DELETE_WINDOW);
     xcb_change_property(
         _wl_x11_state.connection, XCB_PROP_MODE_REPLACE, window, WM_PROTOCOLS,
         XCB_ATOM_ATOM, 32, 1, &WM_DELETE_WINDOW
     );
-    // Map Window =============================================================
+    // ak: map window
     xcb_map_window(_wl_x11_state.connection, window);
     xcb_flush(_wl_x11_state.connection);
-    // Get Display Size ===============================================================
+    // ak: get display size
     _wl_core_state.display_width = screen->width_in_pixels;
     _wl_core_state.display_height = screen->height_in_pixels;
     _wl_core_state.win_width  = width;
     _wl_core_state.win_height = height;
     _wl_core_state.frame_prev_time = os_now_microsec();
-    // Window Layer State ====================================================
+    // window layer state
     _wl_x11_state.screen = screen;
     _wl_x11_state.window = window;
     _wl_x11_state.wm_delete_window = WM_DELETE_WINDOW;
@@ -62,7 +63,7 @@ internal void wl_window_close(void)
     xcb_disconnect(_wl_x11_state.connection);
 }
 
-// Event Functions
+// ak: Event Functions
 //=============================================================================
 
 internal Wl_Event wl_get_event(void)
@@ -73,12 +74,12 @@ internal Wl_Event wl_get_event(void)
     {
         switch (xcb_event->response_type & ~0x80)
         {
-            // Keyboard key presses/releases ==================================
+            // ak: keyboard key presses/releases
             case XCB_KEY_PRESS:
             case XCB_KEY_RELEASE:
             {
                 xcb_key_release_event_t *key_event = (xcb_key_release_event_t *)xcb_event;
-                // Determine mod_key
+                // ak: determine mod_key
                 Wl_ModKey mod_key = (Wl_ModKey)0;
                 if(key_event->state & XCB_MOD_MASK_SHIFT)   {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
@@ -89,7 +90,7 @@ internal Wl_Event wl_get_event(void)
                 if(key_event->state & XCB_MOD_MASK_1) {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
-                // Assign keys
+                // ak: assign keys
                 Wl_Key key = Wl_Key_Null;
                 switch(key_event->detail)
                 {
@@ -223,7 +224,7 @@ internal Wl_Event wl_get_event(void)
                     case 135:{key = Wl_Key_Menu;}break;
                     default:{}break;
                 }
-                // Add to Event Variable
+                // ak: add to event variable
                 if (key_event->response_type == XCB_KEY_PRESS)
                 {
                     event.type = Wl_EventType_Press;
@@ -233,12 +234,12 @@ internal Wl_Event wl_get_event(void)
                 event.key = key;
                 event.mod_key = mod_key;
             } break;
-            // Mouse button presses/releases ==================================
+            // ak: mouse button presses/releases
             case XCB_BUTTON_PRESS:
             case XCB_BUTTON_RELEASE:
             {
                 xcb_button_release_event_t *button_event = (xcb_button_release_event_t *)xcb_event;
-                // Determine mod_key
+                // ak: determine mod_key
                 Wl_ModKey mod_key = (Wl_ModKey)0;
                 if(button_event->state & XCB_MOD_MASK_SHIFT)   {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
@@ -249,7 +250,7 @@ internal Wl_Event wl_get_event(void)
                 if(button_event->state & XCB_MOD_MASK_1) {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
-                // Assign button
+                // ak: assign button
                 Wl_Key key = Wl_Key_Null;
                 switch(button_event->detail)
                 {
@@ -258,7 +259,7 @@ internal Wl_Event wl_get_event(void)
                     case 3:{key = Wl_Key_RightMouseButton;}break;
                     default:{}
                 }
-                // Add to Event Variable
+                // ak: add to event variable
                 if (button_event->response_type == XCB_BUTTON_PRESS) {
                     event.type = Wl_EventType_Press;
                 } else {
@@ -267,22 +268,22 @@ internal Wl_Event wl_get_event(void)
                 event.mod_key = mod_key;
                 event.key = key;
             } break;
-            // Mouse Motion ===================================================
+            // ak: mouse motion
     		case XCB_MOTION_NOTIFY:
     		{
                 xcb_button_release_event_t *motion_event = (xcb_button_release_event_t *)xcb_event;
-                // Add to Event Variable
+                // ak: add to event variable
                 event.type = Wl_EventType_MouseMove;
                 event.pos.x = (float)motion_event->event_x;
                 event.pos.y = (float)motion_event->event_x;
             } break;
-            // Window focus/unfocus ===========================================
+            // ak: window focus/unfocus
             case XCB_FOCUS_IN: break;
             case XCB_FOCUS_OUT:
             {
                 event.type = Wl_EventType_WindowLoseFocus;
             }break;
-            // Client messages ================================================
+            // ak: client messages
             case XCB_CLIENT_MESSAGE:
             {
                 xcb_client_message_event_t *message = (xcb_client_message_event_t *)xcb_event;
@@ -291,11 +292,11 @@ internal Wl_Event wl_get_event(void)
                     event.type = Wl_EventType_WindowClose;
                 }
             }break;
-            // Window Resize ==================================================
+            // ak: window resize
             case XCB_CONFIGURE_NOTIFY:
             {
                 xcb_configure_notify_event_t *resize_event = (xcb_configure_notify_event_t *)xcb_event;
-                // Add to Event Variable
+                // ak: add to event variable
                 _wl_core_state.win_width  = resize_event->width;
                 _wl_core_state.win_height = resize_event->height;
                 event.type = Wl_EventType_WindowResize;
@@ -305,7 +306,6 @@ internal Wl_Event wl_get_event(void)
         } // switch
         free(xcb_event);
     } // while
-    // free(xcb_event);
     return event;
 }
 
@@ -314,11 +314,9 @@ internal Wl_Event wl_get_event(void)
 
 internal void wl_window_pos_set(int x, int y)
 {
-    xcb_configure_window(
-        _wl_x11_state.connection, _wl_x11_state.window,
+    xcb_configure_window(_wl_x11_state.connection, _wl_x11_state.window,
         XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
-        (int[2]){ x, y }
-    );
+        (int[2]){ x, y });
     xcb_flush(_wl_x11_state.connection);
 }
 
@@ -352,13 +350,13 @@ internal void wl_window_border_set(bool enable)
     xcb_flush(_wl_x11_state.connection);
 }
 
-// Software render
+// ak: software render
 // ============================================================================
 
 internal void wl_render_init(void *render_buffer)
 {
     _wl_x11_state.render_buffer = render_buffer;
-    // Create pixmap format ===================================================
+    // ak: create pixmap format
     _wl_x11_state.pixmap = xcb_generate_id(_wl_x11_state.connection);
     xcb_format_t *pixmap_format = xcb_setup_pixmap_formats(
         xcb_get_setup(_wl_x11_state.connection)
@@ -373,13 +371,13 @@ internal void wl_render_init(void *render_buffer)
             pixmap_format += i;
         }
     }
-    // Create pixmap ==========================================================
+    // ak: create pixmap
     xcb_create_pixmap(
         _wl_x11_state.connection, _wl_x11_state.screen->root_depth,
         _wl_x11_state.pixmap, _wl_x11_state.window,
         wl_display_width_get(), wl_display_height_get()
     );
-    // Create graphics context ================================================
+    // ak: create graphics context
     _wl_x11_state.gc = xcb_generate_id(_wl_x11_state.connection);
     uint32_t gc_mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
     uint32_t gc_values[] = {
@@ -388,7 +386,7 @@ internal void wl_render_init(void *render_buffer)
     xcb_create_gc(
         _wl_x11_state.connection, _wl_x11_state.gc, _wl_x11_state.pixmap, gc_mask, gc_values
     );
-    // Create image ================================================
+    // ak: create image
     _wl_x11_state.image = xcb_image_create(
         wl_display_width_get(), wl_display_height_get(), XCB_IMAGE_FORMAT_Z_PIXMAP,
         pixmap_format->scanline_pad, pixmap_format->depth,

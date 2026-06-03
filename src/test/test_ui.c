@@ -25,7 +25,6 @@ internal void base_main(void)
     wl_window_border_set(false);
     wl_window_pos_set(wl_display_width_get()-width-30, 0);
     render_init();
-    // Font font = font_load(str8("./assets/font/VendSans-Regular.ttf"), width, height, arena);
     UI_State *ui = ui_state_alloc();
     
     // ak: Program Loop =======================================================
@@ -47,10 +46,6 @@ internal void base_main(void)
             UI_Pref_Height(ui_px(30.f, 1.f))
             {
                 ui_button(str8("Here is a panel."));
-                // if (ui_button("Hello World").clicked_left)
-                {
-                    ui_button(str8("Hellow World"));
-                }
             }
             ui_pref_width_pop();
             ui_pref_height_pop();
@@ -62,7 +57,7 @@ internal void base_main(void)
         {
             if (box->flags & UI_Box_Flag_DrawBackground)
             {
-                render_draw_rect_push(box->rect, APP_FOREGROUND_COLOR);
+                render_draw_rect_push(box->rect, (Render_Color){ 212, 190, 152, 255 });
             }
             rec = ui_box_rec_df_post(box, &ui_box_nil);
         }

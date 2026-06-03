@@ -1,7 +1,7 @@
 #ifndef WINDOW_LAYER_W32_H
 #define WINDOW_LAYER_W32_H
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef struct _Wl_Win32_State _Wl_Win32_State;
@@ -12,7 +12,7 @@ struct _Wl_Win32_State
     bool window_close;
     bool window_resize;
     Wl_Event event;
-
+    
     // NOTE(ak): For software render
     HBITMAP bitmap;
     BITMAPINFO bitmap_info;
@@ -21,16 +21,16 @@ struct _Wl_Win32_State
     void *render_buffer;
 };
 
-// Functions
+// ak: Functions
 //=============================================================================
 
-// Helper Functions ===========================================================
+// ak: Helper Functions =======================================================
 
 internal Wl_Key _os_win32_os_key_from_vkey(WPARAM vkey);
 internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key);
 internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARAM w_param, LPARAM l_param);
 
-// Global variables
+// ak: Global variables
 //=============================================================================
 
 global _Wl_Win32_State _wl_win32_state = ZERO_STRUCT;

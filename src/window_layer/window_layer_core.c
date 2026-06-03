@@ -1,4 +1,4 @@
-// Window Close Functions
+// ak: Window Close Functions
 //=============================================================================
 
 internal void wl_set_window_close(void)
@@ -11,14 +11,14 @@ internal bool wl_should_window_close(void)
     return _wl_core_state.win_should_close;
 }
 
-// Event Functions
+// ak: Event Functions
 //=============================================================================
 
 internal void wl_update_events(void)
 {
-    // Update Event ===========================================================
+    // ak: update event
     _wl_core_state.event = wl_get_event();
-    // Update FPS =============================================================
+    // ak: update FPS
     _wl_core_state.frame_count++;
     uint64_t frame_current_time = os_now_microsec();
     uint64_t delta = frame_current_time - _wl_core_state.frame_prev_time;
@@ -39,7 +39,7 @@ internal bool wl_is_event_happen(Wl_EventType type)
     return _wl_core_state.event.type == type;
 }
 
-// Get Window Property
+// ak: Get Window Property
 //=============================================================================
 
 internal uint32_t wl_display_width_get(void)
@@ -59,7 +59,7 @@ internal uint32_t wl_window_height_get(void)
    return _wl_core_state.win_height;
 }
 
-// FPS
+// ak: FPS
 //=============================================================================
 
 internal uint32_t wl_get_fps(void)
