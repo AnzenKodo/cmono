@@ -2,7 +2,8 @@ internal UI_State *ui_state_alloc(Arena *arena)
 {
     UI_State *state = arena_push(arena, UI_State, 1);
     state->arena = arena;
-    state->build_arena = arena_alloc();
+    state->build_arenas[0] = arena_alloc();
+    state->build_arenas[1] = arena_alloc();
     state->box_table_size = 4096;
     state->box_table = arena_push(state->arena, UI_BoxHashSlot, state->box_table_size);
     UI_InitStackNils(state);
@@ -11,7 +12,7 @@ internal UI_State *ui_state_alloc(Arena *arena)
 
 internal Arena *ui_build_arena(void)
 {
-    Arena *result = ui_state->build_arena;
+    Arena *result = ui_state->build_arenas[ui_state->build_index%ArrayLength(ui_state->build_arenas)];
     return result;
 }
 
@@ -87,7 +88,7 @@ internal UI_Key ui_key_from_string(UI_Key seed_key, Str8 string)
     return result;
 }
 
-internal UI_Box *ui_build_box_from_key(UI_Box_Flags flags, UI_Key key)
+internal UI_Box *ui_box_build_from_key(UI_Box_Flags flags, UI_Key key)
 {
     ui_state->build_box_count += 1;
     UI_Box *parent = ui_parent_top();
@@ -137,6 +138,14 @@ internal UI_Box *ui_build_box_from_key(UI_Box_Flags flags, UI_Key key)
         DLLInsert_NPZ(&ui_box_nil, ui_state->box_table[slot].hash_first, ui_state->box_table[slot].hash_last, ui_state->box_table[slot].hash_last, box, hash_next, hash_prev);
     }
     
+    //- rjf: hook into per-frame tree structure
+    if(!ui_box_is_nil(parent))
+    {
+        DLLPushBack_NPZ(&ui_box_nil, parent->first_child, parent->last_child, box, next_sibling, prev_sibling);
+        parent->child_count += 1;
+        box->parent = parent;
+    }
+    
     box->flags = flags;
     box->pref_size[Axis_2d_X] = ui_state->pref_width_stack.top->v;
     box->pref_size[Axis_2d_Y] = ui_state->pref_height_stack.top->v;
@@ -148,7 +157,7 @@ internal UI_Box *ui_build_box_from_key(UI_Box_Flags flags, UI_Key key)
 internal UI_Box *ui_box_build_from_string(UI_Box_Flags flags, Str8 string)
 {
     UI_Key key = ui_key_from_string(ui_active_seed_key(), string);
-    UI_Box *box = ui_build_box_from_key(flags, key);
+    UI_Box *box = ui_box_build_from_key(flags, key);
     return box;
 }
 
@@ -182,6 +191,62 @@ internal UI_Box_Rec ui_box_rec_df(UI_Box *box, UI_Box *root, uint64_t sib_member
         result.pop_count += 1;
     }
     return result;
+}
+
+internal void _ui_calc_sizes_standalone(UI_Box *root, Axis_2d axis)
+{
+    for (UI_Box *box = root; !ui_box_is_nil(box); box = ui_box_rec_df_pre(box, root).next)
+    {
+        switch(box->pref_size[axis].kind)
+        {
+            default:{}break;
+            case UI_Size_Kind_Pixels:
+            {
+                box->fixed_size.v[axis] = box->pref_size[axis].value;
+            } break;
+        }
+    }
+}
+
+internal void _ui_layout_position(UI_Box *root, Axis_2d axis)
+{
+    for(UI_Box *box = root; !ui_box_is_nil(box); box = ui_box_rec_df_pre(box, root).next)
+    {
+        float layout_position = 0;
+
+        //- rjf: lay out children
+        float bounds = 0;
+        for(UI_Box *child = box->first_child; !ui_box_is_nil(child); child = child->next_sibling)
+        {
+            // rjf: calculate fixed position & size
+            if(!(child->flags & (UI_Box_Flag_FloatingX<<axis)))
+            {
+                child->fixed_position.v[axis] = layout_position;
+                if(box->child_axis == axis)
+                {
+                    layout_position += child->fixed_size.v[axis];
+                    bounds += child->fixed_size.v[axis];
+                }
+                else
+                {
+                    bounds = Max(bounds, child->fixed_size.v[axis]);
+                }
+            }
+
+            // rjf: determine final rect for child, given fixed_position & size
+            child->rect.xy.v[axis] = box->rect.xy.v[axis] + child->fixed_position.v[axis];
+            child->rect.zw.v[axis] = child->rect.xy.v[axis] + child->fixed_size.v[axis];
+            child->rect.xy.x = floor_f32(child->rect.xy.x);
+            child->rect.xy.y = floor_f32(child->rect.xy.y);
+            child->rect.zw.x = floor_f32(child->rect.zw.x);
+            child->rect.zw.y = floor_f32(child->rect.zw.y);
+        }
+
+        //- rjf: store view bounds
+        {
+            box->view_bounds.v[axis] = bounds;
+        }
+    }
 }
 
 internal void ui_build_begin(UI_State *state)
@@ -221,22 +286,19 @@ internal void ui_build_end(void)
     }
     
     UI_Box *root = ui_root_from_state(ui_state);
-    // ak: claculate size
+    // ak: claculate size and position
     for (Axis_2d axis = (Axis_2d)0; axis < Axis_2d_COUNT; axis = (Axis_2d)(axis + 1))
     {
-        for (UI_Box *box = root; !ui_box_is_nil(box); box = ui_box_rec_df_pre(box, root).next)
-        {
-            switch(box->pref_size[axis].kind)
-            {
-                default:{}break;
-                case UI_Size_Kind_Pixels:
-                {
-                    box->fixed_size.v[axis] = box->pref_size[axis].value;
-                } break;
-            }
-        }
+        _ui_calc_sizes_standalone(root, axis);
+        _ui_layout_position(root, axis);
     }
+    
     ui_state->build_index += 1;
     arena_clear(ui_build_arena());
 }
 
+internal void ui_button(Str8 string)
+{
+    TempUnused(string);
+    UI_Box *box = ui_box_build_from_key(UI_Box_Flag_DrawBackground, ui_key_zero());
+}

@@ -1,12 +1,5 @@
 //- GENERATED CODE
 
-#if 0
-#define UI_Pref_Width(v) DeferLoop(ui_pref_width_push(v), ui_pref_width_pop())
-#define UI_Pref_Height(v) DeferLoop(ui_pref_height_push(v), ui_pref_height_pop())
-#define UI_Child_Axis(v) DeferLoop(ui_child_axis_push(v), ui_child_axis_pop())
-#define UI_Parent(v) DeferLoop(ui_parent_push(v), ui_parent_pop())
-#define UI_Font_Size(v) DeferLoop(ui_font_size_push(v), ui_font_size_pop())
-#endif
 internal UI_Size ui_pref_width_top(void) { UI_StackTop(ui_state, Pref_Width, pref_width); }
 internal UI_Size ui_pref_height_top(void) { UI_StackTop(ui_state, Pref_Height, pref_height); }
 internal Axis_2d ui_child_axis_top(void) { UI_StackTop(ui_state, Child_Axis, child_axis); }

@@ -24,7 +24,6 @@ typedef enum UI_Size_Kind
     UI_Size_Kind_TextContent,
     UI_Size_Kind_ParentPct,
     UI_Size_Kind_ChildrenSum,
-    UI_Box_Flag_SkipViewOffX,
 } UI_Size_Kind;
 
 typedef struct UI_Size UI_Size;
@@ -58,6 +57,9 @@ struct UI_Box
     Axis_2d child_axis;
     UI_Size pref_size[Axis_2d_COUNT];
     Vec2_F32 fixed_size;
+    Vec2_F32 fixed_position;
+    Vec4_F32 rect;
+    Vec2_F32 view_bounds;
     size_t first_touched_build_index;
     size_t last_touched_build_index;
 };
@@ -85,7 +87,7 @@ struct UI_State
 {
     UI_Box *root;
     Arena *arena;
-    Arena *build_arena;
+    Arena *build_arenas[2];
     size_t build_box_count;
     size_t build_index;
     
@@ -106,7 +108,6 @@ struct UI_State
 #define ui_text_dim(padding, strictness) (UI_Size){ UI_Size_Kind_TextContent, padding, strictness }
 #define ui_pct(value, strictness)        (UI_Size){ UI_Size_Kind_ParentPct, value, strictness }
 #define ui_children_sum(strictness)      (UI_Size){ UI_Size_Kind_ChildrenSum, 0.f, strictness }
-
 
 #define UI_StackTop(state, name_upper, name_lower) \
     return state->name_lower##_stack.top->v
@@ -144,6 +145,8 @@ struct UI_State
     node->v = new_value;\
     SLLStackPush(state->name_lower##_stack.top, node);\
     return old_value;
+
+#define UI_Build(state) DeferLoop(ui_build_begin(state), ui_build_end())
 
 //~ ak: Functions
 //=============================================================================

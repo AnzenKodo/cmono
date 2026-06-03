@@ -65,4 +65,9 @@ internal UI_Size ui_pref_height_next_set(UI_Size v);
 internal Axis_2d ui_child_axis_next_set(Axis_2d v);
 internal UI_Box * ui_parent_next_set(UI_Box * v);
 internal float ui_font_size_next_set(float v);
+#define UI_Pref_Width(v) DeferLoop(ui_pref_width_push(v), ui_pref_width_pop())
+#define UI_Pref_Height(v) DeferLoop(ui_pref_height_push(v), ui_pref_height_pop())
+#define UI_Child_Axis(v) DeferLoop(ui_child_axis_push(v), ui_child_axis_pop())
+#define UI_Parent(v) DeferLoop(ui_parent_push(v), ui_parent_pop())
+#define UI_Font_Size(v) DeferLoop(ui_font_size_push(v), ui_font_size_pop())
 #endif // UI_META_H
