@@ -1,5 +1,6 @@
-internal UI_State *ui_state_alloc(Arena *arena)
+internal UI_State *ui_state_alloc()
 {
+    Arena *arena = arena_alloc();
     UI_State *state = arena_push(arena, UI_State, 1);
     state->arena = arena;
     state->build_arenas[0] = arena_alloc();
@@ -8,6 +9,15 @@ internal UI_State *ui_state_alloc(Arena *arena)
     state->box_table = arena_push(state->arena, UI_BoxHashSlot, state->box_table_size);
     UI_InitStackNils(state);
     return state;
+}
+
+internal void ui_state_release(UI_State *state)
+{
+    for(size_t i = 0; i < ArrayLength(state->build_arenas); i += 1)
+    {
+        arena_free(state->build_arenas[i]);
+    }
+    arena_free(state->arena);
 }
 
 internal Arena *ui_build_arena(void)
