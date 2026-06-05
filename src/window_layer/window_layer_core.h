@@ -6,10 +6,10 @@
 // ak: Types
 //=============================================================================
 
-typedef struct Wl_Window Wl_Window;
-struct Wl_Window
+typedef struct Wl_Handle Wl_Handle;
+struct Wl_Handle
 {
-    uint32_t u64[1];
+    uint64_t u64[1];
 };
 
 typedef enum Wl_EventType Wl_EventType;
@@ -224,7 +224,8 @@ struct _Wl_Core_State {
 
 // ak: Basic window functions =================================================
 
-internal void wl_window_open(Str8 title, uint32_t width, uint32_t height);
+internal void os_gfx_init(void);
+internal Wl_Handle wl_window_open(Str8 title, uint32_t width, uint32_t height);
 internal void wl_window_close(void);
 
 // ak: Window close functions =================================================
