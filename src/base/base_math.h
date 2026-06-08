@@ -6,7 +6,7 @@
 // - https://github.com/HandmadeMath/HandmadeMath
 // - https://github.com/EpicGamesExt/raddebugger
 
-// Base
+// ak: Base
 //=============================================================================
 
 typedef enum Base {
@@ -16,10 +16,10 @@ typedef enum Base {
     Base_16 = 16,
 } Base;
 
-// Vector Types
+// ak: Vector Types
 //=============================================================================
 
-// 2-Vectors ==================================================================
+// ak: 2-Vectors ==============================================================
 
 typedef union Vec2_F32 Vec2_F32;
 union Vec2_F32
@@ -65,40 +65,7 @@ union Vec2_I16
     int16_t v[2];
 };
 
-typedef union Vec2_U64 Vec2_U64;
-union Vec2_U64
-{
-    struct
-    {
-        uint64_t x;
-        uint64_t y;
-    };
-    uint64_t v[2];
-};
-
-typedef union Vec2_U32 Vec2_U32;
-union Vec2_U32
-{
-    struct
-    {
-        uint32_t x;
-        uint32_t y;
-    };
-    uint32_t v[2];
-};
-
-typedef union Vec2_U16 Vec2_U16;
-union Vec2_U16
-{
-    struct
-    {
-        uint16_t x;
-        uint16_t y;
-    };
-    uint16_t v[2];
-};
-
-// 3-Vectors ==================================================================
+// ak: 3-Vectors ==============================================================
 
 typedef union Vec3_F32 Vec3_F32;
 union Vec3_F32
@@ -144,7 +111,7 @@ union Vec3_I32
     int32_t v[3];
 };
 
-// 4-vectors ==================================================================
+// ak: 4-vectors ==============================================================
 
 typedef union Vec4_F32 Vec4_F32;
 union Vec4_F32
@@ -202,10 +169,47 @@ union Vec4_I32
     int32_t v[4];
 };
 
-// Range Types
+// ak: Matrix Types
 //=============================================================================
 
-// 1 Range ====================================================================
+typedef struct Mat3x3_F32 Mat3x3_F32;
+struct Mat3x3_F32
+{
+    float v[3][3];
+};
+
+typedef struct Mat4x4_F32 Mat4x4_F32;
+struct Mat4x4_F32
+{
+    float v[4][4];
+};
+
+// ak: Range Types
+//=============================================================================
+
+// ak: 1D Range ===============================================================
+
+typedef union Rng1_U8 Rng1_U8;
+union Rng1_U8
+{
+    struct
+    {
+        uint32_t min;
+        uint32_t max;
+    };
+    uint32_t v[2];
+};
+
+typedef union Rng1_U16 Rng1_U16;
+union Rng1_U16
+{
+    struct
+    {
+        uint32_t min;
+        uint32_t max;
+    };
+    uint32_t v[2];
+};
 
 typedef union Rng1_U32 Rng1_U32;
 union Rng1_U32
@@ -262,7 +266,7 @@ union Rng1_F32
     float v[2];
 };
 
-// 2 Range (Rectangles) =======================================================
+// ak: 2D Range (Rectangles) ===================================================
 
 typedef union Rng2_I16 Rng2_I16;
 union Rng2_I16
@@ -356,21 +360,21 @@ union Rng2_I64
     Vec2_I64 v[2];
 };
 
-// Units
+// ak: Units
 //=============================================================================
 
-// Numerical Units
+// ak: Numerical Units
 #define Thousand(n)   ((n)*1000)
 #define Million(n)    ((n)*1000000)
 #define Billion(n)    ((n)*1000000000)
 
-// Unit of Information
+// ak: Unit of Information
 #define KB(n)  (((uint64_t)(n)) << 10)
 #define MB(n)  (((uint64_t)(n)) << 20)
 #define GB(n)  (((uint64_t)(n)) << 30)
 #define TB(n)  (((uint64_t)(n)) << 40)
 
-// Constants
+// ak: Constants
 //=============================================================================
 
 #define EPSILON_F32      1.19209290e-7f
@@ -409,7 +413,7 @@ union Rng2_I64
 #define LOG_TWO_F64      0.693147180559945309417232121458176568
 #define LOG_TEN_F64      2.30258509299404568401799145468436421
 
-// Scalar Math Ops
+// ak: Scalar Math Ops
 //=============================================================================
 
 #define IsPow2(x)      ((x != 0) && ((x & (x - 1)) == 0))
@@ -438,7 +442,7 @@ internal double fmod_f64(double x, double y);
 // - fma       fused multiply-add operation
 // - fdim      positive difference of two floating-point values
 
-// Exponential functions ======================================================
+// ak: Exponential functions ==================================================
 
 internal float exp_f32(float a);
 internal float exp2_f32(float x);
@@ -457,7 +461,7 @@ internal double log2_f64(double x);
 // - ilogb	extracts exponent of the number
 // - logb	extracts exponent of the number
 
-// Power functions ============================================================
+// ak: Power functions ========================================================
 
 internal float sqrt_f32(float number);
 internal float rsqrt_f32(float a);
@@ -471,7 +475,7 @@ internal double pow_f64(double a, double b);
 // - cbrt
 // - hypot
 
-// Trigonometric functions ====================================================
+// ak: Trigonometric functions ================================================
 
 internal float sin_f32(float a);
 internal float cos_f32(float a);
@@ -489,7 +493,7 @@ internal double acos_f64(double a);
 internal double atan_f64(double a);
 internal double atan2_f64(double y, double x);
 
-// Hyperbolic functions =======================================================
+// ak: Hyperbolic functions ===================================================
 
 // TODO(ak): more hyperbolic functions
 // - sinh	computes hyperbolic sine
@@ -499,13 +503,13 @@ internal double atan2_f64(double y, double x);
 // - acosh	computes hyperbolic arc cosine
 // - atanh	computes hyperbolic arc tangent
 
-// Gamma functions ============================================================
+// ak: Gamma functions ========================================================
 
 // TODO(ak): more gamma functions
 // - lgamma	computes natural logarithm of the absolute value of the gamma function
 // - tgamma	computes gamma function
 
-// Nearest integer floating-point operations ==================================
+// ak: Nearest integer floating-point operations ==============================
 
 internal float round_f32(float x);
 internal float floor_f32(float x);
@@ -520,7 +524,7 @@ internal double ceil_f64(double x);
 // - nearbyint returns the nearest integer using current rounding mode
 // - rint      returns the nearest integer using current rounding mode with exception if the result differs
 
-// Floating-point manipulation functions ======================================
+// ak: Floating-point manipulation functions ==================================
 
 internal float copysign_f32(float x, float y);
 
@@ -534,33 +538,110 @@ internal double copysign_f64(double x, double y);
 // - scalbln	multiplies a number by FLT_RADIX raised to a power
 // - nextafter
 // - nexttoward	returns next representable floating-point value towards the given value
+// ak: Vector Ops
+//=============================================================================
 
-// Random-number generation
+
+
+// ak: Range Ops
+//=============================================================================
+
+// ak: 1D Range ===============================================================
+
+// ak: 1D Range U8
+internal Rng1_U8 rng1_u8(uint8_t min, uint8_t max);
+internal uint8_t dim1_u8(Rng1_U8 r);
+
+// ak: 1D Range U16
+internal Rng1_U16 rng1_u16(uint16_t min, uint16_t max);
+internal uint16_t dim1_u16(Rng1_U16 r);
+
+// ak: 1D Range U32
+internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max);
+internal uint32_t dim1_u32(Rng1_U32 r);
+
+// ak: 1D Range I32
+internal Rng1_I32 rng1_i32(int32_t min, int32_t max);
+internal int32_t dim1_i32(Rng1_I32 r);
+
+// ak: 1D Range U64
+internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max);
+internal uint64_t dim1_u64(Rng1_U64 r);
+
+// ak: 1D Range I64
+internal Rng1_I64 rng1_s64(int64_t min, int64_t max);
+internal int64_t dim1_i64(Rng1_I64 r);
+
+// ak: 1D Range F32
+internal Rng1_F32 rng1_f32(float min, float max);
+internal float dim1_f32(Rng1_F32 r);
+
+// ak: 1D Rng Macros
+
+#define rng1(min, max) _Generic((min), \
+    uint8_t:  rng1_u8,  \
+    uint16_t: rng1_u16, \
+    uint32_t: rng1_u32, \
+    uint64_t: rng1_u64, \
+    int32_t:  rng1_i32, \
+    int64_t:  rng1_s64, \
+    float:    rng1_f32  \
+)(min, max)
+
+#define dim1(r) _Generic((r), \
+    Rng1_U8:  dim1_u8,  \
+    Rng1_U16: dim1_u16, \
+    Rng1_U32: dim1_u32, \
+    Rng1_U64: dim1_u64, \
+    Rng1_I32: dim1_i32, \
+    Rng1_I64: dim1_i64, \
+    Rng1_F32: dim1_f32  \
+)(r)
+
+// ak: 2D Range (Rectangles) ==================================================
+
+// ak: 2D Rng I16
+internal Rng2_I16 rng2_i16(Vec2_I16 min, Vec2_I16 max);
+internal Vec2_I16 dim2_i16(Rng2_I16 r);
+
+// ak: 2D Rng I32
+internal Rng2_I32 rng2_i32(Vec2_I32 min, Vec2_I32 max);
+internal Vec2_I32 dim2_i32(Rng2_I32 r);
+
+// ak: 2D Rng I64
+internal Rng2_I64 rng2_i64(Vec2_I64 min, Vec2_I64 max);
+internal Vec2_I64 dim2_i64(Rng2_I64 r);
+
+// ak: 2D Rng F32
+internal Rng2_F32 rng2_f32(Vec2_F32 min, Vec2_F32 max);
+internal Vec2_F32 dim2_f32(Rng2_F32 r);
+
+// ak: 2D Rng Macros
+
+#define rng2p(x, y, z, w) _Generic((x), \
+    int16_t: rng2_i16((Vec2_I16){(x), (y)}, (Vec2_I16){(z), (w)}), \
+    int32_t: rng2_i32((Vec2_I32){(x), (y)}, (Vec2_I32){(z), (w)}), \
+    int64_t: rng2_i64((Vec2_I64){(x), (y)}, (Vec2_I64){(z), (w)}), \
+    float:   rng2_f32((Vec2_F32){(x), (y)}, (Vec2_F32){(z), (w)})  \
+)
+
+#define rng2(min, max) _Generic((min), \
+    Vec2_I16: rng2_i16, \
+    Vec2_I32: rng2_i32, \
+    Vec2_I64: rng2_i64, \
+    Vec2_F32: rng2_f32  \
+)(min, max)
+
+#define dim2(r) _Generic((r), \
+    Rng2_I16: dim2_i16, \
+    Rng2_I32: dim2_i32, \
+    Rng2_I64: dim2_i64, \
+    Rng2_F32: dim2_f32  \
+)(r)
+
+// ak: Random-number generation
 //=============================================================================
 
 internal uint32_t rand_u32(uint32_t seed);
-
-// Vector Ops
-//=============================================================================
-
-
-
-// Range Ops
-//=============================================================================
-
-// 1 Range ====================================================================
-
-internal int32_t  rng1_dim_i32(Rng1_I32 r);
-internal int64_t  rng1_dim_i64(Rng1_I64 r);
-internal uint32_t rng1_dim_u32(Rng1_U32 r);
-internal uint64_t rng1_dim_u64(Rng1_U64 r);
-internal float    rng1_dim_f32(Rng1_F32 r);
-
-// 2 Range (Rectangles) =======================================================
-
-internal Vec2_I16 rng2_dim_i16(Rng2_I16 r);
-internal Vec2_I32 rng2_dim_i32(Rng2_I32 r);
-internal Vec2_I64 rng2_dim_i64(Rng2_I64 r);
-internal Vec2_F32 rng2_dim_f32(Rng2_F32 r);
 
 #endif // BASE_H

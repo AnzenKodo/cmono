@@ -188,6 +188,27 @@ internal Flags_Arg *flags_arg_int(int64_t *result_value, int64_t default_value);
 internal Flags_Arg *flags_arg_uint(uint64_t *result_value, uint64_t default_value);
 internal Flags_Arg *flags_arg_float(double *result_value, double default_value);
 
+// ak: Generic Macros =========================================================
+
+#define flags_option(name, result_value, default_value, description) _Generic((result_value), \
+    Str8*:        flags_option_str,       \
+    int64_t*:     flags_option_int,       \
+    uint64_t*:    flags_option_uint,      \
+    double*:      flags_option_float,     \
+    bool*:        flags_option_bool,      \
+    Str8_Array*:  flags_option_str_arr,   \
+    I64Array*:    flags_option_int_arr,   \
+    U64Array*:    flags_option_uint_arr,  \
+    F64Array*:    flags_option_float_arr  \
+)(name, result_value, default_value, description)
+
+#define flags_arg(result_value, default_value) _Generic((result_value), \
+    Str8*:        flags_arg_str,     \
+    int64_t*:     flags_arg_int,     \
+    uint64_t*:    flags_arg_uint,    \
+    double*:      flags_arg_float    \
+)(result_value, default_value)
+
 // ak: Globals
 //=============================================================================
 

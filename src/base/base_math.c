@@ -426,15 +426,6 @@ internal double copysign_f64(double x, double y)
     return *(double *)&ix;
 }
 
-// Random-number generation
-//=============================================================================
-
-internal uint32_t rand_u32(uint32_t seed)
-{
-    seed = (seed << 13) ^ seed;
-    return ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 0x7fffffff);
-}
-
 // Vector Ops
 //=============================================================================
 
@@ -443,54 +434,191 @@ internal uint32_t rand_u32(uint32_t seed)
 
 // 1 Range ====================================================================
 
-internal uint32_t rng1_dim_u32(Rng1_U32 r)
+// ak: 1 Range U8
+
+internal Rng1_U8 rng1_u8(uint8_t min, uint8_t max)
 {
-    return (r.max > r.min) ? (r.max - r.min) : 0;
+    Rng1_U8 rng = {min, max};
+    if(rng.min > rng.max) {
+        Swap(uint8_t, rng.min, rng.max);
+    }
+    return rng;
 }
-internal int32_t rng1_dim_i32(Rng1_I32 r)
+internal uint8_t dim1_u8(Rng1_U8 r)
 {
-    return (r.max > r.min) ? (r.max - r.min) : 0;
+    uint8_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
 }
-internal uint64_t rng1_dim_u64(Rng1_U64 r)
+
+// ak: 1 Range U16
+
+internal Rng1_U16 rng1_u16(uint16_t min, uint16_t max)
 {
-    return (r.max > r.min) ? (r.max - r.min) : 0;
+    Rng1_U16 rng = {min, max};
+    if(rng.min > rng.max) {
+        Swap(uint16_t, rng.min, rng.max);
+    }
+    return rng;
 }
-internal int64_t rng1_dim_i64(Rng1_I64 r)
+internal uint16_t dim1_u16(Rng1_U16 r)
 {
-    return (r.max > r.min) ? (r.max - r.min) : 0;
+    uint16_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
 }
-internal float rng1_dim_f32(Rng1_F32 r)
+
+// ak: 1 Range U32
+
+internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max)
 {
-    return (r.max > r.min) ? (r.max - r.min) : 0;
+    Rng1_U32 rng = {min, max};
+    if(rng.min > rng.max) {
+        Swap(uint32_t, rng.min, rng.max);
+    }
+    return rng;
+}
+internal uint32_t dim1_u32(Rng1_U32 r)
+{
+    uint32_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
+}
+
+// ak: 1 Range I32
+
+internal Rng1_I32 rng1_i32(int32_t min, int32_t max)
+{
+    Rng1_I32 rng = {min, max};
+    if(rng.min > rng.max) {
+        Swap(int32_t, rng.min, rng.max);
+    }
+    return rng;
+}
+internal int32_t dim1_i32(Rng1_I32 r)
+{
+    int32_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
+}
+
+// ak: 1 Range U64
+
+internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max)
+{
+    Rng1_U64 rng = {min, max};
+    if(rng.min > rng.max)
+    {
+        Swap(uint64_t, rng.min, rng.max);
+    }
+    return rng;
+}
+internal uint64_t dim1_u64(Rng1_U64 r)
+{
+    uint64_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
+}
+
+// ak: 1 Range I64
+
+internal Rng1_I64 rng1_i64(int64_t min, int64_t max)
+{
+    Rng1_I64 rng = {min, max};
+    if(rng.min > rng.max)
+    {
+        Swap(int64_t, rng.min, rng.max);
+    }
+    return rng;
+}
+internal int64_t dim1_i64(Rng1_I64 r)
+{
+    int64_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
+}
+
+// ak: 1 Range F32
+
+internal Rng1_F32 rng1_f32(float min, float max)
+{
+    Rng1_F32 rng = {min, max};
+    if(rng.min > rng.max) {
+        Swap(float, rng.min, rng.max);
+    }
+    return rng;
+}
+internal float dim1_f32(Rng1_F32 r)
+{
+    float c = ((r.max > r.min) ? (r.max - r.min) : 0);
+    return c;
 }
 
 // 2 Range (Rectangles) =======================================================
 
-internal Vec2_I16 rng2_dim_i16(Rng2_I16 r)
+// ak: 2 Rng I16
+
+internal Rng2_I16 rng2_i16(Vec2_I16 min, Vec2_I16 max)
 {
-    return (Vec2_I16){
-        (r.max.x > r.min.x) ? (r.max.x - r.min.x) : 0,
-        (r.max.y > r.min.y) ? (r.max.y - r.min.y) : 0,
-    };
+    Rng2_I16 rng = {min, max};
+    return rng;
 }
-internal Vec2_I32 rng2_dim_i32(Rng2_I32 r)
+internal Vec2_I16 dim2_i16(Rng2_I16 rng)
 {
-    return (Vec2_I32){
-        (r.max.x > r.min.x) ? (r.max.x - r.min.x) : 0,
-        (r.max.y > r.min.y) ? (r.max.y - r.min.y) : 0,
+    Vec2_I16 dim = {
+        ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
+        ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
     };
+    return dim;
 }
-internal Vec2_I64 rng2_dim_i64(Rng2_I64 r)
+
+// ak: 2 Rng I32
+
+internal Rng2_I32 rng2_i32(Vec2_I32 min, Vec2_I32 max)
 {
-    return (Vec2_I64){
-        (r.max.x > r.min.x) ? (r.max.x - r.min.x) : 0,
-        (r.max.y > r.min.y) ? (r.max.y - r.min.y) : 0
-    };
+    Rng2_I32 rng = {min, max};
+    return rng;
 }
-internal Vec2_F32 rng2_dim_f32(Rng2_F32 r)
+internal Vec2_I32 dim2_i32(Rng2_I32 rng)
 {
-    return (Vec2_F32){
-        (r.max.x > r.min.x) ? (r.max.x - r.min.x) : 0,
-        (r.max.y > r.min.y) ? (r.max.y - r.min.y) : 0,
+    Vec2_I32 dim = {
+        ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
+        ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
     };
+    return dim;
+}
+
+// ak: 2 Rng I64
+
+internal Rng2_I64 rng2_i64(Vec2_I64 min, Vec2_I64 max)
+{
+    Rng2_I64 rng = {min, max};
+    return rng;
+}
+internal Vec2_I64 dim2_i64(Rng2_I64 rng)
+{
+    Vec2_I64 dim = {
+        ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
+        ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
+    };
+    return dim;
+}
+
+// ak: 2 Rng F32
+
+internal Rng2_F32 rng2_f32(Vec2_F32 min, Vec2_F32 max)
+{
+    Rng2_F32 rng = {min, max};
+    return rng;
+}
+internal Vec2_F32 dim2_f32(Rng2_F32 rng)
+{
+    Vec2_F32 dim = {
+        ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
+        ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
+    };
+    return dim;
+}
+
+// Random-number generation
+//=============================================================================
+
+internal uint32_t rand_u32(uint32_t seed)
+{
+    seed = (seed << 13) ^ seed;
+    return ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 0x7fffffff);
 }

@@ -94,9 +94,15 @@ internal size_t cstr32_length(uint32_t *cstr)
     return(p - cstr);
 }
 
-//~ ak: String Constructors
+// ak: String Constructors
 //=============================================================================
 
+
+internal Str8 str8_zero(void)
+{
+    Str8 result = ZERO_STRUCT;
+    return result;
+}
 internal Str8 str8_init(uint8_t *cstr, size_t size)
 {
     return (Str8){cstr, size, size};

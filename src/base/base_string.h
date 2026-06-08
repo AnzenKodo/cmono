@@ -119,6 +119,7 @@ internal size_t cstr32_length(uint32_t *c);
 #define str8(str)      str8_init((uint8_t*)(str), sizeof(str) - 1)
 #define str8_comp(str) { (uint8_t*)(str), sizeof(str) - 1, sizeof(str) - 1 }
 #define str8_varg(str) (int)((str).length), ((str).cstr)
+internal Str8  str8_zero(void);
 internal Str8  str8_init(uint8_t *str, size_t size);
 internal Str8  str8_from_cstr(char *c);
 internal Str16 str16_init(uint16_t *str, size_t size);
