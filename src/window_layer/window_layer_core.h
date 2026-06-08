@@ -6,8 +6,8 @@
 // ak: Types
 //=============================================================================
 
-typedef struct Wl_Handle Wl_Handle;
-struct Wl_Handle
+typedef struct Wl_Window Wl_Window;
+struct Wl_Window
 {
     uint64_t u64[1];
 };
@@ -204,34 +204,42 @@ struct Wl_Event {
     Wl_EventType type;
     Vec2_F32 pos;
     Vec2_F32 delta;
+    Wl_Window window;
 };
 
 typedef struct _Wl_Core_State _Wl_Core_State;
 struct _Wl_Core_State {
     Wl_Event event;
-    uint32_t win_width;
-    uint32_t win_height;
-    uint32_t display_width;
-    uint32_t display_height;
-    bool     win_should_close;
+    bool   exit;
+    
+    // ak: size
+    size_t display_width;
+    size_t display_height;
+    
+    // ak: frame rate
     uint64_t frame_prev_time;
-    uint32_t frame_count;
-    uint32_t fps;
+    size_t frame_count;
+    size_t fps;
 };
 
 // ak: Functions
 //=============================================================================
 
+// ak: Helper Functions =======================================================
+
+internal Wl_Window wl_window_zero(void);
+internal bool wl_window_match(Wl_Window a, Wl_Window b);
+
 // ak: Basic window functions =================================================
 
-internal void os_gfx_init(void);
-internal Wl_Handle wl_window_open(Str8 title, uint32_t width, uint32_t height);
+internal void wl_init(void);
+internal Wl_Window wl_window_open(Str8 title, size_t width, size_t height);
 internal void wl_window_close(void);
 
 // ak: Window close functions =================================================
 
-internal void wl_set_window_close(void);
-internal bool wl_should_window_close(void);
+internal void wl_exit(void);
+internal bool wl_should_exit(void);
 
 // ak: Event functions ========================================================
 
@@ -241,19 +249,19 @@ internal bool wl_is_key_pressed(Wl_Key key);
 
 // ak: Window property ========================================================
 
+internal Rng2_F32 wl_rect_from_window(Wl_Window window);
+internal Rng2_F32 wl_canvas_rect_from_window(Wl_Window window);
 internal uint32_t wl_display_width_get(void);
 internal uint32_t wl_display_height_get(void);
-internal uint32_t wl_window_width_get(void);
-internal uint32_t wl_window_height_get(void);
-internal void wl_window_pos_set(int x, int y);
-internal void wl_window_icon_set_raw(void *icon_data, uint32_t width, uint32_t height);
-internal void wl_window_border_set(bool enable);
+internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y);
+internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t width, size_t height);
+internal void wl_window_border_set(Wl_Window window, bool enable);
 
 // ak: Software render ========================================================
 
-internal void wl_render_init(void *render_buffer);
+internal void wl_render_init(Wl_Window window, void *render_buffer);
 internal void wl_render_deinit(void);
-internal void wl_render_begin(void);
+internal void wl_render_begin(Wl_Window window);
 internal void wl_render_end(void);
 
 // ak: Global variables

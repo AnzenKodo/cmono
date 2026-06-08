@@ -1,14 +1,28 @@
+// ak: Helper Functions
+//=============================================================================
+
+internal Wl_Window wl_window_zero(void)
+{
+    Wl_Window window = ZERO_STRUCT;
+    return window;
+}
+
+internal bool wl_window_match(Wl_Window a, Wl_Window b)
+{
+    return a.u64[0] == b.u64[0];
+}
+
 // ak: Window Close Functions
 //=============================================================================
 
-internal void wl_set_window_close(void)
+internal void wl_exit(void)
 {
-    _wl_core_state.win_should_close = true;
+    _wl_core_state.exit = true;
 }
 
-internal bool wl_should_window_close(void)
+internal bool wl_should_exit(void)
 {
-    return _wl_core_state.win_should_close;
+    return _wl_core_state.exit;
 }
 
 // ak: Event Functions
@@ -49,14 +63,6 @@ internal uint32_t wl_display_width_get(void)
 internal uint32_t wl_display_height_get(void)
 {
     return _wl_core_state.display_height;
-}
-internal uint32_t wl_window_width_get(void)
-{
-   return _wl_core_state.win_width;
-}
-internal uint32_t wl_window_height_get(void)
-{
-   return _wl_core_state.win_height;
 }
 
 // ak: FPS
