@@ -99,19 +99,19 @@ internal Arena *arena_scratch(Arena **conflicts, size_t length)
 {
     Arena *result = 0;
     Arena **arena_ptr = _arena_scratch_global;
-    for(size_t i = 0; i < ArrayLength(_arena_scratch_global); i += 1, arena_ptr += 1)
+    for (size_t i = 0; i < ArrayLength(_arena_scratch_global); i += 1, arena_ptr += 1)
     {
         Arena **conflict_ptr = conflicts;
         bool has_conflict = 0;
-        for(size_t j = 0; j < length; j += 1, conflict_ptr += 1)
+        for (size_t j = 0; j < length; j += 1, conflict_ptr += 1)
         {
-            if(*arena_ptr == *conflict_ptr)
+            if (*arena_ptr == *conflict_ptr)
             {
                 has_conflict = 1;
                 break;
             }
         }
-        if(!has_conflict)
+        if (!has_conflict)
         {
             result = *arena_ptr;
             if (result == NULL)

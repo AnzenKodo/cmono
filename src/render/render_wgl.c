@@ -1,24 +1,24 @@
-// OpenGL helper functions
+// ak: OpenGL helper functions
 //=============================================================================
 
 internal Void_Proc *_render_opengl_load_procedure(char *name)
 {
     Void_Proc *p = (Void_Proc *)(void *)wglGetProcAddress(name);
-    if(p == (Void_Proc*)1 || p == (Void_Proc*)2 || p == (Void_Proc*)3 || p == (Void_Proc*)-1)
+    if (p == (Void_Proc*)1 || p == (Void_Proc*)2 || p == (Void_Proc*)3 || p == (Void_Proc*)-1)
     {
         p = 0;
     }
     return p;
 }
 
-// Internal OpenGL functions
+// ak: Internal OpenGL functions
 //=============================================================================
 
 internal void _render_opengl_init(void)
 {
-    // Get device contex
+    // ak: Get device contex
     _render_wgl_state.hdc = GetDC(_wl_win32_state.handle);
-    // Build pixel format descriptor
+    // ak: Build pixel format descriptor
     int pf = 0;
     {
         PIXELFORMATDESCRIPTOR pfd = ZERO_STRUCT;
@@ -32,14 +32,14 @@ internal void _render_opengl_init(void)
         DescribePixelFormat(_render_wgl_state.hdc, pf, sizeof(pfd), &pfd);
         SetPixelFormat(_render_wgl_state.hdc, pf, &pfd);
     }
-    // Make bootstrap contex
+    // ak: Make bootstrap contex
     HGLRC bootstrap_contex = wglCreateContext(_render_wgl_state.hdc);
     wglMakeCurrent(_render_wgl_state.hdc, bootstrap_contex);
-    // Load extensions
+    // ak: Load extensions
     FNWGLCHOOSEPIXELFORMATARBPROC    *wglChoosePixelFormatARB    = (FNWGLCHOOSEPIXELFORMATARBPROC*)(void*)_render_opengl_load_procedure("wglChoosePixelFormatARB");
     FNWGLCREATECONTEXTATTRIBSARBPROC *wglCreateContextAttribsARB = (FNWGLCREATECONTEXTATTRIBSARBPROC*)(void*)_render_opengl_load_procedure("wglCreateContextAttribsARB");
     FNWGLSWAPINTERVALEXTPROC         *wglSwapIntervalEXT         = (FNWGLSWAPINTERVALEXTPROC*)(void*)_render_opengl_load_procedure("wglSwapIntervalEXT");
-    // Set up real pixel format
+    // ak: set up real pixel format
     {
         int pf_attribs_i[] =
         {
@@ -55,8 +55,8 @@ internal void _render_opengl_init(void)
         UINT num_formats = 0;
         wglChoosePixelFormatARB(_render_wgl_state.hdc, pf_attribs_i, 0, 1, &pf, &num_formats);
     }
-    // Make real OpenGl contex
-    if(pf)
+    // ak: make real OpenGl contex
+    if (pf)
     {
         int context_attribs[] =
         {
@@ -68,7 +68,7 @@ internal void _render_opengl_init(void)
         HGLRC real_contex = wglCreateContextAttribsARB(_render_wgl_state.hdc, bootstrap_contex, context_attribs);
         _render_wgl_state.contex = real_contex;
     }
-    // Clean up bootstrap context
+    // ak: clean up bootstrap context
     wglMakeCurrent(_render_wgl_state.hdc, 0);
     wglDeleteContext(bootstrap_contex);
     wglMakeCurrent(_render_wgl_state.hdc, _render_wgl_state.contex);

@@ -1,4 +1,4 @@
-//~ ak: External Include
+// ak: External Include
 //=============================================================================
 
 #if !defined(XXH_IMPLEMENTATION)
@@ -6,7 +6,7 @@
 #   include "./external/xxhash.h"
 #endif
 
-//~ ak: Character Classification & Conversion Functions
+// ak: Character Classification & Conversion Functions
 //=============================================================================
 
 internal bool char_is_space(uint8_t c)
@@ -72,7 +72,7 @@ internal uint8_t correct_slash_from_char(uint8_t c)
     return(c);
 }
 
-//~ ak: C-String Measurement
+// ak: C-String Measurement
 //=============================================================================
 
 internal size_t cstr8_length(uint8_t *cstr)
@@ -132,13 +132,13 @@ internal Str8 str8_range(uint8_t *first, uint8_t *one_past_last, size_t size)
     return (Str8){first, (size_t)(one_past_last - first), size};
 }
 
-//~ ak: String Stylization
+// ak: String Stylization
 //=============================================================================
 
 internal Str8 upper_from_str8(Str8 string, Arena *arena)
 {
     string = str8_copy(arena, string);
-    for(size_t index = 0; index < string.length; index += 1)
+    for (size_t index = 0; index < string.length; index += 1)
     {
         string.cstr[index] = upper_from_char(string.cstr[index]);
     }
@@ -148,7 +148,7 @@ internal Str8 upper_from_str8(Str8 string, Arena *arena)
 internal Str8 lower_from_str8(Str8 string, Arena *arena)
 {
     string = str8_copy(arena, string);
-    for(size_t index = 0; index < string.length; index += 1)
+    for (size_t index = 0; index < string.length; index += 1)
     {
         string.cstr[index] = lower_from_char(string.cstr[index]);
     }
@@ -158,14 +158,14 @@ internal Str8 lower_from_str8(Str8 string, Arena *arena)
 internal Str8 backslashed_from_str8(Str8 string, Arena *arena)
 {
     string = str8_copy(arena, string);
-    for(size_t index = 0; index < string.length; index += 1)
+    for (size_t index = 0; index < string.length; index += 1)
     {
         string.cstr[index] = char_is_slash(string.cstr[index]) ? '\\' : string.cstr[index];
     }
     return string;
 }
 
-//~ ak: String Matching
+// ak: String Matching
 //=============================================================================
 
 internal bool str8_match(Str8 a, Str8 b, Str_Match_Flags flags)
@@ -266,7 +266,7 @@ internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr
     return result;
 }
 
-//~ ak: String Slicing
+// ak: String Slicing
 //=============================================================================
 
 internal Str8 str8_substr(Str8 str, Rng1_U64 range)
@@ -274,7 +274,7 @@ internal Str8 str8_substr(Str8 str, Rng1_U64 range)
     range.min = Min(range.min, str.length);
     range.max = Min(range.max, str.length);
     str.cstr += range.min;
-    str.length = rng1_dim_u64(range);
+    str.length = dim1(range);
     return(str);
 }
 
@@ -314,7 +314,7 @@ internal Str8 str8_skip_chop_whitespace(Str8 string)
     uint8_t *opl = first + string.length;
     for (;first < opl; first += 1)
     {
-        if(!char_is_space(*first))
+        if (!char_is_space(*first))
         {
             break;
         }
@@ -322,7 +322,7 @@ internal Str8 str8_skip_chop_whitespace(Str8 string)
     while (opl > first)
     {
         opl -= 1;
-        if(!char_is_space(*opl))
+        if (!char_is_space(*opl))
         {
             opl += 1;
             break;
@@ -345,10 +345,10 @@ internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2)
 
 
 
-//~ ak: String Conversions
+// ak: String Conversions
 //=============================================================================
 
-//- ak: string -> integer
+// ak: string -> integer
 
 internal bool str8_is_integer(Str8 str, size_t radix)
 {
@@ -390,7 +390,7 @@ internal bool str8_is_integer_unsigned(Str8 str, size_t radix)
 
 internal int64_t sign_from_str8(Str8 str, Str8 *string_tail)
 {
-    //- ak: count negative signs
+    // ak: count negative signs
     size_t neg_count = 0;
     size_t i = 0;
     for (; i < str.length; i += 1)
@@ -402,9 +402,9 @@ internal int64_t sign_from_str8(Str8 str, Str8 *string_tail)
             break;
         }
     }
-    //- ak: output part of string after signs
+    // ak: output part of string after signs
     *string_tail = str8_skip(str, i);
-    //- ak: output integer sign
+    // ak: output integer sign
     int64_t sign = (neg_count & 1)?-1:+1;
     return sign;
 }
@@ -491,7 +491,7 @@ internal bool try_s64_from_str8_c_rules(Str8 string, int64_t  *x)
     return is_integer;
 }
 
-//- ak: string -> float
+// ak: string -> float
 
 internal bool str8_is_float(Str8 str)
 {
@@ -519,29 +519,29 @@ internal bool str8_is_float(Str8 str)
         }
         else if ((c == 'e' || c == 'E') && !has_exp && has_digits)
         {
-            //- ak: Exponent allowed only after at least one digit
+            // ak: Exponent allowed only after at least one digit
             has_exp = true;
             i += 1;
             if (i >= str.length)
             {
-                return false; //- ak: 'e' at end is invalid
+                return false; // ak: 'e' at end is invalid
             }
-            //- ak: Optional exponent sign
+            // ak: Optional exponent sign
             if (str.cstr[i] == '+' || str.cstr[i] == '-')
             {
                 i += 1;
             }
-            //- ak: Must have at least one digit in exponent
+            // ak: Must have at least one digit in exponent
             if (i >= str.length || str.cstr[i] < '0' || str.cstr[i] > '9')
             {
                 return false;
             }
-            //- ak: Skip remaining exponent digits
+            // ak: Skip remaining exponent digits
             while (i < str.length && str.cstr[i] >= '0' && str.cstr[i] <= '9')
             {
                 i += 1;
             }
-            return i == str.length; //- ak: Must consume all after 'e'
+            return i == str.length; // ak: Must consume all after 'e'
         }
         else
         {
@@ -549,7 +549,7 @@ internal bool str8_is_float(Str8 str)
         }
         i += 1;
     }
-    //- ak: Valid if we saw at least one digit (somewhere before or after dot)
+    // ak: Valid if we saw at least one digit (somewhere before or after dot)
     // Examples: ".5" → valid, "5." → valid, "." → invalid
     return has_digits;
 }
@@ -559,7 +559,7 @@ internal double f64_from_str8(Str8 str)
     double result = 0;
     if (str.length > 0)
     {
-        //- ak: Find starting pos of numeric string, as well as sign
+        // ak: Find starting pos of numeric string, as well as sign
         double sign = +1.0;
         if (str.cstr[0] == '-')
         {
@@ -569,7 +569,7 @@ internal double f64_from_str8(Str8 str)
         {
             sign = 1.0;
         }
-        //- ak: Gather numerics
+        // ak: Gather numerics
         size_t num_valid_chars = 0;
         char buffer[64];
         bool exp = 0;
@@ -584,15 +584,15 @@ internal double f64_from_str8(Str8 str)
                 exp = (str.cstr[index] == 'e');
             }
         }
-        //- ak: Null-terminate.
+        // ak: Null-terminate.
         buffer[num_valid_chars] = 0;
-        //- ak: Do final conversion
+        // ak: Do final conversion
         result = sign * atof(buffer);
     }
     return result;
 }
 
-//- ak: string -> bool
+// ak: string -> bool
 
 internal bool str8_is_bool(Str8 str)
 {
@@ -611,7 +611,7 @@ internal Str8 str8_from_bool(bool value)
     return result;
 }
 
-//~ ak: String List Construction Functions
+// ak: String List Construction Functions
 //=============================================================================
 
 internal Str8_Node* str8_list_push(Arena *arena, Str8_List *list, Str8 str)
@@ -634,7 +634,7 @@ internal Str8_Node* str8_list_pushf(Arena *arena, Str8_List *list, char *fmt, ..
   return result;
 }
 
-//~ ak: String Arrays Construction Functions
+// ak: String Arrays Construction Functions
 //=============================================================================
 
 internal Str8_Array str8_array_from_list(Arena *arena, Str8_List *list)
@@ -651,7 +651,7 @@ internal Str8_Array str8_array_from_list(Arena *arena, Str8_List *list)
     return array;
 }
 
-//~ ak: String Path Helpers
+// ak: String Path Helpers
 //=============================================================================
 
 internal Str8 str8_chop_last_slash(Str8 string)
@@ -739,7 +739,7 @@ internal Str8_List str8_split_path(Arena *arena, Str8 string)
 }
 
 
-//~ ak: String Split and Join
+// ak: String Split and Join
 //=============================================================================
 
 internal Str8_List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags)
@@ -811,7 +811,7 @@ internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_p
     return result;
 }
 
-//~ ak: String Formatting & Copying
+// ak: String Formatting & Copying
 //=============================================================================
 
 internal Str8 str8_copy(Arena *arena, Str8 s)
@@ -848,7 +848,7 @@ internal Str8 str8f(Arena *arena, char *format, ...)
     return result;
 }
 
-//~ ak: UTF-8 & UTF-16 Decoding/Encoding
+// ak: UTF-8 & UTF-16 Decoding/Encoding
 //=============================================================================
 
 internal Unicode_Decode utf8_decode(uint8_t *str, size_t max)
@@ -978,7 +978,7 @@ internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character)
     return(utf8_encode(buffer, character));
 }
 
-//~ ak: Unicode String Conversions
+// ak: Unicode String Conversions
 //=============================================================================
 
 internal Str8 str8_from_16(Arena *arena, Str16 in)
@@ -1072,7 +1072,7 @@ internal Str32 str32_from_8(Arena *arena, Str8 in)
     return result;
 }
 
-//~ ak: Basic Text Indentation
+// ak: Basic Text Indentation
 //=============================================================================
 
 internal Str8 indented_from_string(Str8 string, size_t size, Arena *arena)
@@ -1119,7 +1119,7 @@ internal Str8 indented_from_string(Str8 string, size_t size, Arena *arena)
     return result;
 }
 
-//~ ak: Text Escaping
+// ak: Text Escaping
 //=============================================================================
 
 internal Str8 raw_from_escaped_str8(Str8 string, Arena *arena)
@@ -1169,7 +1169,7 @@ internal Str8 raw_from_escaped_str8(Str8 string, Arena *arena)
     return result;
 }
 
-//~ ak: String Hash
+// ak: String Hash
 //=============================================================================
 
 internal uint64_t u64_hash_from_seed_str8(uint64_t seed, Str8 str)

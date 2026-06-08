@@ -14,7 +14,7 @@ internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time)
 
 internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes) {
     Os_File_Property_Flags flags = 0;
-    if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    if (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
         flags |= Os_File_Property_Flag_IsFolder;
     }
@@ -85,28 +85,28 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
     SECURITY_ATTRIBUTES security_attributes = {sizeof(security_attributes), 0, 0};
-    if(flags & Os_AccessFlag_Read) {
+    if (flags & Os_AccessFlag_Read) {
         access_flags |= GENERIC_READ;
     }
-    if(flags & Os_AccessFlag_Write) {
+    if (flags & Os_AccessFlag_Write) {
         access_flags |= GENERIC_WRITE;
     }
-    if(flags & Os_AccessFlag_Execute) {
+    if (flags & Os_AccessFlag_Execute) {
         access_flags |= GENERIC_EXECUTE;
     }
-    if(flags & Os_AccessFlag_ShareRead) {
+    if (flags & Os_AccessFlag_ShareRead) {
         share_mode |= FILE_SHARE_READ;
     }
-    if(flags & Os_AccessFlag_ShareWrite) {
+    if (flags & Os_AccessFlag_ShareWrite) {
         share_mode |= FILE_SHARE_WRITE|FILE_SHARE_DELETE;
     }
-    if(flags & Os_AccessFlag_Write) {
+    if (flags & Os_AccessFlag_Write) {
         creation_disposition = CREATE_ALWAYS;
     }
-    if(flags & Os_AccessFlag_Append) {
+    if (flags & Os_AccessFlag_Append) {
         creation_disposition = OPEN_ALWAYS; access_flags |= FILE_APPEND_DATA;
     }
-    if(flags & Os_AccessFlag_Inherited)
+    if (flags & Os_AccessFlag_Inherited)
     {
         security_attributes.bInheritHandle = 1;
     }
@@ -132,7 +132,7 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
     //- ak: read loop
     {
         uint64_t to_read = rng1_dim_u64(rng_clamped);
-        for(uint64_t off = rng.min; total_read_size < to_read;)
+        for (uint64_t off = rng.min; total_read_size < to_read;)
         {
             uint64_t amt64 = to_read - total_read_size;
             uint32_t amt32 = u32_from_u64_saturate(amt64);
@@ -143,7 +143,7 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
             ReadFile((HANDLE)file, (uint8_t *)out_data + total_read_size, amt32, &read_size, &overlapped);
             off += read_size;
             total_read_size += read_size;
-                if(read_size != amt32)
+                if (read_size != amt32)
                 {
                     break;
                 }
@@ -158,7 +158,7 @@ internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
     uint64_t src_off = 0;
     uint64_t dst_off = rng.min;
     uint64_t total_write_size = rng1_dim_u64(rng);
-    for(;;)
+    for (;;)
     {
         void *bytes_src = (uint8_t *)data + src_off;
         uint64_t bytes_left = total_write_size - src_off;
@@ -168,13 +168,13 @@ internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
         overlapped.Offset = (dst_off&0x00000000ffffffffull);
         overlapped.OffsetHigh = (dst_off&0xffffffff00000000ull) >> 32;
         BOOL success = WriteFile((HANDLE)file, bytes_src, write_size, &bytes_written, &overlapped);
-        if(success == 0)
+        if (success == 0)
         {
             break;
         }
         src_off += bytes_written;
         dst_off += bytes_written;
-        if(bytes_left == 0)
+        if (bytes_left == 0)
         {
             break;
         }
@@ -194,7 +194,7 @@ internal Os_File_Properties os_file_properties(Os_File file)
     Os_File_Properties props = ZERO_STRUCT;
     BY_HANDLE_FILE_INFORMATION info;
     BOOL info_good = GetFileInformationByHandle((HANDLE)file, &info);
-    if(info_good)
+    if (info_good)
     {
         uint32_t size_lo = info.nFileSizeLow;
         uint32_t size_hi = info.nFileSizeHigh;
@@ -234,13 +234,13 @@ internal Os_File_Walk *os_file_walk_begin(Arena *arena, Str8 path, Os_File_Walk_
     Os_File_Walk *walk = arena_push(arena, Os_File_Walk, 1);
     walk->flags = flags;
     _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)walk->memory;
-    if(path.size == 0)
+    if (path.size == 0)
     {
         win32_walk->is_volume_iter = 1;
         WCHAR buffer[512] = ZERO_STRUCT;
         DWORD length = GetLogicalDriveStringsW(sizeof(buffer), buffer);
         Str8_List drive_strings = ZERO_STRUCT;
-        for(uint64_t off = 0; off < (uint64_t)length;)
+        for (uint64_t off = 0; off < (uint64_t)length;)
         {
             Str16 next_drive_string_16 = str16_from_cstr((uint16_t *)buffer+off);
             off += next_drive_string_16.size+1;
@@ -268,7 +268,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
     {
         //- ak: volume iteration
         result = win32_walk->drive_strings_iter_idx < win32_walk->drive_strings.length;
-        if(result != 0)
+        if (result != 0)
         {
             MemSetZeroStruct(info_out);
             info_out->name = win32_walk->drive_strings.v[win32_walk->drive_strings_iter_idx];
@@ -325,7 +325,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
             }while(FindNextFileW(win32_walk->handle, &win32_walk->find_data));
         }
     }
-    if(!result)
+    if (!result)
     {
         walk->flags |= Os_File_Walk_Flag_Done;
     }
@@ -337,7 +337,7 @@ internal void os_file_walk_end(Os_File_Walk *walk)
     _Os_Win32_Walk_Iter *win32_walk = (_Os_Win32_Walk_Iter*)walk->memory;
     HANDLE zero_handle;
     MemSetZeroStruct(&zero_handle);
-    if(!MemMatchStruct(&zero_handle, &win32_walk->handle))
+    if (!MemMatchStruct(&zero_handle, &win32_walk->handle))
     {
         FindClose(win32_walk->handle);
     }
@@ -366,7 +366,7 @@ internal uint64_t os_now_microsec(void)
 {
     uint64_t result = 0;
     LARGE_INTEGER large_int_counter;
-    if(QueryPerformanceCounter(&large_int_counter))
+    if (QueryPerformanceCounter(&large_int_counter))
     {
         result = (large_int_counter.QuadPart*Million(1))/_os_win32_state.microsecond_resolution;
     }
@@ -437,7 +437,7 @@ int main(void)
     int args_count;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &args_count);
     _os_core_state.args = array_alloc(scratch.arena, Str8_Array, args_count);
-    for(int i = 0; i < args_count; i++)
+    for (int i = 0; i < args_count; i++)
     {
         Str16 str16 = str16_from_cstr(args[i]);
         Str8 str = str8_from_16(scratch.arena, str16);
@@ -447,7 +447,7 @@ int main(void)
     {
         _os_win32_state.microsecond_resolution  = 1;
         LARGE_INTEGER large_int_resolution;
-        if(QueryPerformanceFrequency(&large_int_resolution))
+        if (QueryPerformanceFrequency(&large_int_resolution))
         {
             _os_win32_state.microsecond_resolution = large_int_resolution.QuadPart;
         }

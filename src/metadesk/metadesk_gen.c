@@ -31,16 +31,16 @@ internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *are
     {
         str8_list_push(arena, &strings, str8("\"\"\n"));
         size_t active_line_start_off = 0;
-        for(size_t off = 0; off <= string.length; off += 1)
+        for (size_t off = 0; off <= string.length; off += 1)
         {
             bool is_newline = (off < string.length && (string.cstr[off] == '\n' || string.cstr[off] == '\r'));
             bool is_ender = (off >= string.length || is_newline);
-            if(is_ender)
+            if (is_ender)
             {
                 Str8 line = str8_substr(string, (Rng1_U64){ active_line_start_off, off });
                 str8_list_push(arena, &strings, str8("\""));
                 str8_list_push(arena, &strings, line);
-                if(is_newline)
+                if (is_newline)
                 {
                     str8_list_push(arena, &strings, str8("\\n\"\n"));
                 }
@@ -50,7 +50,7 @@ internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *are
                 }
                 active_line_start_off = off+1;
             }
-            if(is_newline && string.cstr[off] == '\r')
+            if (is_newline && string.cstr[off] == '\r')
             {
                 active_line_start_off += 1;
                 off += 1;
@@ -67,14 +67,14 @@ internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str8_List strings = ZERO_STRUCT;
     {
-        for(uint64_t off = 0; off < string.length;)
+        for (uint64_t off = 0; off < string.length;)
         {
             uint64_t chunk_size = Min(string.length-off, 64);
             uint8_t *chunk_bytes = string.cstr+off;
             Str8 chunk_text_string = ZERO_STRUCT;
             chunk_text_string.size = chunk_size*5;
             chunk_text_string.cstr = arena_push(arena, uint8_t, chunk_text_string.size);
-            for(uint64_t byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
+            for (uint64_t byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
             {
                 Str8 byte_str = str8f(scratch.arena, "0x%02x,", chunk_bytes[byte_idx]);
                 mem_copy(chunk_text_string.cstr+byte_idx*5, byte_str.cstr, byte_str.size);
@@ -346,7 +346,7 @@ internal size_t mdg_column_index_from_name(MDG_Column_Desc_Array descs, Str8 nam
     size_t result = 0;
     for (size_t index = 0; index < descs.count; index += 1)
     {
-        if(str8_match(descs.v[index].name, name, 0))
+        if (str8_match(descs.v[index].name, name, 0))
         {
             result = index;
             break;
@@ -360,13 +360,13 @@ internal Str8 mdg_string_from_row_desc_index(MD_Node *row_parent, MDG_Column_Des
     Str8 result = ZERO_STRUCT;
     // ak: grab relevant column description
     MDG_Column_Desc *desc = 0;
-    if(index < descs.count)
+    if (index < descs.count)
     {
         desc = descs.v + index;
     }
     
     // ak: grab node
-    if(desc != 0)
+    if (desc != 0)
     {
         switch (desc->kind)
         {
@@ -377,7 +377,7 @@ internal Str8 mdg_string_from_row_desc_index(MD_Node *row_parent, MDG_Column_Des
                  size_t cell_idx = index;
                  for (size_t col_idx = 0; col_idx < descs.count && col_idx < index; col_idx += 1)
                  {
-                     if(descs.v[col_idx].kind != MDG_Column_Kind_DirectCell)
+                     if (descs.v[col_idx].kind != MDG_Column_Kind_DirectCell)
                      {
                          cell_idx -= 1;
                      }

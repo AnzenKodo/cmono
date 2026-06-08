@@ -206,16 +206,16 @@ global const uint64_t bit64 = (1ull<<63);
 
 // ak: For-Loop Construct =====================================================
 
-#define DeferLoop(begin, end)        for(int _i_ = ((begin), 0); !_i_; _i_ += 1, (end))
+#define DeferLoop(begin, end)      for(int _i_ = ((begin), 0); !_i_; _i_ += 1, (end))
 #define DeferLoopCheck(begin, end) for(int _i_ = 2 * !(begin); (_i_ == 2 ? ((end), 0) : !_i_); _i_ += 1, (end))
 
-#define EachIndex(it, count) (U64 it = 0; it < (count); it += 1)
-#define EachElement(it, array) (U64 it = 0; it < ArrayCount(array); it += 1)
-#define EachEnumVal(type, it) (type it = (type)0; it < type##_COUNT; it = (type)(it+1))
+#define EachIndex(it, count)         (size_t it = 0; it < (count); it += 1)
+#define EachElement(it, array)       (size_t it = 0; it < ArrayLength(array); it += 1)
+#define EachEnumVal(type, it)        (type it = (type)0; it < type##_COUNT; it = (type)(it+1))
 #define EachNonZeroEnumVal(type, it) (type it = (type)1; it < type##_COUNT; it = (type)(it+1))
-#define EachInRange(it, range) (U64 it = (range).min; it < (range).max; it += 1)
-#define EachNode(it, T, first) (T *it = first; it != 0; it = it->next)
-#define EachBit(it, flags) (U64 (_i_) = (flags), it = (flags) & -(flags); (_i_) != 0; (_i_) &= ((_i_) - 1), it = (flags) & -(flags))
+#define EachInRange(it, range)       (size_t it = (range).min; it < (range).max; it += 1)
+#define EachNode(it, T, first)       (T *it = first; it != 0; it = it->next)
+#define EachBit(it, flags)           (size_t (_i_) = (flags), it = (flags) & -(flags); (_i_) != 0; (_i_) &= ((_i_) - 1), it = (flags) & -(flags))
 
 // ak: Alignment ==============================================================
 

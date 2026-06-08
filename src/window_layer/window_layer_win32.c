@@ -111,16 +111,16 @@ internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key)
     {
         local_persist int32_t initialized = 0;
         local_persist WPARAM vkey_table[Wl_Key_COUNT] = ZERO_STRUCT;
-        if(initialized == 0)
+        if (initialized == 0)
         {
             initialized = 1;
             vkey_table[Wl_Key_Esc] = VK_ESCAPE;
-            for(Wl_Key ikey = Wl_Key_F1; ikey <= Wl_Key_F24; ikey = (Wl_Key)(ikey+1))
+            for (Wl_Key ikey = Wl_Key_F1; ikey <= Wl_Key_F24; ikey = (Wl_Key)(ikey+1))
             {
                 vkey_table[ikey] = VK_F1+(ikey-Wl_Key_F1);
             }
             vkey_table[Wl_Key_Tick] = VK_OEM_3;
-            for(Wl_Key ikey = Wl_Key_0; ikey <= Wl_Key_9; ikey = (Wl_Key)(ikey+1))
+            for (Wl_Key ikey = Wl_Key_0; ikey <= Wl_Key_9; ikey = (Wl_Key)(ikey+1))
             {
                 vkey_table[ikey] = '0'+(ikey-Wl_Key_0);
             }
@@ -181,7 +181,7 @@ internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key)
             vkey_table[Wl_Key_Left]       = VK_LEFT;
             vkey_table[Wl_Key_Down]       = VK_DOWN;
             vkey_table[Wl_Key_Right]      = VK_RIGHT;
-            for(Wl_Key ikey = Wl_Key_Ex0; ikey <= Wl_Key_Ex29; ikey = (Wl_Key)(ikey+1))
+            for (Wl_Key ikey = Wl_Key_Ex0; ikey <= Wl_Key_Ex29; ikey = (Wl_Key)(ikey+1))
             {
                 vkey_table[ikey] = 0xDF + (ikey-Wl_Key_Ex0);
             }
@@ -414,9 +414,9 @@ internal Wl_Event wl_get_event(void)
                 int32_t was_down = (msg.lParam & bit31);
                 int32_t is_down  = !(msg.lParam & bit32);
                 int32_t is_repeat = 0;
-                if(!is_down) {
+                if (!is_down) {
                     release = 1;
-                } else if(was_down) {
+                } else if (was_down) {
                     is_repeat = 1;
                 }
                 int32_t right_sided = 0;
@@ -441,11 +441,11 @@ internal Wl_Event wl_get_event(void)
                 {
                     event.mod_key &= ~Wl_ModKey_Alt;
                 }
-                if(event.key == Wl_Key_Ctrl  && event.mod_key & Wl_ModKey_Ctrl)
+                if (event.key == Wl_Key_Ctrl  && event.mod_key & Wl_ModKey_Ctrl)
                 {
                     event.mod_key &= ~Wl_ModKey_Ctrl;
                 }
-                if(event.key == Wl_Key_Shift && event.mod_key & Wl_ModKey_Shift)
+                if (event.key == Wl_Key_Shift && event.mod_key & Wl_ModKey_Shift)
                 {
                     event.mod_key &= ~Wl_ModKey_Shift;
                 }
@@ -488,7 +488,7 @@ internal Wl_Event wl_get_event(void)
                 }
                 event.pos.x = (float)(int16_t)LOWORD(msg.lParam);
                 event.pos.y = (float)(int16_t)HIWORD(msg.lParam);
-                if(release)
+                if (release)
                 {
                     ReleaseCapture();
                 }

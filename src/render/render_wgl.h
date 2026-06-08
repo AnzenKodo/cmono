@@ -1,14 +1,14 @@
 #ifndef RENDER_WGL_H
 #define RENDER_WGL_H
 
-// External Includes
+// ak: External Includes
 //=============================================================================
 
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #include <GL/gl.h>
 
-// Defines
+// ak: Defines
 //=============================================================================
 
 #define WGL_DRAW_TO_WINDOW_ARB            0x2001
@@ -24,7 +24,7 @@
 #define WGL_CONTEXT_MINOR_VERSION_ARB     0x2092
 #define WGL_CONTEXT_FLAGS_ARB             0x2094
 
-// X Macro
+// ak: X Macro
 //=============================================================================
 
 #define RenderOpenglXMacroWGL \
@@ -63,8 +63,8 @@
     X(glUniform4f, void, (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3))\
     X(glBufferSubData, void, (GLenum target, GLintptr offset, GLsizeiptr size, const void *data))
 
-// Defines
-// ============================================================================
+// ak: Defines
+//=============================================================================
 
 #define GL_LINK_STATUS                  0x8b82
 #define GL_DYNAMIC_DRAW                 0x88e8
@@ -81,14 +81,14 @@
 #define GL_RGBA32F                      0x8814
 #define GL_BGRA                         0x80e1
 
-// OpenGL setup function pointers
+// ak: OpenGL setup function pointers
 //=============================================================================
 
 typedef BOOL WINAPI FNWGLCHOOSEPIXELFORMATARBPROC(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 typedef HGLRC WINAPI FNWGLCREATECONTEXTATTRIBSARBPROC(HDC hDC, HGLRC hShareContext, const int *attribList);
 typedef BOOL WINAPI FNWGLSWAPINTERVALEXTPROC(int interval);
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef struct _Render_Wgl_State _Render_Wgl_State;
@@ -98,13 +98,13 @@ struct _Render_Wgl_State
     HGLRC contex;
 };
 
-// Global Variables
+// ak: Global Variables
 //=============================================================================
 
 global _Render_Wgl_State _render_wgl_state = ZERO_STRUCT;
 global char* shader_source_header = "#version 330\n";
 
-// Functions
+// ak: Functions
 //=============================================================================
 
 #endif // RENDER_WGL_H

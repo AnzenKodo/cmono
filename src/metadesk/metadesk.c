@@ -155,7 +155,7 @@ internal MD_Node *md_node_from_chain_index(MD_Node *first, MD_Node *opl, size_t 
 {
     MD_Node *result = &md_nil_node;
     size_t idx = 0;
-    for(MD_Node *n = first; !md_node_is_nil(n) && n != opl; n = n->next, idx += 1)
+    for (MD_Node *n = first; !md_node_is_nil(n) && n != opl; n = n->next, idx += 1)
     {
         if (index == idx)
         {
@@ -175,7 +175,7 @@ internal MD_Node *md_tag_from_string(MD_Node *node, Str8 tag_string, Str_Match_F
 internal MD_Node *md_root_from_node(MD_Node *node)
 {
     MD_Node *result = node;
-    for(MD_Node *p = node->parent; (p->kind == MD_Node_Kind_Main || p->kind == MD_Node_Kind_Tag) && !md_node_is_nil(p); p = p->parent)
+    for (MD_Node *p = node->parent; (p->kind == MD_Node_Kind_Main || p->kind == MD_Node_Kind_Tag) && !md_node_is_nil(p); p = p->parent)
     {
         result = p;
     }
@@ -366,7 +366,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
             token_start = byte;
             token_opl = byte+3;
             byte += 3;
-            for(;byte <= byte_opl; byte += 1)
+            for (;byte <= byte_opl; byte += 1)
             {
                 if (byte == byte_opl)
                 {

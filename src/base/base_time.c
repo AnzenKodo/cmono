@@ -75,9 +75,9 @@ date_time_from_unix_time(uint64_t unix_time)
     date.min      = (uint32_t)(unix_time / 60) % 60;
     date.hour     = (uint32_t)(unix_time / 3600) % 24;
 
-    for(;;)
+    for (;;)
     {
-        for(date.month = 0; date.month < 12; ++date.month)
+        for (date.month = 0; date.month < 12; ++date.month)
         {
             uint64_t c = 0;
             switch(date.month)
@@ -85,7 +85,7 @@ date_time_from_unix_time(uint64_t unix_time)
                 case Month_Jan: c = 31; break;
                 case Month_Feb:
                 {
-                    if(
+                    if (
                         (date.year % 4 == 0) &&
                         ((date.year % 100) != 0 || (date.year % 400) == 0)
                     )
@@ -109,7 +109,7 @@ date_time_from_unix_time(uint64_t unix_time)
                 case Month_Dec: c = 31; break;
                 case Month_COUNT: UNREACHABLE();
             }
-            if(date.day <= c)
+            if (date.day <= c)
             {
                 goto exit;
             }

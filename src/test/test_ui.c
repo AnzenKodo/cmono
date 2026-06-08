@@ -53,7 +53,7 @@ internal void base_main(void)
         
         // ak: render ui
         UI_Box_Rec rec;
-        for(UI_Box *box = ui_root_from_state(ui); !ui_box_is_nil(box); box = rec.next)
+        for (UI_Box *box = ui_root_from_state(ui); !ui_box_is_nil(box); box = rec.next)
         {
             if (box->flags & UI_Box_Flag_DrawBackground)
             {

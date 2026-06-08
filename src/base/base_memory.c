@@ -194,7 +194,7 @@ internal int32_t mem_is_zero(void *ptr, uint64_t size)
     uint64_t count8 = (size >> 3);
     //- ak: check with 8-byte stride
     uint64_t *p64 = (uint64_t*)ptr;
-    if(result)
+    if (result)
     {
         for (uint64_t i = 0; i < count8; i += 1, p64 += 1)
         {
@@ -206,7 +206,7 @@ internal int32_t mem_is_zero(void *ptr, uint64_t size)
         }
     }
     //- ak: check extra
-    if(result)
+    if (result)
     {
         uint8_t *p8 = (uint8_t*)p64;
         for (uint64_t i = 0; i < extra; i += 1, p8 += 1)
