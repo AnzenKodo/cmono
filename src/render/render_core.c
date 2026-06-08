@@ -42,19 +42,35 @@ internal Render_Draw_List render_draw_list_zero(void)
     return result;
 }
 
+internal Mat4x4_F32 render_sample_channel_map_from_tex2dformat(Render_Tex2D_Format fmt)
+{
+  Mat4x4_F32 result =
+  {
+    {
+      {1, 0, 0, 0},
+      {0, 1, 0, 0},
+      {0, 0, 1, 0},
+      {0, 0, 0, 1},
+    }
+  };
+  switch(fmt)
+  {
+    default:{}break;
+    case Render_Tex2D_Format_R8:
+    {
+      MemSetZeroArray(result.v[0]);
+      result.v[0][0] = result.v[0][1] = result.v[0][2] = result.v[0][3] = 1.f;
+    }break;
+  }
+  return result;
+}
+
 // ak: Core functions
 //=============================================================================
 
 internal void render_begin(void)
 {
-    if (render_state == NULL) {
-        Arena *arena = arena_alloc();
-        render_state = arena_push(arena, Render_State, 1);
-        render_state->arena = arena;
-        render_state->render_begin_arena_pos = arena_pos(arena);
-    } else {
-        arena_pop_to(render_state->arena, render_state->render_begin_arena_pos);
-    }
+    arena_pop_to(render_state->arena, render_state->render_begin_arena_pos);
     render_state->list = render_draw_list_zero();
 }
 

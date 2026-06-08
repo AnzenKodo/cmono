@@ -1,7 +1,7 @@
 #ifndef RENDER_CORE_H
 #define RENDER_CORE_H
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef struct Render_Handle Render_Handle;
@@ -40,10 +40,10 @@ typedef enum Render_Draw_Type {
 } Render_Draw_Type;
 
 typedef struct Render_Color {
-    unsigned char r;        // Color red value
-    unsigned char g;        // Color green value
-    unsigned char b;        // Color blue value
-    unsigned char a;        // Color alpha value
+    unsigned char r;        // ak: Color red value
+    unsigned char g;        // ak: Color green value
+    unsigned char b;        // ak: Color blue value
+    unsigned char a;        // ak: Color alpha value
 } Render_Color;
 
 typedef struct Render_Draw_Rect Render_Draw_Rect;
@@ -79,16 +79,17 @@ struct Render_State
 {
     Render_Draw_List list;
     Arena *arena;
+    Wl_Window window;
     size_t render_begin_arena_pos;
 };
 
-// Define Render Backends
+// ak: Define Render Backends
 //=============================================================================
 
 #define RENDER_BACKEND_STUB   0
 #define RENDER_BACKEND_OPENGL 1
 
-// Context detection for Render Backends
+// ak: Context detection for Render Backends
 //=============================================================================
 
 #ifndef RENDER_BACKEND
@@ -113,7 +114,7 @@ internal Render_Draw_List render_draw_list_zero(void);
 
 // ak: Core functions =========================================================
 
-internal void render_init(void);
+internal void render_init(Wl_Window window);
 internal void render_begin(void);
 internal void render_end(void);
 internal void render_deinit(void);
