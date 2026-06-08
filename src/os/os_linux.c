@@ -130,7 +130,7 @@ internal void os_file_close(Os_File file)
 
 internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
-    size_t total_num_bytes_to_read = rng1_dim_u64(rng);
+    size_t total_num_bytes_to_read = dim1(rng);
     size_t total_num_bytes_read = 0;
     size_t total_num_bytes_left_to_read = total_num_bytes_to_read;
     while (total_num_bytes_left_to_read > 0)
@@ -154,7 +154,7 @@ internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 
 internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
 {
-    size_t total_num_bytes_to_write = rng1_dim_u64(rng);
+    size_t total_num_bytes_to_write = dim1(rng);
     size_t total_num_bytes_written = 0;
     size_t total_num_bytes_left_to_write = total_num_bytes_to_write;
     while (total_num_bytes_left_to_write > 0)

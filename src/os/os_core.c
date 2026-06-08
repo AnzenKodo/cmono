@@ -25,7 +25,7 @@ internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 {
     size_t pre_pos = arena_pos(arena);
     Str8 result;
-    result.length = rng1_dim_u64(range);
+    result.length = dim1(range);
     result.cstr = arena_push(arena, uint8_t, result.length);
     size_t actual_read_size = os_file_read(file, range, result.cstr);
     if (actual_read_size < result.length)
