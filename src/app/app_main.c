@@ -20,8 +20,6 @@
 
 internal void base_main(void)
 {
-    Arena *arena = arena_alloc();
-    
     // Program Init ===========================================================
     unsigned int width = 150;
     unsigned int height = 300;

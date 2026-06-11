@@ -614,7 +614,7 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
     }
 }
 
-internal void render_end()
+internal void render_end(void)
 {
     uint32_t win_width = wl_window_width_get(_render_opengl_state->window);
     uint32_t win_height = wl_window_height_get(_render_opengl_state->window);

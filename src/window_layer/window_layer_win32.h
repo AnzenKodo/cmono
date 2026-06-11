@@ -7,6 +7,7 @@
 typedef struct _Wl_Win32_State _Wl_Win32_State;
 struct _Wl_Win32_State
 {
+    Arena *arena;
     HWND handle;
     HINSTANCE instance;
     bool window_close;
@@ -33,6 +34,6 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
 // ak: Global variables
 //=============================================================================
 
-global _Wl_Win32_State _wl_win32_state = ZERO_STRUCT;
+global _Wl_Win32_State *_wl_win32_state = NULL;
 
 #endif // WINDOW_LAYER_W32_H

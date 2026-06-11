@@ -1,4 +1,4 @@
-internal UI_State *ui_state_alloc()
+internal UI_State *ui_state_alloc(void)
 {
     Arena *arena = arena_alloc();
     UI_State *state = arena_push(arena, UI_State, 1);
@@ -311,4 +311,5 @@ internal void ui_button(Str8 string)
 {
     TempUnused(string);
     UI_Box *box = ui_box_build_from_key(UI_Box_Flag_DrawBackground, ui_key_zero());
+    TempUnused(box);
 }

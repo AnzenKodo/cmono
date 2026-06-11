@@ -16,9 +16,9 @@ internal Void_Proc *_render_opengl_load_procedure(char *name)
 
 internal void _render_opengl_init(void)
 {
-    // ak: Get device contex
-    _render_wgl_state.hdc = GetDC(_wl_win32_state.handle);
-    // ak: Build pixel format descriptor
+    // Get device contex
+    _render_wgl_state.hdc = GetDC(_wl_win32_state->handle);
+    // Build pixel format descriptor
     int pf = 0;
     {
         PIXELFORMATDESCRIPTOR pfd = ZERO_STRUCT;
@@ -77,7 +77,7 @@ internal void _render_opengl_init(void)
 
 internal void _render_opengl_deinit(void)
 {
-    ReleaseDC(_wl_win32_state.handle, _render_wgl_state.hdc);
+    ReleaseDC(_wl_win32_state->handle, _render_wgl_state.hdc);
     wglDeleteContext(_render_wgl_state.contex);
 }
 
