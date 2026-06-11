@@ -246,7 +246,8 @@ internal LRESULT CALLBACK _wl_win32_window_proc(HWND handle, UINT message, WPARA
         //
         // case WM_SYSCOMMAND:
         // {
-        //     switch (w_param & 0xFFF0) {
+        //     switch (w_param & 0xFFF0)
+        //     {
         //         case SC_CLOSE: {
         //             event.type = Wl_EventType_WindowClose;
         //         } break;
@@ -440,11 +441,13 @@ internal Wl_Event wl_get_event(void)
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
-                if (_wl_win32_state->window_close) {
+                if (_wl_win32_state.window_close)
+                {
                     event.type = Wl_EventType_WindowClose;
                     _wl_win32_state->window_close = false;
                 }
-                if (_wl_win32_state->window_resize) {
+                if (_wl_win32_state.window_resize)
+                {
                     event.type = Wl_EventType_WindowResize;
                     _wl_win32_state->window_resize = false;
                 }
@@ -465,9 +468,11 @@ internal Wl_Event wl_get_event(void)
                 int32_t was_down = (msg.lParam & bit31);
                 int32_t is_down  = !(msg.lParam & bit32);
                 int32_t is_repeat = 0;
-                if (!is_down) {
+                if (!is_down)
+                {
                     release = 1;
-                } else if (was_down) {
+                } else if (was_down)
+                {
                     is_repeat = 1;
                 }
                 int32_t right_sided = 0;
@@ -602,7 +607,8 @@ internal void wl_window_pos_set(int x, int y)
 internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32_t height)
 {
     static HICON current_icon = NULL;
-    if (current_icon) {
+    if (current_icon)
+    {
         DestroyIcon(current_icon);
         current_icon = NULL;
     }
@@ -631,9 +637,10 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
     HICON hIcon = CopyImage(hBitmap, IMAGE_ICON, (int)width, (int)height, LR_DEFAULTCOLOR);
     DeleteObject(hBitmap);
 
-    if (hIcon) {
-        SendMessage(_wl_win32_state->handle, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-        SendMessage(_wl_win32_state->handle, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    if (hIcon)
+    {
+        SendMessage(_wl_win32_state.handle, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(_wl_win32_state.handle, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
         current_icon = hIcon;
     }
 }

@@ -52,11 +52,15 @@ struct World
     int32_t tile_side_in_pixels;
 };
 
-internal int32_t floor_f32_to_i32(float a) { return cast(int32_t)floor_f32(a); }
+internal int32_t floor_f32_to_i32(float a) 
+{
+    return cast(int32_t)floor_f32(a);
+}
 
 internal uint32_t tilemap_get_tile_value_unchecked(
     World *world,Tilemap *tilemap, int32_t tile_x, int32_t tile_y
-) {
+)
+{
     Assert(tilemap);
     Assert((tile_x >= 0) && (tile_x < world->length_x) &&
         (tile_y >= 0) && (tile_y < world->length_y));
@@ -66,7 +70,8 @@ internal uint32_t tilemap_get_tile_value_unchecked(
 
 internal bool tilemap_point_is_empty(
     World *world, Tilemap *tilemap, int32_t test_tile_x, int32_t test_tile_y
-) {
+)
+{
     bool empty = false;
 
     if (tilemap) {

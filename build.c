@@ -336,7 +336,8 @@ internal void base_main(void)
     }
     for (uint32_t i = 0; i < args->length; i++)
     {
-        if (str8_match(args->v[i], str8("--nocolor"), 0)) {
+        if (str8_match(args->v[i], str8("--nocolor"), 0))
+        {
             info.log_context.enable_color_log = false;
         }
     }

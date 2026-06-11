@@ -28,7 +28,8 @@ internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args)
     va_copy(args_copy, args);
         int32_t needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 1;
     va_end(args_copy);
-    if (needed > 0) {
+    if (needed > 0) 
+    {
         char *buffer = arena_push(scratch.arena, char, needed);
         va_copy(args_copy, args);
             written = fmt_vsprintf(buffer, format, args_copy);
@@ -55,7 +56,8 @@ internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args)
     va_copy(args_copy, args);
         int32_t needed = fmt_vsnprintf(NULL, 0, format, args_copy) + 2;
     va_end(args_copy);
-    if (needed > 0) {
+    if (needed > 0) 
+    {
         char *buffer = arena_push(scratch.arena, char, needed);
         va_copy(args_copy, args);
             written = fmt_vsprintf(buffer, format, args_copy);

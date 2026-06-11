@@ -12,7 +12,8 @@ internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time)
     return unix_time32;
 }
 
-internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes) {
+internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes)
+{
     Os_File_Property_Flags flags = 0;
     if (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
@@ -85,25 +86,32 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
     SECURITY_ATTRIBUTES security_attributes = {sizeof(security_attributes), 0, 0};
-    if (flags & Os_AccessFlag_Read) {
+    if (flags & Os_AccessFlag_Read)
+    {
         access_flags |= GENERIC_READ;
     }
-    if (flags & Os_AccessFlag_Write) {
+    if (flags & Os_AccessFlag_Write)
+    {
         access_flags |= GENERIC_WRITE;
     }
-    if (flags & Os_AccessFlag_Execute) {
+    if (flags & Os_AccessFlag_Execute)
+    {
         access_flags |= GENERIC_EXECUTE;
     }
-    if (flags & Os_AccessFlag_ShareRead) {
+    if (flags & Os_AccessFlag_ShareRead)
+    {
         share_mode |= FILE_SHARE_READ;
     }
-    if (flags & Os_AccessFlag_ShareWrite) {
+    if (flags & Os_AccessFlag_ShareWrite)
+    {
         share_mode |= FILE_SHARE_WRITE|FILE_SHARE_DELETE;
     }
-    if (flags & Os_AccessFlag_Write) {
+    if (flags & Os_AccessFlag_Write)
+    {
         creation_disposition = CREATE_ALWAYS;
     }
-    if (flags & Os_AccessFlag_Append) {
+    if (flags & Os_AccessFlag_Append)
+    {
         creation_disposition = OPEN_ALWAYS; access_flags |= FILE_APPEND_DATA;
     }
     if (flags & Os_AccessFlag_Inherited)
@@ -288,36 +296,45 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
 
                 WCHAR *file_name = win32_walk->find_data.cFileName;
                 DWORD attributes = win32_walk->find_data.dwFileAttributes;
-                if (file_name[0] == '.') {
-                    if (flags & Os_File_Walk_Flag_SkipHiddenFiles) {
+                if (file_name[0] == '.')
+                {
+                    if (flags & Os_File_Walk_Flag_SkipHiddenFiles)
+                    {
                         usable_file = 0;
                     }
-                    else if (file_name[1] == 0) {
+                    else if (file_name[1] == 0)
+                    {
                         usable_file = 0;
                     }
-                    else if (file_name[1] == '.' && file_name[2] == 0) {
+                    else if (file_name[1] == '.' && file_name[2] == 0)
+                    {
                         usable_file = 0;
                     }
                 }
-                if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
-                    if (flags & Os_File_Walk_Flag_SkipFolders) {
+                if (attributes & FILE_ATTRIBUTE_DIRECTORY)
+                {
+                    if (flags & Os_File_Walk_Flag_SkipFolders)
+                    {
                         usable_file = 0;
                     }
                 }
                 else{
-                    if (flags & Os_File_Walk_Flag_SkipFiles) {
+                    if (flags & Os_File_Walk_Flag_SkipFiles)
+                    {
                         usable_file = 0;
                     }
                 }
                 //- ak: emit if usable
-                if (usable_file) {
+                if (usable_file)
+                {
                     info_out->name = str8_from_16(arena, str16_from_cstr((uint16_t*)file_name));
                     info_out->props.size = (uint64_t)win32_walk->find_data.nFileSizeLow | (((uint64_t)win32_walk->find_data.nFileSizeHigh)<<32);
                     _os_win32_dense_time_from_file_time(&info_out->props.created,  &win32_walk->find_data.ftCreationTime);
                     _os_win32_dense_time_from_file_time(&info_out->props.modified, &win32_walk->find_data.ftLastWriteTime);
                     info_out->props.flags = _os_win32_file_property_flags_from_dwFileAttributes(attributes);
                     result = 1;
-                    if (!FindNextFileW(win32_walk->handle, &win32_walk->find_data)) {
+                    if (!FindNextFileW(win32_walk->handle, &win32_walk->find_data))
+                    {
                         walk->flags |= Os_File_Walk_Flag_Done;
                     }
                     break;
@@ -376,7 +393,8 @@ internal uint64_t os_now_microsec(void)
 internal void os_sleep_microsec(uint64_t microsec)
 {
     DWORD millisec = (DWORD)(microsec / 1000); //- ak: Integer division to get milliseconds
-    if (microsec % 1000 >= 500) {
+    if (microsec % 1000 >= 500)
+    {
         millisec++; //- ak: Round up if the remaining microseconds are 500 or more
     }
     os_sleep_millisec(millisec);
@@ -417,7 +435,8 @@ internal Str8 os_env_get(Str8 name)
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str16 name16 = str16_from_8(scratch.arena, name);
     DWORD len = GetEnvironmentVariableW(name16.cstr, NULL, 0);
-    if (len > 0) {
+    if (len > 0)
+    {
         uint16_t* value_buf = arena_push(scratch.arena, uint16_t, len);
         GetEnvironmentVariableW(name16.cstr, value_buf, len);
         Str16 value16 = str16_from_cstr(value_buf);

@@ -140,26 +140,32 @@ internal inline void *mem_set(void *dest, uint8_t c, size_t n)
     {
         return NULL;
     }
-    if (n == 0) { return dest; }
+    if (n == 0) 
+    { return dest; }
     s[0] = s[n-1] = c;
-    if (n < 3) { return dest; }
+    if (n < 3) 
+    { return dest; }
     s[1] = s[n-2] = c;
     s[2] = s[n-3] = c;
-    if (n < 7) { return dest; }
+    if (n < 7) 
+    { return dest; }
     s[3] = s[n-4] = c;
-    if (n < 9) { return dest; }
+    if (n < 9) 
+    { return dest; }
     k = -(int64_t)s & 3;
     s += k;
     n -= k;
     n &= -4;
     *(uint32_t *)(s+0) = c32;
     *(uint32_t *)(s+n-4) = c32;
-    if (n < 9) { return dest; }
+    if (n < 9) 
+    { return dest; }
     *(uint32_t *)(s +  4)    = c32;
     *(uint32_t *)(s +  8)    = c32;
     *(uint32_t *)(s+n-12) = c32;
     *(uint32_t *)(s+n- 8) = c32;
-    if (n < 25) { return dest; }
+    if (n < 25) 
+    { return dest; }
     *(uint32_t *)(s + 12) = c32;
     *(uint32_t *)(s + 16) = c32;
     *(uint32_t *)(s + 20) = c32;

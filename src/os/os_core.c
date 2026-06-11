@@ -68,7 +68,8 @@ internal Str8 os_path_read_str_full(Str8 path, Arena *arena)
 internal bool os_dir_ensure(Str8 path)
 {
     bool result = os_is_dir_exist(path);
-    if (!result) {
+    if (!result) 
+    {
         result = os_dir_make(path);
     }
     return result;

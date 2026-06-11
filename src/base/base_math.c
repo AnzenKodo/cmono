@@ -114,13 +114,15 @@ internal float pow_f32(float a, float b)
 {
     int32_t flipped = 0, e;
     float f, r = 1.0f;
-    if (b < 0) {
+    if (b < 0) 
+    {
         flipped = 1;
         b = -b;
     }
     e = (int32_t)b;
     f = exp_f32(b - e);
-    while (e) {
+    while (e) 
+    {
         if (e & 1) r *= a;
         a *= a;
         e >>= 1;
@@ -148,7 +150,8 @@ internal double sqrt_f64(double number)
     while (1)
     {
         next_guess = 0.5 * (guess + number / guess);
-        if (Abs(guess - next_guess) < tolerance) {
+        if (Abs(guess - next_guess) < tolerance) 
+        {
             break;
         }
 
@@ -178,13 +181,15 @@ internal double pow_f64(double a, double b)
     int32_t flipped = 0;
     int64_t e;
     double f, r = 1.0;
-    if (b < 0) {
+    if (b < 0) 
+    {
         flipped = 1;
         b = -b;
     }
     e = (int64_t)b;
     f = exp_f64(b - e);
-    while (e) {
+    while (e) 
+    {
         if (e & 1) r *= a;
         a *= a;
         e >>= 1;
@@ -197,6 +202,7 @@ internal double pow_f64(double a, double b)
 
 
 internal float sin_f32(float a)
+
 {
     static float const a0 = +1.91059300966915117e-31f;
     static float const a1 = +1.00086760103908896f;
@@ -439,7 +445,8 @@ internal double copysign_f64(double x, double y)
 internal Rng1_U8 rng1_u8(uint8_t min, uint8_t max)
 {
     Rng1_U8 rng = {min, max};
-    if(rng.min > rng.max) {
+    if (rng.min > rng.max)
+    {
         Swap(uint8_t, rng.min, rng.max);
     }
     return rng;
@@ -455,7 +462,8 @@ internal uint8_t dim1_u8(Rng1_U8 r)
 internal Rng1_U16 rng1_u16(uint16_t min, uint16_t max)
 {
     Rng1_U16 rng = {min, max};
-    if(rng.min > rng.max) {
+    if (rng.min > rng.max) 
+    {
         Swap(uint16_t, rng.min, rng.max);
     }
     return rng;
@@ -471,7 +479,8 @@ internal uint16_t dim1_u16(Rng1_U16 r)
 internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max)
 {
     Rng1_U32 rng = {min, max};
-    if(rng.min > rng.max) {
+    if (rng.min > rng.max) 
+    {
         Swap(uint32_t, rng.min, rng.max);
     }
     return rng;
@@ -487,7 +496,8 @@ internal uint32_t dim1_u32(Rng1_U32 r)
 internal Rng1_I32 rng1_i32(int32_t min, int32_t max)
 {
     Rng1_I32 rng = {min, max};
-    if(rng.min > rng.max) {
+    if (rng.min > rng.max) 
+    {
         Swap(int32_t, rng.min, rng.max);
     }
     return rng;
@@ -503,7 +513,7 @@ internal int32_t dim1_i32(Rng1_I32 r)
 internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max)
 {
     Rng1_U64 rng = {min, max};
-    if(rng.min > rng.max)
+    if (rng.min > rng.max)
     {
         Swap(uint64_t, rng.min, rng.max);
     }
@@ -520,7 +530,7 @@ internal uint64_t dim1_u64(Rng1_U64 r)
 internal Rng1_I64 rng1_i64(int64_t min, int64_t max)
 {
     Rng1_I64 rng = {min, max};
-    if(rng.min > rng.max)
+    if (rng.min > rng.max)
     {
         Swap(int64_t, rng.min, rng.max);
     }
@@ -537,7 +547,8 @@ internal int64_t dim1_i64(Rng1_I64 r)
 internal Rng1_F32 rng1_f32(float min, float max)
 {
     Rng1_F32 rng = {min, max};
-    if(rng.min > rng.max) {
+    if (rng.min > rng.max) 
+    {
         Swap(float, rng.min, rng.max);
     }
     return rng;

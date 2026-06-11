@@ -36,7 +36,8 @@ internal void wl_update_events(void)
     _wl_core_state.frame_count++;
     uint64_t frame_current_time = os_now_microsec();
     uint64_t delta = frame_current_time - _wl_core_state.frame_prev_time;
-    if (delta >= Million(1)) {
+    if (delta >= Million(1)) 
+    {
         _wl_core_state.fps = _wl_core_state.frame_count;
         _wl_core_state.frame_count = 0;
         _wl_core_state.frame_prev_time = frame_current_time;

@@ -47,7 +47,8 @@ internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s)
 internal void *os_mem_reserve(size_t size)
 {
     void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-    if (result == MAP_FAILED) { result = 0; }
+    if (result == MAP_FAILED) 
+    { result = 0; }
     return result;
 }
 internal bool os_mem_commit(void *ptr, size_t size)
@@ -101,18 +102,22 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
         access_flags |= O_CREAT;
     }
     Os_File file = open((char *)path.cstr, access_flags, 0666);
-    if (!(flags & Os_AccessFlag_Inherited)) {
+    if (!(flags & Os_AccessFlag_Inherited)) 
+    {
         fcntl(file, F_SETFD, FD_CLOEXEC);
     }
     //- ak: Lock file based on given flags
     short share_mode = 0;
-    if (!(flags & Os_AccessFlag_ShareRead)) {
+    if (!(flags & Os_AccessFlag_ShareRead)) 
+    {
         share_mode |= F_RDLCK;
     }
-    if (!(flags & Os_AccessFlag_ShareWrite)) {
+    if (!(flags & Os_AccessFlag_ShareWrite)) 
+    {
         share_mode |= F_WRLCK;
     }
-    if (share_mode) {
+    if (share_mode) 
+    {
         struct flock lock = ZERO_STRUCT;
         lock.l_type = share_mode;
         lock.l_start = 0;
@@ -329,11 +334,13 @@ internal bool os_is_term_mode(Os_File file)
 internal bool os_env_is_set(Str8 name)
 {
     bool result = false;
-    for (char **e = environ; *e != NULL; e++) {
+    for (char **e = environ; *e != NULL; e++) 
+    {
         Str8 env = str8_from_cstr(*e);
         uint64_t equal_pos = str8_find_substr(env, 0, str8("="), 0);
         Str8 env_name = str8_prefix(env, equal_pos);
-        if (str8_match(env_name, name, 0)) {
+        if (str8_match(env_name, name, 0)) 
+        {
             result = true;
         }
     }
@@ -343,10 +350,12 @@ internal bool os_env_is_set(Str8 name)
 internal Str8 os_env_get(Str8 name)
 {
     Str8 result = ZERO_STRUCT;
-    for (char **e = environ; *e != NULL; e++) {
+    for (char **e = environ; *e != NULL; e++) 
+    {
         Str8 env = str8_from_cstr(*e);
         uint64_t equal_pos = str8_find_substr(env, 0, str8("="), 0);
-        if (os_env_is_set(name)) {
+        if (os_env_is_set(name)) 
+        {
             result = str8_skip(env, equal_pos+1);
         }
     }

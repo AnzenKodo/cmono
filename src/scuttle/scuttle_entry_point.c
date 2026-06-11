@@ -24,18 +24,23 @@ gen_next(int32_t *tilemap, int32_t width, int32_t height)
         for (int32_t h = 0; h < height; h++)
         {
             int32_t alive_count = 0;
-            for (int32_t k = -1; k <= 1; k++) {
-                for (int32_t l = -1; l <= 1; l++) {
+            for (int32_t k = -1; k <= 1; k++)
+            {
+                for (int32_t l = -1; l <= 1; l++)
+                {
                     if (k == 0 && l == 0) continue;
-                    if (w + k < height && w + k >= 0 && h + l < width && h + l >= 0) {
-                        if (tilemap[(w+k)*width+(h+l)] == 1) {
+                    if (w + k < height && w + k >= 0 && h + l < width && h + l >= 0)
+                    {
+                        if (tilemap[(w+k)*width+(h+l)] == 1)
+                        {
                             alive_count++;
                         }
                     }
                 }
             }
 
-            switch (alive_count) {
+            switch (alive_count)
+            {
                 case 0:
                 case 1: {
                     tilemap[w*width+h] = 0;
@@ -43,7 +48,8 @@ gen_next(int32_t *tilemap, int32_t width, int32_t height)
                 }
                 case 2:
                 case 3: {
-                    if (tilemap[w*width+h] == 0 && alive_count == 3) {
+                    if (tilemap[w*width+h] == 0 && alive_count == 3)
+                    {
                         tilemap[w*width+h] = 1;
                     }
                     break;
@@ -85,10 +91,9 @@ entry_point(char *argv[])
     {
         wl_set_fps(60);
         wl_update_events();
-        if (
-            wl_is_key_pressed(Wl_Key_Esc) ||
-            wl_is_event_happen(Wl_EventType_WindowClose)
-        ) {
+        if (wl_is_key_pressed(Wl_Key_Esc) ||
+            wl_is_event_happen(Wl_EventType_WindowClose))
+        {
             wl_set_window_close();
         }
 
@@ -96,10 +101,13 @@ entry_point(char *argv[])
         {
             // Draw Tile oop ==================================================
             gen_next(&tilemap, TILEMAP_COUNT_Y, TILEMAP_COUNT_X);
-            for (int32_t row = 0; row < TILEMAP_COUNT_Y; ++row) {
-                for (int32_t col = 0; col < TILEMAP_COUNT_X; ++col) {
+            for (int32_t row = 0; row < TILEMAP_COUNT_Y; ++row) 
+            {
+                for (int32_t col = 0; col < TILEMAP_COUNT_X; ++col) 
+                {
                     Draw_Rgba color = DRAW_BLUE;
-                    if (tilemap[row][col] == 1) {
+                    if (tilemap[row][col] == 1)
+                    {
                        color = DRAW_YELLOW;
                     }
 
