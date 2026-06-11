@@ -18,8 +18,6 @@ struct _Wl_X11_Window
     xcb_window_t xwindow;
     xcb_image_t *image;
     void *buffer;
-    size_t width;
-    size_t height;
     Rng2_F32 rect;
     Rng2_F32 canvas_rect;
 };

@@ -100,8 +100,8 @@ internal Wl_Window wl_window_open(Str8 title, size_t width, size_t height)
     // ak: get display size
     _wl_core_state.display_width = _wl_x11_state->screen->width_in_pixels;
     _wl_core_state.display_height = _wl_x11_state->screen->height_in_pixels;
-    window_os->width  = width;
-    window_os->height = height;
+    window_os->rect = rng2p(0.0f, 0.0f, (float)width, (float)height);
+    window_os->canvas_rect = rng2p(0.0f, 0.0f, (float)width, (float)height);
     _wl_core_state.frame_prev_time = os_now_microsec();
      
     // ak: convert to handle & return
@@ -132,13 +132,16 @@ internal Wl_Event wl_get_event(void)
                 xcb_key_release_event_t *key_event = (xcb_key_release_event_t *)xcb_event;
                 // ak: determine mod_key
                 Wl_ModKey mod_key = (Wl_ModKey)0;
-                if (key_event->state & XCB_MOD_MASK_SHIFT)   {
+                if (key_event->state & XCB_MOD_MASK_SHIFT)
+                {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
                 }
-                if (key_event->state & XCB_MOD_MASK_CONTROL) {
+                if (key_event->state & XCB_MOD_MASK_CONTROL)
+                {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
                 }
-                if (key_event->state & XCB_MOD_MASK_1) {
+                if (key_event->state & XCB_MOD_MASK_1)
+                {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
                 // ak: assign keys
@@ -292,13 +295,16 @@ internal Wl_Event wl_get_event(void)
                 xcb_button_release_event_t *button_event = (xcb_button_release_event_t *)xcb_event;
                 // ak: determine mod_key
                 Wl_ModKey mod_key = (Wl_ModKey)0;
-                if (button_event->state & XCB_MOD_MASK_SHIFT)   {
+                if (button_event->state & XCB_MOD_MASK_SHIFT)
+                {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
                 }
-                if (button_event->state & XCB_MOD_MASK_CONTROL) {
+                if (button_event->state & XCB_MOD_MASK_CONTROL)
+                {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
                 }
-                if (button_event->state & XCB_MOD_MASK_1) {
+                if (button_event->state & XCB_MOD_MASK_1) 
+                {
                     mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
                 // ak: assign button
@@ -311,7 +317,8 @@ internal Wl_Event wl_get_event(void)
                     default:{}
                 }
                 // ak: add to event variable
-                if (button_event->response_type == XCB_BUTTON_PRESS) {
+                if (button_event->response_type == XCB_BUTTON_PRESS) 
+                {
                     event.type = Wl_EventType_Press;
                 } else {
                     event.type = Wl_EventType_Release;
@@ -373,21 +380,24 @@ internal Wl_Event wl_get_event(void)
 
 internal Rng2_F32 wl_rect_from_window(Wl_Window window)
 {
-    if(wl_window_match(window, wl_window_zero())) {return (Rng2_F32){0, 0, 0, 0};}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return (Rng2_F32){0, 0, 0, 0};}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     return window_os->rect;
 }
 
 internal Rng2_F32 wl_canvas_rect_from_window(Wl_Window window)
 {
-    if(wl_window_match(window, wl_window_zero())) {return (Rng2_F32){0, 0, 0, 0};}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return (Rng2_F32){0, 0, 0, 0};}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     return window_os->canvas_rect;
 }
 
 internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y)
 {
-    if (wl_window_match(window, wl_window_zero())) {return;}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     xcb_configure_window(_wl_x11_state->connection, window_os->xwindow,
@@ -398,7 +408,8 @@ internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y)
 
 internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t width, size_t height)
 {
-    if (wl_window_match(window, wl_window_zero())) {return;}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     WlX11LoadAtom(_wl_x11_state, _NET_WM_ICON);
@@ -415,7 +426,8 @@ internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t w
 
 internal void wl_window_border_set(Wl_Window window, bool enable)
 {
-    if (wl_window_match(window, wl_window_zero())) {return;}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     WlX11LoadAtom(_wl_x11_state, _MOTIF_WM_HINTS);
@@ -437,7 +449,8 @@ internal void wl_window_border_set(Wl_Window window, bool enable)
 
 internal void wl_render_init(Wl_Window window, void *buffer)
 {
-    if (wl_window_match(window, wl_window_zero())) {return;}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     window_os->buffer = buffer;
     
@@ -451,10 +464,12 @@ internal void wl_render_init(Wl_Window window, void *buffer)
         int32_t pixmap_format_length = xcb_setup_pixmap_formats_length(
             xcb_get_setup(_wl_x11_state->connection)
         );
-        for (int i = 0; i < pixmap_format_length; i++) {
+        for (int i = 0; i < pixmap_format_length; i++) 
+        {
             if (
                     _wl_x11_state->pixmap_format[i].depth==24 && _wl_x11_state->pixmap_format[i].bits_per_pixel==32
-               ) {
+               ) 
+            {
                 _wl_x11_state->pixmap_format += i;
             }
         }
@@ -501,7 +516,8 @@ internal void wl_render_deinit(void)
 
 internal void wl_render_begin(Wl_Window window)
 {
-    if (wl_window_match(window, wl_window_zero())) {return;}
+    if (wl_window_match(window, wl_window_zero())) 
+    {return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     xcb_image_put(
