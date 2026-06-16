@@ -9,6 +9,18 @@
 #define STBTT_STATIC
 #include "./external/stb_truetype.h"
 
+#define KB_TEXT_SHAPE_STATIC
+#define kbts_u64 uint64_t
+#define kbts_u32 uint32_t
+#define kbts_u16 uint16_t
+#define kbts_u8  uint8_t
+#define kbts_s64 int64_t
+#define kbts_s32 int32_t
+#define kbts_s16 int16_t
+#define kbts_s8  int8_t
+#define kbts_b32 int
+#include "kb_text_shape.h"
+
 // Types
 //=============================================================================
 

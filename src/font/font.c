@@ -21,6 +21,10 @@ typedef int32_t  stbtt_int32;
 #define STBTT_memset       mem_set
 #include "./external/stb_truetype.h"
 
+
+#define KB_TEXT_SHAPE_IMPLEMENTATION
+#include "kb_text_shape.h"
+
 internal Font font_load(Str8 name, size_t atlas_width, size_t atlas_height, Arena *arena)
 {
     Font font = ZERO_STRUCT;
@@ -51,7 +55,7 @@ internal Font font_load(Str8 name, size_t atlas_width, size_t atlas_height, Aren
         stbtt_PackEnd(&pc);
     }
     arena_temp_end(temp);
-    font.texture = render_tex2d_alloc(Render_Resource_Kind_Dynamic, Render_Tex2D_Format_R8, atlas_width, atlas_height, font.pixels, arena);
+    font.texture = render_tex2d_alloc(Render_Resource_Kind_Dynamic, Render_Tex_2D_Format_R8, atlas_width, atlas_height, font.pixels, arena);
     return font;
 }
 
