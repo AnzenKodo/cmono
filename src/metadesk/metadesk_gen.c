@@ -67,14 +67,14 @@ internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str8_List strings = ZERO_STRUCT;
     {
-        for (uint64_t off = 0; off < string.length;)
+        for (size_t off = 0; off < string.length;)
         {
-            uint64_t chunk_size = Min(string.length-off, 64);
+            size_t chunk_size = Min(string.length-off, 64);
             uint8_t *chunk_bytes = string.cstr+off;
             Str8 chunk_text_string = ZERO_STRUCT;
             chunk_text_string.size = chunk_size*5;
             chunk_text_string.cstr = arena_push(arena, uint8_t, chunk_text_string.size);
-            for (uint64_t byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
+            for (size_t byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
             {
                 Str8 byte_str = str8f(scratch.arena, "0x%02x,", chunk_bytes[byte_idx]);
                 mem_copy(chunk_text_string.cstr+byte_idx*5, byte_str.cstr, byte_str.size);
@@ -102,12 +102,12 @@ internal MDG_Map mdg_map_push(size_t slot_count, Arena *arena)
 
 internal void *mdg_map_ptr_from_string(MDG_Map *map, Str8 string)
 {
-    void *result = 0;
+    void *result = NULL;
     {
         uint64_t hash = mdg_hash_from_string(string);
         size_t slot_idx = hash%map->slots_count;
         MDG_Map_Slot *slot = &map->slots[slot_idx];
-        for (MDG_Map_Node *n = slot->first; n != 0; n = n->next)
+        for (MDG_Map_Node *n = slot->first; n != NULL; n = n->next)
         {
             if (str8_match(n->key, string, 0))
             {
@@ -535,10 +535,10 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
             Str8 column_lookup = right_node->string;
             // ak: find which task corresponds to this table
             size_t row_idx = 0;
-            MDG_Node_Grid *grid = 0;
+            MDG_Node_Grid *grid = NULL;
             MDG_Column_Desc_Array column_descs = ZERO_STRUCT;
             {
-                for (MDG_TableExpand_Task *task = info->first_expand_task; task != 0; task = task->next)
+                for (MDG_TableExpand_Task *task = info->first_expand_task; task != NULL; task = task->next)
                 {
                     if (str8_match(expand_label, task->expansion_label, 0))
                     {
@@ -797,8 +797,8 @@ internal MDG_Layer *mdg_layer_from_key(MDG_State *state, Str8 key, Arena *arena)
     uint64_t hash = mdg_hash_from_string(key);
     size_t slot_idx = hash%state->slots_count;
     MDG_Layer_Slot *slot = &state->slots[slot_idx];
-    MDG_Layer *layer = 0;
-    for (MDG_Layer_Node *n = slot->first; n != 0; n = n->next)
+    MDG_Layer *layer = NULL;
+    for (MDG_Layer_Node *n = slot->first; n != NULL; n = n->next)
     {
         if (str8_match(n->v.key, key, 0))
         {
@@ -806,7 +806,7 @@ internal MDG_Layer *mdg_layer_from_key(MDG_State *state, Str8 key, Arena *arena)
             break;
         }
     }
-    if (layer == 0)
+    if (layer == NULL)
     {
         MDG_Layer_Node *n = arena_push(arena, MDG_Layer_Node, 1);
         SLLQueuePush(slot->first, slot->last, n);

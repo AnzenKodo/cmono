@@ -36,7 +36,7 @@ struct MD_Msg_List
 {
     MD_Msg *first;
     MD_Msg *last;
-    uint64_t count;
+    size_t count;
     MD_Msg_Level worst_message_level;
 };
 
@@ -114,7 +114,7 @@ typedef struct MD_Token_Array MD_Token_Array;
 struct MD_Token_Array
 {
     MD_Token *v;
-    uint64_t count;
+    size_t count;
 };
 
 //~ ak: Node Types ============================================================
@@ -183,13 +183,13 @@ struct MD_Node
     Str8 raw_string;
     
     //- ak: source code info
-    uint64_t src_offset;
+    size_t src_offset;
     
     //- ak: user-controlled generation number
-    uint64_t user_gen;
+    size_t user_gen;
     
     //- ak: extra padding to 128 bytes
-    uint64_t _unused_[2];
+    size_t _unused_[2];
 };
 
 //~ ak: Tokenize Types =============================================================
@@ -251,7 +251,7 @@ internal MD_Node_Flags md_node_flags_from_token_flags(MD_Token_Flags flags);
 internal bool md_node_is_nil(MD_Node *node);
 
 //- ak: tree building
-internal MD_Node *md_node_push(MD_Node_Kind kind, MD_Node_Flags flags, Str8 string, Str8 raw_string, uint64_t src_offset, Arena *arena);
+internal MD_Node *md_node_push(MD_Node_Kind kind, MD_Node_Flags flags, Str8 string, Str8 raw_string, size_t src_offset, Arena *arena);
 internal void md_node_child_push(MD_Node *parent, MD_Node *node);
 
 // ak: tree introspection
@@ -259,8 +259,8 @@ internal MD_Node *md_node_from_chain_string(MD_Node *first, MD_Node *opl, Str8 s
 internal MD_Node *md_node_from_chain_index(MD_Node *first, MD_Node *opl, size_t index);
 internal MD_Node *md_tag_from_string(MD_Node *node, Str8 tag_string, Str_Match_Flags flags);
 internal MD_Node *md_root_from_node(MD_Node *node);
-internal MD_Node *md_child_from_index(MD_Node *node, uint64_t index);
-internal uint64_t md_child_count_from_node(MD_Node *node);
+internal MD_Node *md_child_from_index(MD_Node *node, size_t index);
+internal size_t md_child_count_from_node(MD_Node *node);
 internal bool md_node_has_tag(MD_Node *node, Str8 string, Str_Match_Flags flags);
 
 //~ ak: Tokenize Functions ====================================================

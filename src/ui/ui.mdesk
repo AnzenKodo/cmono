@@ -63,13 +63,13 @@ UI_StackTable:
 {
     @expand(UI_StackTable a)
         `internal $(a.type) ui_$(a.name_lower)_top(void);`
-        @expand(UI_StackTable a)
+    @expand(UI_StackTable a)
         `internal $(a.type) ui_$(a.name_lower)_bottom(void);`
-        @expand(UI_StackTable a)
+    @expand(UI_StackTable a)
         `internal $(a.type) ui_$(a.name_lower)_push($(a.type) v);`
-        @expand(UI_StackTable a)
+    @expand(UI_StackTable a)
         `internal $(a.type) ui_$(a.name_lower)_pop(void);`
-        @expand(UI_StackTable a)
+    @expand(UI_StackTable a)
         `internal $(a.type) ui_$(a.name_lower)_next_set($(a.type) v);`
 }
 

@@ -23,7 +23,7 @@ internal void md_msg_list_pushf(Arena *arena, MD_Msg_List *msgs, MD_Node *node, 
 
 internal void md_msg_list_concat_in_place(MD_Msg_List *dst, MD_Msg_List *to_push)
 {
-  if (to_push->first != 0)
+  if (to_push->first != NULL)
   {
     if (dst->last)
     {
@@ -46,7 +46,7 @@ internal void md_msg_list_concat_in_place(MD_Msg_List *dst, MD_Msg_List *to_push
 internal void md_token_chunk_list_push(MD_Token_Chunk_List *list, size_t cap, MD_Token token, Arena *arena)
 {
     MD_Token_Chunk_Node *node = list->last;
-    if (node == 0 || node->count >= node->cap)
+    if (node == NULL || node->count >= node->cap)
     {
         node = arena_push(arena, MD_Token_Chunk_Node, 1);
         node->cap = cap;
@@ -64,8 +64,8 @@ internal MD_Token_Array md_token_array_from_chunk_list(Arena *arena, MD_Token_Ch
     MD_Token_Array result = ZERO_STRUCT;
     result.count = chunks->total_token_count;
     result.v = arena_push_nz(arena, MD_Token, result.count);
-    uint64_t write_index = 0;
-    for (MD_Token_Chunk_Node *n = chunks->first; n != 0; n = n->next)
+    size_t write_index = 0;
+    for (MD_Token_Chunk_Node *n = chunks->first; n != NULL; n = n->next)
     {
         mem_copy(result.v+write_index, n->v, sizeof(MD_Token)*n->count);
         write_index += n->count;
@@ -75,8 +75,8 @@ internal MD_Token_Array md_token_array_from_chunk_list(Arena *arena, MD_Token_Ch
 
 internal Str8 md_content_string_from_token_flags_string(MD_Token_Flags flags, Str8 string)
 {
-    uint64_t num_chop = 0;
-    uint64_t num_skip = 0;
+    size_t num_chop = 0;
+    size_t num_skip = 0;
     {
         num_skip += 3*!!(flags & MD_Token_Flag_StringTriplet);
         num_chop += 3*!!(flags & MD_Token_Flag_StringTriplet);
@@ -112,12 +112,12 @@ internal MD_Node_Flags md_node_flags_from_token_flags(MD_Token_Flags flags)
 
 internal bool md_node_is_nil(MD_Node *node)
 {
-    return (node == 0 || node == &md_nil_node || node->kind == MD_Node_Kind_Nil);
+    return (node == NULL || node == &md_nil_node || node->kind == MD_Node_Kind_Nil);
 }
 
 //- ak: tree building
 
-internal MD_Node *md_node_push(MD_Node_Kind kind, MD_Node_Flags flags, Str8 string, Str8 raw_string, uint64_t src_offset, Arena *arena)
+internal MD_Node *md_node_push(MD_Node_Kind kind, MD_Node_Flags flags, Str8 string, Str8 raw_string, size_t src_offset, Arena *arena)
 {
     MD_Node *node    = arena_push(arena, MD_Node, 1);
     node->first      = node->last = node->parent = node->next = node->prev = node->first_tag = node->last_tag = &md_nil_node;
@@ -182,14 +182,14 @@ internal MD_Node *md_root_from_node(MD_Node *node)
     return result;
 }
 
-internal MD_Node *md_child_from_index(MD_Node *node, uint64_t index)
+internal MD_Node *md_child_from_index(MD_Node *node, size_t index)
 {
     return md_node_from_chain_index(node->first, &md_nil_node, index);
 }
 
-internal uint64_t md_child_count_from_node(MD_Node *node)
+internal size_t md_child_count_from_node(MD_Node *node)
 {
-    uint64_t result = 0;
+    size_t result = 0;
     for (MD_Node *child = node->first; !md_node_is_nil(child); child = child->next)
     {
         result += 1;
@@ -218,9 +218,9 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
     while (byte < byte_opl)
     {
         MD_Token_Flags token_flags = 0;
-        uint8_t *token_start = 0;
+        uint8_t *token_start = NULL;
         (void)token_start;
-        uint8_t *token_opl = 0;
+        uint8_t *token_opl = NULL;
         
         //- ak: whitespace
         if (*byte == ' ' || *byte == '\t' || *byte == '\v' || *byte == '\r')
@@ -255,7 +255,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
             token_start = byte;
             token_opl = byte+2;
             byte += 2;
-            bool escaped = 0;
+            bool escaped = false;
             for (;byte <= byte_opl; byte += 1)
             {
                 token_opl += 1;
@@ -265,7 +265,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
                 }
                 if (escaped)
                 {
-                    escaped = 0;
+                    escaped = false;
                 }
                 else
                 {
@@ -275,7 +275,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
                     }
                     else if (*byte == '\\')
                     {
-                        escaped = 1;
+                        escaped = true;
                     }
                 }
             }
@@ -396,7 +396,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
             token_start = byte;
             token_opl   = byte+1;
             byte += 1;
-            bool escaped = 0;
+            bool escaped = false;
             for (;byte <= byte_opl; byte += 1)
             {
                 if (byte == byte_opl || *byte == '\n')
@@ -407,7 +407,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
                 }
                 if (!escaped && byte[0] == '\\')
                 {
-                    escaped = 1;
+                    escaped = true;
                 }
                 else if (!escaped && byte[0] == literal_style)
                 {
@@ -417,7 +417,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
                 }
                 else if (escaped)
                 {
-                    escaped = 0;
+                    escaped = false;
                 }
             }
         }
@@ -471,8 +471,8 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
         {
             MD_Token token = (MD_Token){
                 {
-                    (uint64_t)(token_start - byte_first),
-                    (uint64_t)(token_opl - byte_first)
+                    (size_t)(token_start - byte_first),
+                    (size_t)(token_opl - byte_first)
                 },
                 token_flags
             };
@@ -544,11 +544,11 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
     broken_work.kind = MD_Parse_Work_Kind_Main;
     broken_work.parent = root;
     MD_Parse_Work_Node *work_top = &first_work;
-    MD_Parse_Work_Node *work_free = 0;
+    MD_Parse_Work_Node *work_free = NULL;
 #define MD_ParseWorkPush(work_kind, work_parent) do\
     {\
         MD_Parse_Work_Node *work_node = work_free;\
-        if (work_node == 0) {work_node = arena_push(scratch.arena, MD_Parse_Work_Node, 1);}\
+        if (work_node == NULL) {work_node = arena_push(scratch.arena, MD_Parse_Work_Node, 1);}\
         else { SLLStackPop(work_free); }\
         work_node->kind   = (work_kind);\
         work_node->parent = (work_parent);\
@@ -557,7 +557,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
 #define MD_ParseWorkPop() do\
     {\
         SLLStackPop(work_top);\
-        if (work_top == 0) {work_top = &broken_work;}\
+        if (work_top == NULL) {work_top = &broken_work;}\
     } while(0)
     
     //- ak: parse

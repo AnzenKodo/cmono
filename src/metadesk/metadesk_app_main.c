@@ -15,14 +15,14 @@
 #include "./metadesk_gen.c"
 #include <stdio.h>
 
-internal void print_help_message(Flags_Context *flags)
+internal void print_help_message(void)
 {
     fmt_println("DESCRIPTION:");
     fmt_println("    "MDA_NAME" - "MDA_DESCRIPTION);
     fmt_println("USAGE:");
     fmt_printfln("   "MDA_CMD_NAME" [PATH] [OPTIONS]");
     fmt_println("OPTIONS:");
-    flags_print_help(flags);
+    flags_print_help();
     fmt_println("VERSION:");
     fmt_println("    "MDA_VERSION);
 }
@@ -34,30 +34,29 @@ void base_main(void)
     Str8 defulat_gen_dirname = str8("generated");
     
     //- ak: Command Line ======================================================
+    FlagsScope()
     {
-        Arena_Temp temp = arena_temp_begin(arena);
-        Flags_Context *flags = flags_init(temp.arena);
         Flags_Option *option = NULL;
-        Flags_Arg *arg = flags_arg_str(flags, &src_path, src_path);
+        Flags_Arg *arg = flags_arg_str(&src_path, src_path);
         flags_make_arg_required(arg);
-        option = flags_option_str(flags, str8("gen-dir"), &defulat_gen_dirname, defulat_gen_dirname, str8("Set generated directory name"));
+        option = flags_option_str(str8("gen-dir"), &defulat_gen_dirname, defulat_gen_dirname, str8("Set generated directory name"));
         bool help = false;
-        option = flags_option_bool(flags, str8("help"), &help, help, str8("Print help message"));
+        option = flags_option_bool(str8("help"), &help, help, str8("Print help message"));
         flags_add_option_shortname(option, str8("h"));
         bool version = false;
-        option = flags_option_bool(flags, str8("version"), &version, version, str8("Print version message"));
+        option = flags_option_bool(str8("version"), &version, version, str8("Print version message"));
         flags_add_option_shortname(option, str8("v"));
         Str8_Array *args = os_args_get();
-        if (!flags_parse(flags, args))
+        if (!flags_parse(args))
         {
-            flags_print_error(flags);
+            flags_print_error();
             fmt_print("\n");
-            print_help_message(flags);
+            print_help_message();
             os_exit(1);
         }
         if (help)
         {
-            print_help_message(flags);
+            print_help_message();
             os_exit(0);
         }
         if (version)
@@ -65,7 +64,6 @@ void base_main(void)
             fmt_print("v"MDA_VERSION);
             os_exit(0);
         }
-        arena_temp_end(temp);
     }
     
     //- ak: initialization ====================================================
@@ -92,7 +90,7 @@ void base_main(void)
         Dir start_dir = {0, src_path};
         Dir *first_dir = &start_dir;
         Dir *last_dir = &start_dir;
-        for (Dir *dir = first_dir; dir != 0; dir = dir->next)
+        for (Dir *dir = first_dir; dir != NULL; dir = dir->next)
         {
             Os_File_Walk *walk = os_file_walk_begin(arena, dir->src_path, 0);
             for (Os_File_Info info = ZERO_STRUCT; os_file_walk_next(arena, walk, &info);)
@@ -118,7 +116,7 @@ void base_main(void)
     log_info(&log, "Parsing metatable...");
     MDG_ParsedFile_List parses = ZERO_STRUCT;
     {
-        for (Str8_Node *node = file_paths.first; node != 0; node = node->next)
+        for (Str8_Node *node = file_paths.first; node != NULL; node = node->next)
         {
             Str8 file_path = node->str;
             Str8 file_ext = str8_skip_last_dot(file_path);
@@ -126,7 +124,7 @@ void base_main(void)
             {
                 Str8 source = os_path_read_str_full(file_path, arena);
                 MD_Parse parse = md_parse_from_string(source, file_path, arena);
-                for (MD_Msg *m = parse.msgs.first; m != 0; m = m->next)
+                for (MD_Msg *m = parse.msgs.first; m != NULL; m = m->next)
                 {
                     Log_Level msg_level = Log_Level_None;
                     switch (m->level)
@@ -156,7 +154,7 @@ void base_main(void)
     size_t table_count = 0;
     log_info(&log, "Gathering tables...");
     {
-        for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+        for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
         {
             MD_Node *file = node->v.root;
             for (MD_Node *n = file->first; !md_node_is_nil(n); n = n->next)
@@ -178,7 +176,7 @@ void base_main(void)
     fmt_fprintfln(log.file, " %zu tables found", table_count);
     
     //- ak: gather layer options ==============================================
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         Str8 layer_key = mdg_layer_key_from_path(file->string, src_path, arena);
@@ -208,7 +206,7 @@ void base_main(void)
             if (md_node_has_tag(md_node, str8("h_header"), 0))
             {
                 Str8_List gen_strings = mdg_str_list_from_table_gen(table_grid_map, table_col_map, str8(""), md_node, arena);
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_push(arena, &layer->h_header, n->str);
                     str8_list_push(arena, &layer->h_header, str8("\n"));
@@ -217,7 +215,7 @@ void base_main(void)
             if (md_node_has_tag(md_node, str8("h_footer"), 0))
             {
                 Str8_List gen_strings = mdg_str_list_from_table_gen(table_grid_map, table_col_map, str8(""), md_node, arena);
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_push(arena, &layer->h_footer, n->str);
                     str8_list_push(arena, &layer->h_footer, str8("\n"));
@@ -226,7 +224,7 @@ void base_main(void)
             if (md_node_has_tag(md_node, str8("c_header"), 0))
             {
                 Str8_List gen_strings = mdg_str_list_from_table_gen(table_grid_map, table_col_map, str8(""), md_node, arena);
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_push(arena, &layer->c_header, n->str);
                     str8_list_push(arena, &layer->c_header, str8("\n"));
@@ -235,7 +233,7 @@ void base_main(void)
             if (md_node_has_tag(md_node, str8("c_footer"), 0))
             {
                 Str8_List gen_strings = mdg_str_list_from_table_gen(table_grid_map, table_col_map, str8(""), md_node, arena);
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_push(arena, &layer->c_footer, n->str);
                     str8_list_push(arena, &layer->c_footer, str8("\n"));
@@ -245,7 +243,7 @@ void base_main(void)
     }
     
     //- ak: generate enums
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -272,24 +270,24 @@ void base_main(void)
                     str8_list_pushf(arena, &layer->enums, "typedef %.*s %.*s;\n", str8_varg(enum_base_type_name), str8_varg(enum_name));
                     str8_list_pushf(arena, &layer->enums, "typedef enum %.*sEnum\n{\n", str8_varg(enum_name));
                 }
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
-                    str8_list_pushf(arena, &layer->enums, "%.*s_%.*s,\n", str8_varg(enum_member_prefix), str8_varg(n->str));
+                    str8_list_pushf(arena, &layer->enums, "    %.*s_%.*s,\n", str8_varg(enum_member_prefix), str8_varg(n->str));
                 }
                 if (enum_base_type_name.size == 0)
                 {
-                    str8_list_pushf(arena, &layer->enums, "} %.*s;\n\n", str8_varg(enum_name));
+                    str8_list_pushf(arena, &layer->enums, "}\n%.*s;\n\n", str8_varg(enum_name));
                 }
                 else
                 {
-                    str8_list_pushf(arena, &layer->enums, "} %.*sEnum;\n\n", str8_varg(enum_name));
+                    str8_list_pushf(arena, &layer->enums, "}\n%.*sEnum;\n\n", str8_varg(enum_name));
                 }
             }
         }
     }
     
     //- ak: generate xlists
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -301,7 +299,7 @@ void base_main(void)
                 MDG_Layer *layer = mdg_layer_from_key(state, layer_key, arena);
                 Str8_List gen_strings = mdg_str_list_from_table_gen(table_grid_map, table_col_map, str8(""), md_node, arena);
                 str8_list_pushf(arena, &layer->enums, "#define %.*s \\\n", str8_varg(md_node->string));
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_pushf(arena, &layer->enums, "X(%.*s)\\\n", str8_varg(n->str));
                 }
@@ -311,7 +309,7 @@ void base_main(void)
     }
     
     //- ak: generate structs
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -324,7 +322,7 @@ void base_main(void)
                 str8_list_pushf(arena, &layer->structs, "typedef struct %.*s %.*s;\n",
                     str8_varg(md_node->string), str8_varg(md_node->string));
                 str8_list_pushf(arena, &layer->structs, "struct %.*s\n{\n", str8_varg(md_node->string));
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_pushf(arena, &layer->structs, "%.*s;\n", str8_varg(n->str));
                 }
@@ -334,7 +332,7 @@ void base_main(void)
     }
     
     //- ak: generate data tables
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -353,9 +351,9 @@ void base_main(void)
                 }
                 str8_list_pushf(arena, &layer->c_tables, "%.*s %.*s[%zu] =\n{\n",
                     str8_varg(element_type), str8_varg(md_node->string), gen_strings.length);
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
-                    str8_list_pushf(arena, &layer->c_tables, "%.*s,\n", str8_varg(n->str));
+                    str8_list_pushf(arena, &layer->c_tables, "    %.*s,\n", str8_varg(n->str));
                 }
                 str8_list_push(arena, &layer->c_tables, str8("};\n\n"));
             }
@@ -363,7 +361,7 @@ void base_main(void)
     }
             
     //- ak: generate enum -> string mapping functions
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -383,7 +381,7 @@ void base_main(void)
                 str8_list_pushf(arena, &layer->c_functions, "switch(v)\n");
                 str8_list_pushf(arena, &layer->c_functions, "{\n");
                 str8_list_pushf(arena, &layer->c_functions, "default:{}break;\n");
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     str8_list_pushf(arena, &layer->c_functions, "%.*s;\n", str8_varg(n->str));
                 }
@@ -395,7 +393,7 @@ void base_main(void)
     }
     
     //- ak: generate catch-all generations
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -427,7 +425,7 @@ void base_main(void)
                     out = prefer_c_file ? &layer->c_tables : &layer->h_tables;
                 }
                 Str8_List gen_strings = mdg_str_list_from_table_gen(table_grid_map, table_col_map, str8(""), md_node, arena);
-                for (Str8_Node *n = gen_strings.first; n != 0; n = n->next)
+                for (Str8_Node *n = gen_strings.first; n != NULL; n = n->next)
                 {
                     Str8 trimmed = str8_skip_chop_whitespace(n->str);
                     str8_list_push(arena, out, trimmed);
@@ -438,7 +436,7 @@ void base_main(void)
     }
     
     //- ak: gather & generate all embeds
-    for (MDG_ParsedFile_Node *node = parses.first; node != 0; node = node->next)
+    for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
@@ -475,7 +473,7 @@ void base_main(void)
     for (size_t slot_idx = 0; slot_idx < state->slots_count; slot_idx += 1)
     {
         MDG_Layer_Slot *slot = &state->slots[slot_idx];
-        for (MDG_Layer_Node *mdg_layer_node = slot->first; mdg_layer_node != 0; mdg_layer_node = mdg_layer_node->next)
+        for (MDG_Layer_Node *mdg_layer_node = slot->first; mdg_layer_node != NULL; mdg_layer_node = mdg_layer_node->next)
         {
             MDG_Layer *layer = &mdg_layer_node->v;
             Str8 layer_generated_folder = ZERO_STRUCT;
@@ -508,39 +506,39 @@ void base_main(void)
                 }
                 {
                     Os_File h_file = os_file_open(h_path, Os_AccessFlag_Write);
-                    if (layer->h_header.first == 0)
+                    if (layer->h_header.first == NULL)
                     {
                         fmt_fprintfln(h_file, "//- GENERATED CODE\n");
                         fmt_fprintfln(h_file, "#ifndef %.*s_META_H", str8_varg(layer_key_filename_upper));
                         fmt_fprintfln(h_file, "#define %.*s_META_H\n", str8_varg(layer_key_filename_upper));
                     }
-                    else for (Str8_Node *n = layer->h_header.first; n != 0; n = n->next)
+                    else for (Str8_Node *n = layer->h_header.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
-                    for (Str8_Node *n = layer->enums.first; n != 0; n = n->next)
+                    for (Str8_Node *n = layer->enums.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
-                    for (Str8_Node *n = layer->structs.first; n != 0; n = n->next)
+                    for (Str8_Node *n = layer->structs.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
-                    for (Str8_Node *n = layer->h_catchall.first; n != 0; n = n->next)
+                    for (Str8_Node *n = layer->h_catchall.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
-                    for (Str8_Node *n = layer->h_functions.first; n != 0; n = n->next)
+                    for (Str8_Node *n = layer->h_functions.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
-                    if (layer->h_tables.first != 0)
+                    if (layer->h_tables.first != NULL)
                     {
                         if (!layer->is_library)
                         {
                             fmt_fprintf(h_file, "C_LINKAGE_BEGIN\n");
                         }
-                        for (Str8_Node *n = layer->h_tables.first; n != 0; n = n->next)
+                        for (Str8_Node *n = layer->h_tables.first; n != NULL; n = n->next)
                         {
                             os_file_write_append(h_file, n->str.cstr, n->str.size);
                         }
@@ -550,11 +548,11 @@ void base_main(void)
                             fmt_fprintf(h_file, "C_LINKAGE_END\n\n");
                         }
                     }
-                    if (layer->h_footer.first == 0)
+                    if (layer->h_footer.first == NULL)
                     {
                         fmt_fprintf(h_file, "#endif // %.*s_META_H\n", str8_varg(layer_key_filename_upper));
                     }
-                    else for (Str8_Node *n = layer->h_footer.first; n != 0; n = n->next)
+                    else for (Str8_Node *n = layer->h_footer.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
@@ -562,25 +560,25 @@ void base_main(void)
                 }
                 {
                     Os_File c_file = os_file_open(c_path, Os_AccessFlag_Write);
-                    if (layer->c_header.first == 0)
+                    if (layer->c_header.first == NULL)
                     {
                         fmt_fprintfln(c_file, "//- GENERATED CODE\n");
                     }
-                    else for (Str8_Node *n = layer->c_header.first; n != 0; n = n->next)
+                    else for (Str8_Node *n = layer->c_header.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(c_file, n->str.cstr, n->str.size);
                     }
-                    for (Str8_Node *n = layer->c_catchall.first; n != 0; n = n->next)
+                    for (Str8_Node *n = layer->c_catchall.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(c_file, n->str.cstr, n->str.size);
                     }
-                    if (layer->c_tables.first != 0)
+                    if (layer->c_tables.first != NULL)
                     {
                         if (!layer->is_library)
                         {
                             fmt_fprintfln(c_file, "C_LINKAGE_BEGIN");
                         }
-                        for (Str8_Node *n = layer->c_tables.first; n != 0; n = n->next)
+                        for (Str8_Node *n = layer->c_tables.first; n != NULL; n = n->next)
                         {
                             os_file_write_append(c_file, n->str.cstr, n->str.size);
                         }
@@ -589,13 +587,13 @@ void base_main(void)
                             fmt_fprintfln(c_file, "C_LINKAGE_END\n");
                         }
                     }
-                    for (Str8_Node *n = layer->c_functions.first; n != 0; n = n->next)
+                    for (Str8_Node *n = layer->c_functions.first; n != NULL; n = n->next)
                     {
                         os_file_write_append(c_file, n->str.cstr, n->str.size);
                     }
-                    if (layer->c_footer.first != 0)
+                    if (layer->c_footer.first != NULL)
                     {
-                        for (Str8_Node *n = layer->c_footer.first; n != 0; n = n->next)
+                        for (Str8_Node *n = layer->c_footer.first; n != NULL; n = n->next)
                         {
                             os_file_write_append(c_file, n->str.cstr, n->str.size);
                         }
@@ -612,7 +610,7 @@ void base_main(void)
     //- ak: write out all messages to stderr ==================================
     char *file_info_color = log_get_file_info_color(&log);
     char *restart_color   = log_get_reset_color(&log);
-    for (MDG_Msg_Node *node = msgs.first; node != 0; node = node->next)
+    for (MDG_Msg_Node *node = msgs.first; node != NULL; node = node->next)
     {
         MDG_Msg *msg = &node->v;
         fmt_eprintf("%s%.*s:%ld:%ld%s ", file_info_color, str8_varg(msg->file_path), msg->pt.line, msg->pt.column, restart_color);
