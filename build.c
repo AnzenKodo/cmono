@@ -192,6 +192,8 @@ internal void build_compile_gcc(Build_Info *info)
         " -Wno-unused-function"
         " -Wno-unused-variable"
     );
+    // ak:
+    build_cmd_append(info, " -fmax-errors=50");
     //~ ak: Security
     build_cmd_append(info, " -mshstk -fcf-protection=full -fstack-protector");
     if ((info->type != Build_Type_Debug && info->type != Build_Type_Release) && !info->mingw)

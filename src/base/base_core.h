@@ -307,7 +307,8 @@ struct Img
 
 typedef enum Corner
 {
-    Corner_TopLeft = 1,
+    Corner_Invalid = -1,
+    Corner_TopLeft,
     Corner_BottomLeft,
     Corner_TopRight,
     Corner_BottomRight,
