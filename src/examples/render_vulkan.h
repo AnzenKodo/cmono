@@ -45,11 +45,11 @@ struct _Render_Vulkan_Window
     uint32_t current_image_idx;
 };
 
-typedef struct _Render_Vulkan_Tex2D _Render_Vulkan_Tex2D;
-struct _Render_Vulkan_Tex2D
+typedef struct _Render_Vulkan_Tex_2D _Render_Vulkan_Tex_2D;
+struct _Render_Vulkan_Tex_2D
 {
-    _Render_Vulkan_Tex2D *next;
-    _Render_Vulkan_Tex2D *prev;
+    _Render_Vulkan_Tex_2D *next;
+    _Render_Vulkan_Tex_2D *prev;
     
     VkImage image;
     VkDeviceMemory memory;
@@ -57,7 +57,7 @@ struct _Render_Vulkan_Tex2D
     VkDescriptorSet descriptor_set;
     
     Render_Resource_Kind resource_kind;
-    Render_Tex2D_Format format;
+    Render_Tex_2D_Format format;
     Vec2_I32 size;
 };
 
@@ -87,9 +87,9 @@ struct _Render_Vulkan_State
     VkCommandBuffer command_buffer;
     
     _Render_Vulkan_Window *free_window;
-    _Render_Vulkan_Tex2D *free_tex2d;
+    _Render_Vulkan_Tex_2D *free_tex2d;
     
-    _Render_Vulkan_Tex2D white_texture;
+    _Render_Vulkan_Tex_2D white_texture;
     
     VkBuffer instance_buffer;
     VkDeviceMemory instance_buffer_memory;

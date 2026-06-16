@@ -356,20 +356,20 @@ _render_sokol_log(const char *tag, uint32_t level, uint32_t id,
 // ============================================================================
 
 internal sg_pixel_format
-_render_sokol_pixel_format(Render_Tex2D_Format fmt)
+_render_sokol_pixel_format(Render_Tex_2D_Format fmt)
 {
     switch(fmt)
     {
         default:
-        case Render_Tex2D_Format_RGBA8:  return SG_PIXELFORMAT_RGBA8;
-        case Render_Tex2D_Format_R8:     return SG_PIXELFORMAT_R8;
-        case Render_Tex2D_Format_RG8:    return SG_PIXELFORMAT_RG8;
-        case Render_Tex2D_Format_BGRA8:  return SG_PIXELFORMAT_BGRA8;
-        case Render_Tex2D_Format_R16:    return SG_PIXELFORMAT_R16;
-        case Render_Tex2D_Format_RGBA16: return SG_PIXELFORMAT_RGBA16;
-        case Render_Tex2D_Format_R32:    return SG_PIXELFORMAT_R32F;
-        case Render_Tex2D_Format_RG32:   return SG_PIXELFORMAT_RG32F;
-        case Render_Tex2D_Format_RGBA32: return SG_PIXELFORMAT_RGBA32F;
+        case Render_Tex_2D_Format_RGBA8:  return SG_PIXELFORMAT_RGBA8;
+        case Render_Tex_2D_Format_R8:     return SG_PIXELFORMAT_R8;
+        case Render_Tex_2D_Format_RG8:    return SG_PIXELFORMAT_RG8;
+        case Render_Tex_2D_Format_BGRA8:  return SG_PIXELFORMAT_BGRA8;
+        case Render_Tex_2D_Format_R16:    return SG_PIXELFORMAT_R16;
+        case Render_Tex_2D_Format_RGBA16: return SG_PIXELFORMAT_RGBA16;
+        case Render_Tex_2D_Format_R32:    return SG_PIXELFORMAT_R32F;
+        case Render_Tex_2D_Format_RG32:   return SG_PIXELFORMAT_RG32F;
+        case Render_Tex_2D_Format_RGBA32: return SG_PIXELFORMAT_RGBA32F;
     }
 }
 
@@ -378,17 +378,17 @@ _render_sokol_pixel_format(Render_Tex2D_Format fmt)
 // ============================================================================
 
 internal Render_Handle
-_render_handle_from_sokol_tex2d(_Render_Sokol_Tex2D *t)
+_render_handle_from_sokol_tex2d(_Render_Sokol_Tex_2D *t)
 {
     Render_Handle h = {0};
     h.u64[0] = (uint64_t)(uintptr_t)t;
     return h;
 }
 
-internal _Render_Sokol_Tex2D *
+internal _Render_Sokol_Tex_2D *
 _render_sokol_tex2d_from_handle(Render_Handle h)
 {
-    return (_Render_Sokol_Tex2D *)(uintptr_t)h.u64[0];
+    return (_Render_Sokol_Tex_2D *)(uintptr_t)h.u64[0];
 }
 
 // ============================================================================
@@ -648,7 +648,7 @@ render_deinit(void)
     sg_destroy_shader(_render_sokol_state->shd_triangle);
     sg_destroy_buffer(_render_sokol_state->inst_buf);
 
-    for(_Render_Sokol_Tex2D *t = _render_sokol_state->free_tex2d; t; t = t->next)
+    for(_Render_Sokol_Tex_2D *t = _render_sokol_state->free_tex2d; t; t = t->next)
     {
         if(t->view_nearest.id  != SG_INVALID_ID) sg_destroy_view(t->view_nearest);
         if(t->view_linear.id   != SG_INVALID_ID) sg_destroy_view(t->view_linear);
@@ -783,9 +783,9 @@ render_window_submit(Wl_Window window, Render_Handle handle, Render_Pass_List *p
                     // Resolve texture/sampler/view
                     sg_view    tex_view;
                     sg_sampler tex_smp;
-                    Render_Tex2D_Format tex_fmt = Render_Tex2D_Format_RGBA8;
+                    Render_Tex_2D_Format tex_fmt = Render_Tex_2D_Format_RGBA8;
                     {
-                        _Render_Sokol_Tex2D *t = _render_sokol_tex2d_from_handle(gp->tex);
+                        _Render_Sokol_Tex_2D *t = _render_sokol_tex2d_from_handle(gp->tex);
                         if(t && t->image.id != SG_INVALID_ID)
                         {
                             tex_fmt = t->format;
@@ -897,7 +897,7 @@ render_window_submit(Wl_Window window, Render_Handle handle, Render_Pass_List *p
 // ============================================================================
 
 internal Render_Handle
-render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2D_Format format,
+render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format,
                    Vec2_I32 size, void *data, Arena *arena)
 {
     (void)arena;
@@ -931,9 +931,9 @@ render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2D_Format format,
     if(img.id == SG_INVALID_ID) return render_handle_zero();
 
     // Recycle or allocate node
-    _Render_Sokol_Tex2D *t = _render_sokol_state->free_tex2d;
+    _Render_Sokol_Tex_2D *t = _render_sokol_state->free_tex2d;
     if(t) { SLLStackPop(_render_sokol_state->free_tex2d); MemSetZeroStruct(t); }
-    else  { t = arena_push(_render_sokol_state->arena, _Render_Sokol_Tex2D, 1); }
+    else  { t = arena_push(_render_sokol_state->arena, _Render_Sokol_Tex_2D, 1); }
 
     t->image = img;
     t->smp_nearest = sg_make_sampler(&(sg_sampler_desc){
@@ -957,7 +957,7 @@ internal void
 render_tex2d_free(Render_Handle handle)
 {
     if(!_render_sokol_state) return;
-    _Render_Sokol_Tex2D *t = _render_sokol_tex2d_from_handle(handle);
+    _Render_Sokol_Tex_2D *t = _render_sokol_tex2d_from_handle(handle);
     if(!t) return;
     if(t->view_nearest.id != SG_INVALID_ID) sg_destroy_view(t->view_nearest);
     if(t->view_linear.id  != SG_INVALID_ID) sg_destroy_view(t->view_linear);

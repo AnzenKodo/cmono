@@ -222,19 +222,19 @@ internal WGPUStringView wgpu_str(const char *s)
     return r;
 }
 
-internal WGPUTextureFormat _webgpu_format_from_tex2d_format(Render_Tex2D_Format format)
+internal WGPUTextureFormat _webgpu_format_from_tex2d_format(Render_Tex_2D_Format format)
 {
     switch(format)
     {
-        case Render_Tex2D_Format_R8:     return WGPUTextureFormat_R8Unorm;
-        case Render_Tex2D_Format_RG8:    return WGPUTextureFormat_RG8Unorm;
-        case Render_Tex2D_Format_RGBA8:  return WGPUTextureFormat_RGBA8Unorm;
-        case Render_Tex2D_Format_BGRA8:  return WGPUTextureFormat_BGRA8Unorm;
-        case Render_Tex2D_Format_R16:    return WGPUTextureFormat_R16Unorm;
-        case Render_Tex2D_Format_RGBA16: return WGPUTextureFormat_RGBA16Unorm;
-        case Render_Tex2D_Format_R32:    return WGPUTextureFormat_R32Float;
-        case Render_Tex2D_Format_RG32:   return WGPUTextureFormat_RG32Float;
-        case Render_Tex2D_Format_RGBA32: return WGPUTextureFormat_RGBA32Float;
+        case Render_Tex_2D_Format_R8:     return WGPUTextureFormat_R8Unorm;
+        case Render_Tex_2D_Format_RG8:    return WGPUTextureFormat_RG8Unorm;
+        case Render_Tex_2D_Format_RGBA8:  return WGPUTextureFormat_RGBA8Unorm;
+        case Render_Tex_2D_Format_BGRA8:  return WGPUTextureFormat_BGRA8Unorm;
+        case Render_Tex_2D_Format_R16:    return WGPUTextureFormat_R16Unorm;
+        case Render_Tex_2D_Format_RGBA16: return WGPUTextureFormat_RGBA16Unorm;
+        case Render_Tex_2D_Format_R32:    return WGPUTextureFormat_R32Float;
+        case Render_Tex_2D_Format_RG32:   return WGPUTextureFormat_RG32Float;
+        case Render_Tex_2D_Format_RGBA32: return WGPUTextureFormat_RGBA32Float;
         default:                         return WGPUTextureFormat_RGBA8Unorm;
     }
 }
@@ -599,7 +599,7 @@ internal void render_init(void)
     // Allocate single white 1x1 texture
     uint32_t white_pixel = 0xFFFFFFFF;
     _render_webgpu_state->white_texture.resource_kind = Render_Resource_Kind_Static;
-    _render_webgpu_state->white_texture.format = Render_Tex2D_Format_RGBA8;
+    _render_webgpu_state->white_texture.format = Render_Tex_2D_Format_RGBA8;
     _render_webgpu_state->white_texture.size = (Vec2_I32){1, 1};
     
     WGPUTextureDescriptor white_tex_desc = {
@@ -947,8 +947,8 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
                     current_gpu_offset += batches->byte_count;
                     
                     // Dynamic texture binding
-                    Render_Tex2D_Format texture_fmt = Render_Tex2D_Format_RGBA8;
-                    _Render_Webgpu_Tex2D *tex = (_Render_Webgpu_Tex2D *)group_params->tex.u64[0];
+                    Render_Tex_2D_Format texture_fmt = Render_Tex_2D_Format_RGBA8;
+                    _Render_Webgpu_Tex_2D *tex = (_Render_Webgpu_Tex_2D *)group_params->tex.u64[0];
                     if (!tex)
                     {
                         tex = &_render_webgpu_state->white_texture;
@@ -1035,16 +1035,16 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
     wgpuCommandBufferRelease(command_buffer);
 }
 
-internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2D_Format format, Vec2_I32 size, void *data, Arena *arena)
+internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format, Vec2_I32 size, void *data, Arena *arena)
 {
-    _Render_Webgpu_Tex2D *tex = _render_webgpu_state->free_tex2d;
+    _Render_Webgpu_Tex_2D *tex = _render_webgpu_state->free_tex2d;
     if (tex)
     {
         SLLStackPop(_render_webgpu_state->free_tex2d);
     }
     else
     {
-        tex = arena_push(arena, _Render_Webgpu_Tex2D, 1);
+        tex = arena_push(arena, _Render_Webgpu_Tex_2D, 1);
     }
     
     tex->resource_kind = kind;
@@ -1100,15 +1100,15 @@ internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2
         size_t bpp = 4;
         switch (format)
         {
-            case Render_Tex2D_Format_R8:     bpp = 1; break;
-            case Render_Tex2D_Format_RG8:    bpp = 2; break;
-            case Render_Tex2D_Format_RGBA8:  bpp = 4; break;
-            case Render_Tex2D_Format_BGRA8:  bpp = 4; break;
-            case Render_Tex2D_Format_R16:    bpp = 2; break;
-            case Render_Tex2D_Format_RGBA16: bpp = 8; break;
-            case Render_Tex2D_Format_R32:    bpp = 4; break;
-            case Render_Tex2D_Format_RG32:   bpp = 8; break;
-            case Render_Tex2D_Format_RGBA32: bpp = 16; break;
+            case Render_Tex_2D_Format_R8:     bpp = 1; break;
+            case Render_Tex_2D_Format_RG8:    bpp = 2; break;
+            case Render_Tex_2D_Format_RGBA8:  bpp = 4; break;
+            case Render_Tex_2D_Format_BGRA8:  bpp = 4; break;
+            case Render_Tex_2D_Format_R16:    bpp = 2; break;
+            case Render_Tex_2D_Format_RGBA16: bpp = 8; break;
+            case Render_Tex_2D_Format_R32:    bpp = 4; break;
+            case Render_Tex_2D_Format_RG32:   bpp = 8; break;
+            case Render_Tex_2D_Format_RGBA32: bpp = 16; break;
             default: break;
         }
         
@@ -1133,7 +1133,7 @@ internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2
 
 internal void render_tex2d_free(Render_Handle handle)
 {
-    _Render_Webgpu_Tex2D *tex = (_Render_Webgpu_Tex2D *)handle.u64[0];
+    _Render_Webgpu_Tex_2D *tex = (_Render_Webgpu_Tex_2D *)handle.u64[0];
     if (tex)
     {
         if (tex->bind_group)

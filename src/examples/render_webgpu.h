@@ -30,18 +30,18 @@ struct _Render_Webgpu_Window
     WGPUSurfaceTexture current_surface_texture;
 };
 
-typedef struct _Render_Webgpu_Tex2D _Render_Webgpu_Tex2D;
-struct _Render_Webgpu_Tex2D
+typedef struct _Render_Webgpu_Tex_2D _Render_Webgpu_Tex_2D;
+struct _Render_Webgpu_Tex_2D
 {
-    _Render_Webgpu_Tex2D *next;
-    _Render_Webgpu_Tex2D *prev;
+    _Render_Webgpu_Tex_2D *next;
+    _Render_Webgpu_Tex_2D *prev;
     
     WGPUTexture texture;
     WGPUTextureView texture_view;
     WGPUBindGroup bind_group;
     
     Render_Resource_Kind resource_kind;
-    Render_Tex2D_Format format;
+    Render_Tex_2D_Format format;
     Vec2_I32 size;
 };
 
@@ -68,9 +68,9 @@ struct _Render_Webgpu_State
     WGPUBindGroup bind_group_sampler_linear;
     
     _Render_Webgpu_Window *free_window;
-    _Render_Webgpu_Tex2D *free_tex2d;
+    _Render_Webgpu_Tex_2D *free_tex2d;
     
-    _Render_Webgpu_Tex2D white_texture;
+    _Render_Webgpu_Tex_2D white_texture;
     
     WGPUBuffer instance_buffer;
     size_t instance_buffer_size;

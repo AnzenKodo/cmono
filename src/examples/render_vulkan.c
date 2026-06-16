@@ -242,19 +242,19 @@ internal VkShaderModule _vulkan_create_shader_module(VkDevice device, const char
     return module;
 }
 
-internal VkFormat _vulkan_format_from_tex2d_format(Render_Tex2D_Format format)
+internal VkFormat _vulkan_format_from_tex2d_format(Render_Tex_2D_Format format)
 {
     switch(format)
     {
-        case Render_Tex2D_Format_R8:     return VK_FORMAT_R8_UNORM;
-        case Render_Tex2D_Format_RG8:    return VK_FORMAT_R8G8_UNORM;
-        case Render_Tex2D_Format_RGBA8:  return VK_FORMAT_R8G8B8A8_UNORM;
-        case Render_Tex2D_Format_BGRA8:  return VK_FORMAT_B8G8R8A8_UNORM;
-        case Render_Tex2D_Format_R16:    return VK_FORMAT_R16_UNORM;
-        case Render_Tex2D_Format_RGBA16: return VK_FORMAT_R16G16B16A16_UNORM;
-        case Render_Tex2D_Format_R32:    return VK_FORMAT_R32_SFLOAT;
-        case Render_Tex2D_Format_RG32:   return VK_FORMAT_R32G32_SFLOAT;
-        case Render_Tex2D_Format_RGBA32: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case Render_Tex_2D_Format_R8:     return VK_FORMAT_R8_UNORM;
+        case Render_Tex_2D_Format_RG8:    return VK_FORMAT_R8G8_UNORM;
+        case Render_Tex_2D_Format_RGBA8:  return VK_FORMAT_R8G8B8A8_UNORM;
+        case Render_Tex_2D_Format_BGRA8:  return VK_FORMAT_B8G8R8A8_UNORM;
+        case Render_Tex_2D_Format_R16:    return VK_FORMAT_R16_UNORM;
+        case Render_Tex_2D_Format_RGBA16: return VK_FORMAT_R16G16B16A16_UNORM;
+        case Render_Tex_2D_Format_R32:    return VK_FORMAT_R32_SFLOAT;
+        case Render_Tex_2D_Format_RG32:   return VK_FORMAT_R32G32_SFLOAT;
+        case Render_Tex_2D_Format_RGBA32: return VK_FORMAT_R32G32B32A32_SFLOAT;
         default:                         return VK_FORMAT_R8G8B8A8_UNORM;
     }
 }
@@ -657,12 +657,12 @@ internal void render_init(void)
     uint32_t white_pixel = 0xFFFFFFFF;
     Render_Handle white_handle = render_tex2d_alloc(
         Render_Resource_Kind_Static,
-        Render_Tex2D_Format_RGBA8,
+        Render_Tex_2D_Format_RGBA8,
         (Vec2_I32){1, 1},
         &white_pixel,
         _render_vulkan_state->arena
     );
-    _render_vulkan_state->white_texture = *(_Render_Vulkan_Tex2D *)white_handle.u64[0];
+    _render_vulkan_state->white_texture = *(_Render_Vulkan_Tex_2D *)white_handle.u64[0];
 }
 
 internal void render_deinit(void)
@@ -1093,8 +1093,8 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
                     instance_buffer_offset += batches->byte_count;
                     
                     // Dynamic texture binding
-                    Render_Tex2D_Format texture_fmt = Render_Tex2D_Format_RGBA8;
-                    _Render_Vulkan_Tex2D *tex = (_Render_Vulkan_Tex2D *)group_params->tex.u64[0];
+                    Render_Tex_2D_Format texture_fmt = Render_Tex_2D_Format_RGBA8;
+                    _Render_Vulkan_Tex_2D *tex = (_Render_Vulkan_Tex_2D *)group_params->tex.u64[0];
                     if (!tex)
                     {
                         tex = &_render_vulkan_state->white_texture;
@@ -1199,16 +1199,16 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
 //~ ak: Texture functions
 //=============================================================================
 
-internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2D_Format format, Vec2_I32 size, void *data, Arena *arena)
+internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format, Vec2_I32 size, void *data, Arena *arena)
 {
-    _Render_Vulkan_Tex2D *tex = _render_vulkan_state->free_tex2d;
+    _Render_Vulkan_Tex_2D *tex = _render_vulkan_state->free_tex2d;
     if (tex)
     {
         SLLStackPop(_render_vulkan_state->free_tex2d);
     }
     else
     {
-        tex = arena_push(arena, _Render_Vulkan_Tex2D, 1);
+        tex = arena_push(arena, _Render_Vulkan_Tex_2D, 1);
     }
     
     tex->resource_kind = kind;
@@ -1276,15 +1276,15 @@ internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2
         size_t bpp = 4;
         switch (format)
         {
-            case Render_Tex2D_Format_R8:     bpp = 1; break;
-            case Render_Tex2D_Format_RG8:    bpp = 2; break;
-            case Render_Tex2D_Format_RGBA8:  bpp = 4; break;
-            case Render_Tex2D_Format_BGRA8:  bpp = 4; break;
-            case Render_Tex2D_Format_R16:    bpp = 2; break;
-            case Render_Tex2D_Format_RGBA16: bpp = 8; break;
-            case Render_Tex2D_Format_R32:    bpp = 4; break;
-            case Render_Tex2D_Format_RG32:   bpp = 8; break;
-            case Render_Tex2D_Format_RGBA32: bpp = 16; break;
+            case Render_Tex_2D_Format_R8:     bpp = 1; break;
+            case Render_Tex_2D_Format_RG8:    bpp = 2; break;
+            case Render_Tex_2D_Format_RGBA8:  bpp = 4; break;
+            case Render_Tex_2D_Format_BGRA8:  bpp = 4; break;
+            case Render_Tex_2D_Format_R16:    bpp = 2; break;
+            case Render_Tex_2D_Format_RGBA16: bpp = 8; break;
+            case Render_Tex_2D_Format_R32:    bpp = 4; break;
+            case Render_Tex_2D_Format_RG32:   bpp = 8; break;
+            case Render_Tex_2D_Format_RGBA32: bpp = 16; break;
             default: break;
         }
         size_t raw_size = size.x * size.y * bpp;
@@ -1449,7 +1449,7 @@ internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex2
 
 internal void render_tex2d_free(Render_Handle handle)
 {
-    _Render_Vulkan_Tex2D *tex = (_Render_Vulkan_Tex2D *)handle.u64[0];
+    _Render_Vulkan_Tex_2D *tex = (_Render_Vulkan_Tex_2D *)handle.u64[0];
     if (tex != 0)
     {
         VkDevice device = _render_vulkan_state->device;
