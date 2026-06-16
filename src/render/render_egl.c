@@ -6,13 +6,15 @@ internal Void_Proc *_render_opengl_load_procedure(char *name)
     Void_Proc *p = (Void_Proc *)(void *)eglGetProcAddress(name);
     if (p == (Void_Proc*)1 || p == (Void_Proc*)2 || p == (Void_Proc*)3 || p == (Void_Proc*)-1)
     {
-        p = 0;
+        p = NULL;
     }
     return p;
 }
 
 // ak: Internal OpenGL functions
 //=============================================================================
+
+// ak: layer initialization and cleanup
 
 internal void _render_opengl_init(void)
 {
@@ -25,7 +27,7 @@ internal void _render_opengl_init(void)
     
     // ak: get EGL display
     {
-        _render_egl_state->display = eglGetDisplay((EGLNativeDisplayType)_wl_x11_state->connection);
+        _render_egl_state->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (_render_egl_state->display == EGL_NO_DISPLAY)
         {
             LogErrorLine(&_os_core_state.log_context, "Failed to get EGL display.");
@@ -77,14 +79,50 @@ internal void _render_opengl_init(void)
     }
     
     eglMakeCurrent(_render_egl_state->display, 0, 0, _render_egl_state->context);
+#ifndef SOKOL_GLCORE
     glDrawBuffer(GL_BACK);
+#endif
 }
+
+internal void _render_opengl_cleanup(void)
+{
+    if (_render_egl_state != 0)
+    {
+        eglMakeCurrent(_render_egl_state->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (_render_egl_state->context != EGL_NO_CONTEXT)
+        {
+            eglDestroyContext(_render_egl_state->display, _render_egl_state->context);
+            _render_egl_state->context = EGL_NO_CONTEXT;
+        }
+        for (_Render_Egl_Window *w = _render_egl_state->free_window; w != NULL; w = w->next)
+        {
+            if (w->surface != EGL_NO_SURFACE)
+            {
+                eglDestroySurface(_render_egl_state->display, w->surface);
+                w->surface = EGL_NO_SURFACE;
+            }
+        }
+        if (_render_egl_state->display != EGL_NO_DISPLAY)
+        {
+            eglTerminate(_render_egl_state->display);
+            _render_egl_state->display = EGL_NO_DISPLAY;
+        }
+        eglReleaseThread();
+        if (_render_egl_state->arena != NULL)
+        {
+            arena_free(_render_egl_state->arena);
+        }
+        _render_egl_state = NULL;
+    }
+}
+
+// aK: window functions
 
 internal Render_Handle _render_opengl_window_equip(Wl_Window window)
 {
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     _Render_Egl_Window *window_egl = _render_egl_state->free_window;
-    if(window_egl != 0)
+    if(window_egl != NULL)
     {
         SLLStackPop(_render_egl_state->free_window);
     }
@@ -98,7 +136,7 @@ internal Render_Handle _render_opengl_window_equip(Wl_Window window)
             EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB,
             EGL_NONE,
         };
-        if(_render_egl_state->config == 0)
+        if(_render_egl_state->config == NULL)
         {
             // ak: get all EGL configs
             EGLConfig configs[256] = {0};
@@ -110,13 +148,11 @@ internal Render_Handle _render_opengl_window_equip(Wl_Window window)
                     EGL_CONFORMANT,        EGL_OPENGL_BIT,
                     EGL_RENDERABLE_TYPE,   EGL_OPENGL_BIT,
                     EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-
                     EGL_RED_SIZE,      8,
                     EGL_GREEN_SIZE,    8,
                     EGL_BLUE_SIZE,     8,
                     EGL_DEPTH_SIZE,   24,
                     EGL_STENCIL_SIZE,  8,
-
                     EGL_NONE,
                 };
                 if(!eglChooseConfig(_render_egl_state->display, options, configs, ArrayLength(configs), &configs_count) || configs_count == 0)
@@ -167,8 +203,10 @@ internal void _render_opengl_window_unequip(Wl_Window window, Render_Handle hand
 {
     Unused(window);
     _Render_Egl_Window *window_egl = (_Render_Egl_Window *)handle.u64[0];
+    if (window_egl != 0 && window_egl->surface != EGL_NO_SURFACE)
     {
-
+        eglDestroySurface(_render_egl_state->display, window_egl->surface);
+        window_egl->surface = EGL_NO_SURFACE;
     }
     SLLStackPush(_render_egl_state->free_window, window_egl);
 }
@@ -187,48 +225,3 @@ internal void _render_opengl_window_swap(Wl_Window window, Render_Handle r)
     eglSwapBuffers(_render_egl_state->display, window_egl->surface);
 }
 
-// internal void _render_opengl_init2(Wl_Window window)
-// {
-//     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
-//
-//     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-//     eglInitialize(display, NULL, NULL);
-//     EGLint config_attrs[] = {
-//         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-//         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-//         EGL_RED_SIZE, 8,
-//         EGL_GREEN_SIZE, 8,
-//         EGL_BLUE_SIZE, 8,
-//         EGL_ALPHA_SIZE, 8,
-//         EGL_NONE
-//     };
-//     EGLConfig config;
-//     EGLint num_configs;
-//     eglChooseConfig(display, config_attrs, &config, 1, &num_configs);
-//     EGLSurface surface = eglCreateWindowSurface(
-//         display, config, (EGLNativeWindowType)window_os->xwindow, NULL
-//     );
-//     EGLint ctx_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
-//     EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctx_attrs);
-//     eglMakeCurrent(display, surface, surface, context);
-//     // ak: initialize states
-//     _render_egl_state.display = display;
-//     _render_egl_state.context = context;
-//     _render_egl_state.surface = surface;
-// }
-
-// internal void _render_opengl_deinit(void)
-// {
-//     eglMakeCurrent(
-//         _render_egl_state.display,
-//         EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT
-//     );
-//     eglDestroyContext(_render_egl_state.display, _render_egl_state.context);
-//     eglDestroySurface(_render_egl_state.display, _render_egl_state.surface);
-//     eglTerminate(_render_egl_state.display);
-// }
-//
-// internal void _render_opengl(void)
-// {
-//     eglSwapBuffers(_render_egl_state.display, _render_egl_state.surface);
-// }

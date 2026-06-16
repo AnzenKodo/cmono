@@ -32,6 +32,5 @@ struct _Render_Egl_State
 //=============================================================================
 
 global _Render_Egl_State *_render_egl_state = NULL;
-global char* shader_source_header = "#version 300 es\nprecision mediump float;\n";
 
 #endif // RENDER_EGL_H

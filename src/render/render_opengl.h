@@ -9,18 +9,7 @@
 // ak: Types
 //=============================================================================
 
-typedef enum _Render_Opengl_Vertex_Loc
-{
-    _Render_Opengl_Vertex_Loc_Pos = 0,
-}
-_Render_Opengl_Vertex_Loc;
-
-typedef enum _Render_Opengl_Shader_Kind
-{
-    _Render_Opengl_Shader_Kind_Rect,
-    _Render_Opengl_Shader_Kind_COUNT,
-}
-_Render_Opengl_Shader_Kind;
+// ak: Shader Metadata Types ==================================================
 
 typedef struct _Render_Opengl_Attribute _Render_Opengl_Attribute;
 struct _Render_Opengl_Attribute
@@ -38,12 +27,39 @@ struct _Render_Opengl_Attribute_Array
     uint64_t count;
 };
 
+typedef enum _Render_Opengl_Shader_Kind
+{
+    _Render_Opengl_Shader_Kind_Rect,
+    _Render_Opengl_Shader_Kind_COUNT,
+}
+_Render_Opengl_Shader_Kind;
+
+// ak: State Types ============================================================
+
 typedef struct _Render_Opengl_FormatInfo _Render_Opengl_FormatInfo;
 struct _Render_Opengl_FormatInfo
 {
     GLint internal_format;
     GLenum format;
     GLenum base_type;
+};
+
+typedef struct _Render_Opengl_Tex_2D _Render_Opengl_Tex_2D;
+struct _Render_Opengl_Tex_2D
+{
+    _Render_Opengl_Tex_2D *next;
+    _Render_Opengl_Tex_2D *prev;
+    GLuint id;
+    Render_Resource_Kind resource_kind;
+    Render_Tex_2D_Format format;
+    Vec2_I32 size;
+};
+
+typedef struct _Render_Opengl_FlushBuffer _Render_Opengl_FlushBuffer;
+struct _Render_Opengl_FlushBuffer
+{
+    _Render_Opengl_FlushBuffer *next;
+    GLuint id;
 };
 
 typedef struct _Render_Opengl_RenderTarget _Render_Opengl_RenderTarget;
@@ -57,42 +73,34 @@ typedef struct _Render_Opengl_Window _Render_Opengl_Window;
 struct _Render_Opengl_Window
 {
     _Render_Opengl_Window *next;
-    _Render_Opengl_Window *prev;
     Render_Handle window_os;
     Vec2_F32 last_canvas_rect_dim;
     _Render_Opengl_RenderTarget stage_target;
     _Render_Opengl_RenderTarget stage_scratch_target;
 };
 
-typedef struct _Render_Opengl_Tex2D _Render_Opengl_Tex2D;
-struct _Render_Opengl_Tex2D
-{
-    _Render_Opengl_Tex2D *next;
-    _Render_Opengl_Tex2D *prev;
-    GLuint id;
-    Render_Resource_Kind resource_kind;
-    Render_Tex2D_Format format;
-    Vec2_I32 size;
-};
-
 typedef struct _Render_Opengl_State _Render_Opengl_State;
 struct _Render_Opengl_State
 {
     Arena *arena;
-    size_t render_begin_arena_pos;
     GLuint shaders[_Render_Opengl_Shader_Kind_COUNT];
-    GLuint vao;
-    GLuint vbo;
+    GLuint all_purpose_vao;
     GLuint white_texture;
     _Render_Opengl_Window *free_window;
-    _Render_Opengl_Tex2D *free_tex2d;
+    _Render_Opengl_Tex_2D *free_tex2d;
+    GLuint scratch_buffer_64kb;
+    Arena *buffer_flush_arena;
+    _Render_Opengl_FlushBuffer *first_buffer_to_flush;
+    _Render_Opengl_FlushBuffer *last_buffer_to_flush;
 };
 
 typedef ptrdiff_t GLintptr;
 typedef ptrdiff_t GLsizeiptr;
 
-// ak: X Macro
+// ak: Macro
 //=============================================================================
+
+// X Macros ===================================================================
 
 #ifndef RenderOpenglXMacroWGL
 #   define RenderOpenglXMacroWGL
@@ -121,6 +129,14 @@ typedef ptrdiff_t GLsizeiptr;
     RenderOpenglXMacro
 #undef X
 
+// ak: Defer Macros ===========================================================
+
+#define glUseProgramScope(...)              DeferLoop(glUseProgram(__VA_ARGS__), glUseProgram(0))
+#define glBindVertexArrayScope(...)         DeferLoop(glBindVertexArray(__VA_ARGS__), glBindVertexArray(0))
+#define glBindFramebufferScope(target, ...) DeferLoop(glBindFramebuffer((target), __VA_ARGS__), glBindFramebuffer((target), 0))
+#define glBindTextureScope(target, ...)     DeferLoop(glBindTexture((target), __VA_ARGS__), glBindTexture((target), 0))
+#define glEnableScope(...)                  DeferLoop(glEnable(__VA_ARGS__), glDisable(__VA_ARGS__))
+
 // ak: Defines
 //=============================================================================
 
@@ -141,29 +157,29 @@ typedef ptrdiff_t GLsizeiptr;
 #define GL_ARRAY_BUFFER                 0x8892
 #define GL_STATIC_DRAW                  0x88E4
 
-    
-#define glUseProgramScope(...)              DeferLoop(glUseProgram(__VA_ARGS__), glUseProgram(0))
-#define glBindVertexArrayScope(...)         DeferLoop(glBindVertexArray(__VA_ARGS__), glBindVertexArray(0))
-#define glBindFramebufferScope(target, ...) DeferLoop(glBindFramebuffer((target), __VA_ARGS__), glBindFramebuffer((target), 0))
-#define glBindTextureScope(target, ...)     DeferLoop(glBindTexture((target), __VA_ARGS__), glBindTexture((target), 0))
-#define glEnableScope(...)                  DeferLoop(glEnable(__VA_ARGS__), glDisable(__VA_ARGS__))
-    
 // ak: Functions
 //=============================================================================
 
-// ak: OpenGL helper functions ================================================
+// ak: Helpers ================================================================
 
-// ak: General helper functions
+// ak: general helper functions
 internal Void_Proc *_render_opengl_load_procedure(char *name);
-// ak: Texture helper functions
-internal Render_Handle _render_handle_from_opengl_tex2d(_Render_Opengl_Tex2D *tex2d);
-internal _Render_Opengl_Tex2D *_render_opengl_tex2d_from_handle(Render_Handle handle);
-internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex2D_Format format);
+internal GLuint _render_opengl_instance_buffer_from_size(size_t size);
+internal bool _render_opengl_scissor(Rng2_F32 clip, Vec2_F32 viewport_dim);
 internal void _render_opengl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);
 
-// ak: Internal OpneGL functions ==================================================
+// ak: texture helper functions
+internal Render_Handle _render_opengl_handle_from_tex2d(_Render_Opengl_Tex_2D *tex2d);
+internal _Render_Opengl_Tex_2D *_render_opengl_tex2d_from_handle(Render_Handle handle);
+internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex_2D_Format format);
 
+// ak: Internal OpneGL functions ==============================================
+
+// ak: layer initialization and cleanup
 internal void _render_opengl_init(void);
+internal void _render_opengl_cleanup(void);
+
+// aK: window functions
 internal Render_Handle _render_opengl_window_equip(Wl_Window window);
 internal void _render_opengl_window_unequip(Wl_Window window, Render_Handle handle);
 internal void _render_opengl_select_window(Wl_Window window, Render_Handle r);
@@ -172,11 +188,18 @@ internal void _render_opengl_window_swap(Wl_Window window, Render_Handle r);
 // ak: Global variables
 //=============================================================================
 
+// ak: state
 global _Render_Opengl_State *_render_opengl_state = ZERO_STRUCT;
+
+// ak: shader source
 read_only global Str8 _render_opengl_shader_rect_vert_src;
 read_only global Str8 _render_opengl_shader_rect_frag_src;
+
+// ak: shader source table
 extern Str8 *_render_opengl_shader_kind_vert_src_table[_Render_Opengl_Shader_Kind_COUNT];
 extern Str8 *_render_opengl_shader_kind_frag_src_table[_Render_Opengl_Shader_Kind_COUNT];
+
+// ak: shader input and output table
 extern _Render_Opengl_Attribute_Array _render_opengl_shader_kind_input_attributes_table[_Render_Opengl_Shader_Kind_COUNT];
 extern _Render_Opengl_Attribute_Array _render_opengl_shader_kind_output_attributes_table[_Render_Opengl_Shader_Kind_COUNT];
 
