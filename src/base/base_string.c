@@ -501,7 +501,7 @@ internal bool try_s64_from_str8_c_rules(Str8 string, int64_t  *x)
 
 internal bool str8_is_float(Str8 str)
 {
-    if (str.length == 0) 
+    if (str.length == 0)
     {
         return false;
     }
@@ -888,7 +888,7 @@ internal Unicode_Decode utf8_decode(uint8_t *str, size_t max)
                 if (
                     utf8_class[cont_byte[0] >> 3] == 0 &&
                     utf8_class[cont_byte[1] >> 3] == 0
-                ) 
+                )
                 {
                     result.codepoint = (byte & bitmask4) << 12;
                     result.codepoint |= ((cont_byte[0] & bitmask6) << 6);
@@ -906,7 +906,7 @@ internal Unicode_Decode utf8_decode(uint8_t *str, size_t max)
                     utf8_class[cont_byte[0] >> 3] == 0 &&
                     utf8_class[cont_byte[1] >> 3] == 0 &&
                     utf8_class[cont_byte[2] >> 3] == 0
-                ) 
+                )
                 {
                     result.codepoint = (byte & bitmask3) << 18;
                     result.codepoint |= ((cont_byte[0] & bitmask6) << 12);

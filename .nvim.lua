@@ -17,17 +17,17 @@ end
 
 -- NOTE(ak): run with `:make` below command
 vim.opt.makeprg = cc_command .. "build-dry"
-vim.api.nvim_create_user_command("Run",  function()
+vim.api.nvim_create_user_command("BuildRun",  function()
     vim.opt.makeprg = cc_command .. "build-run"
     vim.cmd('make')
     vim.opt.makeprg = cc_command .. "build-dry"
 end, { desc = "Bootstrap build system"})
-vim.api.nvim_create_user_command("Build",  function()
+vim.api.nvim_create_user_command("BuildBuild",  function()
     vim.opt.makeprg = build_command
     vim.cmd('make')
     vim.opt.makeprg = cc_command .. "build-dry"
 end, { desc = "Bootstrap build system"})
-vim.api.nvim_create_user_command("Meta",  function()
+vim.api.nvim_create_user_command("BuildMeta",  function()
     vim.opt.makeprg = cc_command .. "gen-meta"
     vim.cmd('make')
     vim.opt.makeprg = cc_command .. "build-dry"

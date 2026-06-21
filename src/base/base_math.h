@@ -9,7 +9,8 @@
 // ak: Base
 //=============================================================================
 
-typedef enum Base {
+typedef enum Base
+{
     Base_2  = 2,
     Base_8  = 8,
     Base_10 = 10,
@@ -643,5 +644,18 @@ internal Vec2_F32 dim2_f32(Rng2_F32 r);
 //=============================================================================
 
 internal uint32_t rand_u32(uint32_t seed);
+
+// ak: Color Operations
+//=============================================================================
+
+// ak: srgb <-> linear
+internal Vec3_F32 linear_from_srgb(Vec3_F32 srgb);
+internal Vec3_F32 srgb_from_linear(Vec3_F32 linear);
+internal Vec4_F32 linear_from_srgba(Vec4_F32 srgba);
+internal Vec4_F32 srgba_from_linear(Vec4_F32 linear);
+
+// ak: rgba <-> u32
+internal uint32_t u32_from_rgba(Vec4_F32 rgba);
+#define rgba_from_u32(h) (Vec4_F32){ (((h)&0xff000000)>>24)/255.f, (((h)&0x00ff0000)>>16)/255.f, (((h)&0x0000ff00)>> 8)/255.f, (((h)&0x000000ff)>> 0)/255.f }
 
 #endif // BASE_H

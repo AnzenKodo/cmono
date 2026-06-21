@@ -4,7 +4,7 @@
         {
             "name": "Debug Program",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmono_debug",
+            "program": "${workspaceFolder}/build/serpent-path_debug",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
             // "arguments": "shaders/circles.frag",
@@ -33,14 +33,14 @@
         {
             "name": "Debug Program Windows",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmono_debug.exe",
+            "program": "${workspaceFolder}/build/serpent-path_debug.exe",
             "cwd": "${workspaceFolder}",
             "type": "cppvsdbg",
         },
         {
             "name": "Build & Debug Program Windows",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmono_debug.exe",
+            "program": "${workspaceFolder}/build/serpent-path_debug.exe",
             "cwd": "${workspaceFolder}",
             "type": "cppvsdbg",
             "preLaunchTask": "Build Program Windows"

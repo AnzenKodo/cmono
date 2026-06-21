@@ -75,7 +75,7 @@ Render_Pass_Kind_Table:
 
 @data(Str8) _render_tex2d_format_display_string_table:
 {
-    @expand(Render_Tex_2D_Format_Table a) `str8_comp("$(a.display_string)")`;
+    @expand(Render_Tex_2D_Format_Table a) `str8("$(a.display_string)")`;
 }
 
 @data(uint8_t) _render_tex2d_format_bytes_per_pixel_table:
@@ -85,17 +85,17 @@ Render_Pass_Kind_Table:
 
 @data(Str8) _render_resource_kind_display_string_table:
 {
-    @expand(Render_Resource_Kind_Table a) `str8_comp("$(a.display_string)")`;
+    @expand(Render_Resource_Kind_Table a) `str8("$(a.display_string)")`;
 }
 
 @data(Str8) _render_tex2d_sample_kind_display_string_table:
 {
-    @expand(Render_Tex_2D_Sample_Kind_Table a) `str8_comp("$(a.display_string)")`;
+    @expand(Render_Tex_2D_Sample_Kind_Table a) `str8("$(a.display_string)")`;
 }
 
 @data(Str8) _render_pass_kind_display_string_table:
 {
-    @expand(Render_Pass_Kind_Table a) `str8_comp("$(a.display_string)")`;
+    @expand(Render_Pass_Kind_Table a) `str8("$(a.display_string)")`;
 }
 
 @data(uint8_t) _render_pass_kind_batch_table:

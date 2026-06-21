@@ -1,5 +1,5 @@
-#ifndef DRAW_H
-#define DRAW_H
+#ifndef DRAW_CORE_H
+#define DRAW_CORE_H
 
 typedef struct _Draw_Tex_2D_Sample_Kind_Node _Draw_Tex_2D_Sample_Kind_Node;
 struct _Draw_Tex_2D_Sample_Kind_Node
@@ -76,4 +76,4 @@ read_only global _Draw_XForm_2D_Node draw_nil_xform_2d = {
 read_only global _Draw_Clip_Node draw_nil_clip = { 0, { 0 } };
 read_only global _Draw_Transparency_Node draw_nil_transparency = { 0, 0 };
 
-#endif // DRAW_H
+#endif // DRAW_CORE_H

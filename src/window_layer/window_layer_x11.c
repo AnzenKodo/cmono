@@ -3,9 +3,9 @@
 
 internal _Wl_X11_Window *_wl_x11_window_from_xwindow(xcb_window_t xwindow)
 {
-    _Wl_X11_Window *result = 0;
+    _Wl_X11_Window *result = NULL;
     for (_Wl_X11_Window *window = _wl_x11_state->first_window;
-        window != 0;
+        window != NULL;
         window = window->next)
     {
         if (window->xwindow == xwindow)
@@ -34,11 +34,62 @@ internal void wl_init(void)
     // ak: calculate atoms
     WlX11LoadAtom(_wl_x11_state, WM_PROTOCOLS);
     WlX11LoadAtom(_wl_x11_state, WM_DELETE_WINDOW);
+    WlX11LoadAtom(_wl_x11_state, WM_SYNC_REQUEST_COUNTER);
     _wl_x11_state->wm_protocols = WM_PROTOCOLS;
     _wl_x11_state->wm_delete_window = WM_DELETE_WINDOW;
+    _wl_x11_state->wm_sync_request_counter = WM_SYNC_REQUEST_COUNTER;
+    
+    // ak: allocate the symbols table
+    _wl_x11_state->key_symbols = xcb_key_symbols_alloc(_wl_x11_state->connection);
+    
+    // ak: loading cursors
+    {
+        xcb_cursor_context_t *contex;
+        xcb_cursor_context_new(_wl_x11_state->connection, _wl_x11_state->screen, &contex);
+        struct
+        {
+            Wl_Cursor cursor;
+            const char *name;
+        }
+        map[] =
+        {
+            { Wl_Cursor_Pointer,         "left_ptr" },
+            { Wl_Cursor_IBar,            "xterm" },
+            { Wl_Cursor_LeftRight,       "sb_h_double_arrow" },
+            { Wl_Cursor_UpDown,          "sb_v_double_arrow" },
+            { Wl_Cursor_DownRight,       "bottom_right_corner" },
+            { Wl_Cursor_UpRight,         "top_right_corner" },
+            { Wl_Cursor_UpDownLeftRight, "fleur" },
+            { Wl_Cursor_HandPoint,       "hand2" }, // or "hand1" / "pointer"
+            { Wl_Cursor_Disabled,        "X_cursor" },
+        };
+        for (size_t i = 0; i < ArrayLength(map); i++)
+        {
+            _wl_x11_state->cursors[map[i].cursor] = xcb_cursor_load_cursor(contex, map[i].name);
+        }
+        xcb_cursor_context_free(contex);
+    }
+    
+    // ak: create wakeup event for polling
+    _wl_x11_state->wakeup_fd = eventfd(0, EFD_CLOEXEC);
+    Assert(_wl_x11_state->wakeup_fd > 0);
 }
 
-internal Wl_Window wl_window_open(Str8 title, size_t width, size_t height)
+internal void wl_window_cleanup(void)
+{
+    xcb_disconnect(_wl_x11_state->connection);
+    xcb_key_symbols_free(_wl_x11_state->key_symbols);
+    for (int i = 0; i < Wl_Cursor_COUNT; i++)
+    {
+        if (_wl_x11_state->cursors[i] != 0)
+        {
+            xcb_free_cursor(_wl_x11_state->connection, _wl_x11_state->cursors[i]);
+            _wl_x11_state->cursors[i] = 0;
+        }
+    }
+}
+
+internal Wl_Window wl_window_open(Str8 title)
 {
     _Wl_X11_Window *window_os = _wl_x11_state->free_window;
     if (window_os)
@@ -65,6 +116,8 @@ internal Wl_Window wl_window_open(Str8 title, size_t width, size_t height)
 		XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_FOCUS_CHANGE |
         XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
     };
+    uint16_t width = _wl_x11_state->screen->width_in_pixels  / 2;
+    uint16_t height = _wl_x11_state->screen->height_in_pixels / 2;
     xcb_create_window(
         _wl_x11_state->connection, XCB_COPY_FROM_PARENT, window_os->xwindow, _wl_x11_state->screen->root,
         0, 0, width, height, 0,
@@ -98,306 +151,357 @@ internal Wl_Window wl_window_open(Str8 title, size_t width, size_t height)
     xcb_flush(_wl_x11_state->connection);
     
     // ak: get display size
-    _wl_core_state.display_width = _wl_x11_state->screen->width_in_pixels;
-    _wl_core_state.display_height = _wl_x11_state->screen->height_in_pixels;
+    _wl_core_state.display_rect = rng2p(
+        0.f, 0.f,
+        _wl_x11_state->screen->width_in_pixels,
+        _wl_x11_state->screen->height_in_pixels);
     window_os->rect = rng2p(0.0f, 0.0f, (float)width, (float)height);
-    window_os->canvas_rect = rng2p(0.0f, 0.0f, (float)width, (float)height);
-    _wl_core_state.frame_prev_time = os_now_microsec();
      
     // ak: convert to handle & return
     Wl_Window window = {(uint64_t)window_os};
     return window;
 }
 
-internal void wl_window_close(void)
+internal void wl_window_close(Wl_Window window)
 {
-    xcb_disconnect(_wl_x11_state->connection);
+    if(wl_window_match(window, wl_window_zero())){return;}
+    _Wl_X11_Window *w = (_Wl_X11_Window *)window.u64[0];
+    xcb_destroy_window(_wl_x11_state->connection, w->xwindow);
+    xcb_flush(_wl_x11_state->connection);
 }
 
 // ak: Event Functions
 //=============================================================================
 
-internal Wl_Event wl_get_event(void)
+internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
 {
-    Wl_Event event = ZERO_STRUCT;
-    xcb_generic_event_t *xcb_event;
-    while ((xcb_event = xcb_poll_for_event(_wl_x11_state->connection)))
+    Wl_Event_List events = {0};
+    for(;;)
     {
-        switch (xcb_event->response_type & ~0x80)
+        // ak: 1. check if we have events waiting in the queue.
+        xcb_generic_event_t *event = xcb_poll_for_event(_wl_x11_state->connection);
+        
+        // ak: 2. if no events are pending and we are waiting, sleep/poll
+        if(event == NULL)
         {
-            // ak: keyboard key presses/releases
-            case XCB_KEY_PRESS:
-            case XCB_KEY_RELEASE:
+            struct pollfd poll_fds[2] =
             {
-                xcb_key_release_event_t *key_event = (xcb_key_release_event_t *)xcb_event;
-                // ak: determine mod_key
-                Wl_ModKey mod_key = (Wl_ModKey)0;
-                if (key_event->state & XCB_MOD_MASK_SHIFT)
                 {
-                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
-                }
-                if (key_event->state & XCB_MOD_MASK_CONTROL)
+                    .fd = xcb_get_file_descriptor(_wl_x11_state->connection),
+                    .events = POLLIN
+                },
                 {
-                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
-                }
-                if (key_event->state & XCB_MOD_MASK_1)
-                {
-                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
-                }
-                // ak: assign keys
-                Wl_Key key = Wl_Key_Null;
-                switch(key_event->detail)
-                {
-                    // NOTE(ak): to get keycodes run `xmodmap -pk`
-                    case 9:{key = Wl_Key_Esc;};break;
-                    case 10:{key = Wl_Key_1;}break;
-                    case 11:{key = Wl_Key_2;}break;
-                    case 12:{key = Wl_Key_3;}break;
-                    case 13:{key = Wl_Key_4;}break;
-                    case 14:{key = Wl_Key_5;}break;
-                    case 15:{key = Wl_Key_6;}break;
-                    case 16:{key = Wl_Key_7;}break;
-                    case 17:{key = Wl_Key_8;}break;
-                    case 18:{key = Wl_Key_9;}break;
-                    case 19:{key = Wl_Key_0;}break;
-                    case 20:{key = Wl_Key_Minus;}break;
-                    case 21:{key = Wl_Key_Equal;}break;
-                    case 22:{key = Wl_Key_Backspace;}break;
-                    case 23:{key = Wl_Key_Tab;}break;
-                    case 24:{key = Wl_Key_Q;}break;
-                    case 25:{key = Wl_Key_W;}break;
-                    case 26:{key = Wl_Key_E;}break;
-                    case 27:{key = Wl_Key_R;}break;
-                    case 28:{key = Wl_Key_T;}break;
-                    case 29:{key = Wl_Key_Y;}break;
-                    case 30:{key = Wl_Key_U;}break;
-                    case 31:{key = Wl_Key_I;}break;
-                    case 32:{key = Wl_Key_O;}break;
-                    case 33:{key = Wl_Key_P;}break;
-                    case 34:{key = Wl_Key_LeftBracket;}break;
-                    case 35:{key = Wl_Key_RightBracket;}break;
-                    case 36:{key = Wl_Key_Return;}break;
-                    case 37:{key = Wl_Key_CtrlLeft;}break;
-                    case 38:{key = Wl_Key_A;}break;
-                    case 39:{key = Wl_Key_S;}break;
-                    case 40:{key = Wl_Key_D;}break;
-                    case 41:{key = Wl_Key_F;}break;
-                    case 42:{key = Wl_Key_G;}break;
-                    case 43:{key = Wl_Key_H;}break;
-                    case 44:{key = Wl_Key_J;}break;
-                    case 45:{key = Wl_Key_K;}break;
-                    case 46:{key = Wl_Key_L;}break;
-                    case 47:{key = Wl_Key_Semicolon;}break;
-                    case 48:{key = Wl_Key_Quote;}break;
-                    case 49:{key = Wl_Key_Tick;}break;
-                    case 50:{key = Wl_Key_ShiftLeft;}break;
-                    case 51:{key = Wl_Key_BackSlash;}break;
-                    case 52:{key = Wl_Key_Z;}break;
-                    case 53:{key = Wl_Key_X;}break;
-                    case 54:{key = Wl_Key_C;}break;
-                    case 55:{key = Wl_Key_V;}break;
-                    case 56:{key = Wl_Key_B;}break;
-                    case 57:{key = Wl_Key_N;}break;
-                    case 58:{key = Wl_Key_M;}break;
-                    case 59:{key = Wl_Key_Comma;}break;
-                    case 60:{key = Wl_Key_Period;}break;
-                    case 61:{key = Wl_Key_Slash;}break;
-                    case 62:{key = Wl_Key_ShiftRight;}break;
-                    case 63:{key = Wl_Key_NumStar;}break;
-                    case 64:{key = Wl_Key_AltLeft;}break;
-                    case 65:{key = Wl_Key_Space;}break;
-                    case 66:{key = Wl_Key_CapsLock;}break;
-                    case 67:{key = Wl_Key_F1;}break;
-                    case 68:{key = Wl_Key_F2;}break;
-                    case 69:{key = Wl_Key_F3;}break;
-                    case 70:{key = Wl_Key_F4;}break;
-                    case 71:{key = Wl_Key_F5;}break;
-                    case 72:{key = Wl_Key_F6;}break;
-                    case 73:{key = Wl_Key_F7;}break;
-                    case 74:{key = Wl_Key_F8;}break;
-                    case 75:{key = Wl_Key_F9;}break;
-                    case 76:{key = Wl_Key_F10;}break;
-                    case 77:{key = Wl_Key_NumLock;}break;
-                    case 78:{key = Wl_Key_ScrollLock;}break;
-                    case 79:{key = Wl_Key_Num7;}break;
-                    case 80:{key = Wl_Key_Num8;}break;
-                    case 81:{key = Wl_Key_Num9;}break;
-                    case 82:{key = Wl_Key_NumMinus;}break;
-                    case 83:{key = Wl_Key_Num4;}break;
-                    case 84:{key = Wl_Key_Num5;}break;
-                    case 85:{key = Wl_Key_Num6;}break;
-                    case 86:{key = Wl_Key_NumPlus;}break;
-                    case 87:{key = Wl_Key_Num1;}break;
-                    case 88:{key = Wl_Key_Num2;}break;
-                    case 89:{key = Wl_Key_Num3;}break;
-                    case 90:{key = Wl_Key_Num0;}break;
-                    case 91:{key = Wl_Key_NumPeriod;}break;
-                    // 92 ISO_Level3_Shift
-                    // 93
-                    // 94 less
-                    case 95:{key = Wl_Key_F11;}break;
-                    case 96:{key = Wl_Key_F12;}break;
-                    // 97
-                    // 98 Katakana
-                    // 99 Hiragana
-                    // 100 Henkan_Mode
-                    // 101 Hiragana_Katakana
-                    // 102 Muhenkan
-                    // 103
-                    case 104:{key = Wl_Key_NumReturn;}break;
-                    case 105:{key = Wl_Key_CtrlRight;}break;
-                    case 106:{key = Wl_Key_NumSlash;}break;
-                    case 107:{key = Wl_Key_Print;}break;
-                    case 108:{key = Wl_Key_AltRight;}break;
-                    // 109 Linefeed
-                    case 110:{key = Wl_Key_Home;}break;
-                    case 111:{key = Wl_Key_Up;}break;
-                    case 112:{key = Wl_Key_PageUp;}break;
-                    case 113:{key = Wl_Key_Left;}break;
-                    case 114:{key = Wl_Key_Right;}break;
-                    case 115:{key = Wl_Key_End;}break;
-                    case 116:{key = Wl_Key_Down;}break;
-                    case 117:{key = Wl_Key_PageDown;}break;
-                    case 118:{key = Wl_Key_Insert;}break;
-                    case 119:{key = Wl_Key_Delete;}break;
-                    // 120
-                    // case 121:{key = Wl_Key_AudioMute;}break;
-                    // case 122:{key = Wl_Key_AudioLowerVolume;}break;
-                    // case 123:{key = Wl_Key_AudioRaiseVolume;}break;
-                    // 124 XF86PowerOff
-                    // 125 KP_Equal
-                    // 126 plusminus
-                    case 127:{key = Wl_Key_Pause;}break;
-                    // 128 XF86LaunchA
-                    // 129 KP_Decimal
-                    // 130 Hangul
-                    // 131 Hangul_Hanja
-                    // 132
-                    case 133:{key = Wl_Key_SuperLeft;}break;
-                    case 134:{key = Wl_Key_SuperRight;}break;
-                    case 135:{key = Wl_Key_Menu;}break;
-                    default:{}break;
-                }
-                // ak: add to event variable
-                if (key_event->response_type == XCB_KEY_PRESS)
-                {
-                    event.type = Wl_EventType_Press;
-                } else {
-                    event.type = Wl_EventType_Release;
-                }
-                event.key = key;
-                event.mod_key = mod_key;
-            } break;
-            // ak: mouse button presses/releases
-            case XCB_BUTTON_PRESS:
-            case XCB_BUTTON_RELEASE:
+                    .fd = _wl_x11_state->wakeup_fd,
+                    .events = POLLIN
+                },
+            };
+
+            int timeout = (wait && events.length == 0) ? -1 : 0;
+            int poll_status = poll(poll_fds, ArrayLength(poll_fds), timeout);
+            Assert(poll_status >= 0);
+            // ak: if we got woke up via eventfd
+            if(poll_fds[1].revents & POLLIN)
             {
-                xcb_button_release_event_t *button_event = (xcb_button_release_event_t *)xcb_event;
-                // ak: determine mod_key
-                Wl_ModKey mod_key = (Wl_ModKey)0;
-                if (button_event->state & XCB_MOD_MASK_SHIFT)
-                {
-                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Shift);
-                }
-                if (button_event->state & XCB_MOD_MASK_CONTROL)
-                {
-                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Ctrl);
-                }
-                if (button_event->state & XCB_MOD_MASK_1) 
-                {
-                    mod_key = (Wl_ModKey)(mod_key | Wl_ModKey_Alt);
-                }
-                // ak: assign button
-                Wl_Key key = Wl_Key_Null;
-                switch(button_event->detail)
-                {
-                    case 1:{key = Wl_Key_LeftMouseButton;}break;
-                    case 2:{key = Wl_Key_MiddleMouseButton;}break;
-                    case 3:{key = Wl_Key_RightMouseButton;}break;
-                    default:{}
-                }
-                // ak: add to event variable
-                if (button_event->response_type == XCB_BUTTON_PRESS) 
-                {
-                    event.type = Wl_EventType_Press;
-                } else {
-                    event.type = Wl_EventType_Release;
-                }
-                event.mod_key = mod_key;
-                event.key = key;
-            } break;
-            // ak: mouse motion
-    		case XCB_MOTION_NOTIFY:
-    		{
-                xcb_button_release_event_t *motion_event = (xcb_button_release_event_t *)xcb_event;
-                // ak: add to event variable
-                event.type = Wl_EventType_MouseMove;
-                event.pos.x = (float)motion_event->event_x;
-                event.pos.y = (float)motion_event->event_x;
-            } break;
-            // ak: window focus/unfocus
-            case XCB_FOCUS_IN: break;
-            case XCB_FOCUS_OUT:
+                uint64_t dummy = 0;
+                read(_wl_x11_state->wakeup_fd, &dummy, sizeof(dummy));
+                wait = 0;
+            }
+            // ak: attempt to pull event again
+            event = xcb_poll_for_event(_wl_x11_state->connection);
+        }
+        
+        // ak: 3. process all queued events
+        // (without overwriting previous events in the loop)
+        while(event != NULL)
+        {
+            bool set_mouse_cursor = false;
+            uint8_t response_type = event->response_type & ~0x80;
+            switch(response_type)
             {
-                event.type = Wl_EventType_WindowLoseFocus;
-            }break;
-            // ak: client messages
-            case XCB_CLIENT_MESSAGE:
-            {
-                xcb_client_message_event_t *message = (xcb_client_message_event_t *)xcb_event;
-                if (message->data.data32[0] == _wl_x11_state->wm_delete_window)
+                // ak: key presses/releases
+                case XCB_KEY_PRESS:
+                case XCB_KEY_RELEASE:
                 {
-                    event.type = Wl_EventType_WindowClose;
-                }
-            }break;
-            // ak: window resize
-            case XCB_CONFIGURE_NOTIFY:
+                    xcb_key_press_event_t *key_event = (xcb_key_press_event_t *)event;
+                    // ak: map modifiers
+                    Wl_Modifiers modifiers = 0;
+                    if(key_event->state & XCB_MOD_MASK_SHIFT)
+                    {
+                        modifiers |= Wl_Modifier_Shift;
+                    }
+                    if(key_event->state & XCB_MOD_MASK_CONTROL)
+                    {
+                        modifiers |= Wl_Modifier_Ctrl;
+                    }
+                    if(key_event->state & XCB_MOD_MASK_1) {
+                        modifiers |= Wl_Modifier_Alt;
+                    }
+                    // ak: map raw keycode to standard keysym using xcb-keysyms
+                    xcb_keysym_t keysym = xcb_key_symbols_get_keysym(_wl_x11_state->key_symbols, key_event->detail, 0);
+                    bool is_right_sided = false;
+                    Wl_Key key = Wl_Key_Null;
+                    switch(keysym)
+                    {
+                        default:
+                        {
+                            if(0){}
+                            else if(XK_F1 <= keysym && keysym <= XK_F24)
+                            {
+                                key = (Wl_Key)(Wl_Key_F1 + (keysym - XK_F1));
+                            }
+                            else if('0' <= keysym && keysym <= '9')
+                            {
+                                key = Wl_Key_0 + (keysym-'0');
+                            }
+                        } break;
+                        case XK_Escape:    { key = Wl_Key_Esc;          }; break;
+                        case XK_BackSpace: { key = Wl_Key_Backspace;    } break;
+                        case XK_Delete:    { key = Wl_Key_Delete;       } break;
+                        case XK_Return:    { key = Wl_Key_Return;       } break;
+                        case XK_Pause:     { key = Wl_Key_Pause;        } break;
+                        case XK_Tab:       { key = Wl_Key_Tab;          } break;
+                        case XK_Left:      { key = Wl_Key_Left;         } break;
+                        case XK_Right:     { key = Wl_Key_Right;        } break;
+                        case XK_Up:        { key = Wl_Key_Up;           } break;
+                        case XK_Down:      { key = Wl_Key_Down;         } break;
+                        case XK_Home:      { key = Wl_Key_Home;         } break;
+                        case XK_End:       { key = Wl_Key_End;          } break;
+                        case XK_Prior:     { key = Wl_Key_PageUp;       } break;
+                        case XK_Next:      { key = Wl_Key_PageDown;     } break;
+                        case XK_Alt_L:     { key = Wl_Key_Alt;          } break;
+                        case XK_Alt_R:     { key = Wl_Key_Alt; is_right_sided = true; } break;
+                        case XK_Shift_L:   { key = Wl_Key_Shift;        } break;
+                        case XK_Shift_R:   { key = Wl_Key_Shift; is_right_sided = true; } break;
+                        case XK_Control_L: { key = Wl_Key_Ctrl;         } break;
+                        case XK_Control_R: { key = Wl_Key_Ctrl; is_right_sided = true; } break;
+                        case '-':          { key = Wl_Key_Minus;        } break;
+                        case '=':          { key = Wl_Key_Equal;        } break;
+                        case '[':          { key = Wl_Key_LeftBracket;  } break;
+                        case ']':          { key = Wl_Key_RightBracket; } break;
+                        case ';':          { key = Wl_Key_Semicolon;    } break;
+                        case '\'':         { key = Wl_Key_Quote;        } break;
+                        case '.':          { key = Wl_Key_Period;       } break;
+                        case ',':          { key = Wl_Key_Comma;        } break;
+                        case '/':          { key = Wl_Key_Slash;        } break;
+                        case '\\':         { key = Wl_Key_BackSlash;    } break;
+                        case 'a':case 'A': { key = Wl_Key_A;            } break;
+                        case 'b':case 'B': { key = Wl_Key_B;            } break;
+                        case 'c':case 'C': { key = Wl_Key_C;            } break;
+                        case 'd':case 'D': { key = Wl_Key_D;            } break;
+                        case 'e':case 'E': { key = Wl_Key_E;            } break;
+                        case 'f':case 'F': { key = Wl_Key_F;            } break;
+                        case 'g':case 'G': { key = Wl_Key_G;            } break;
+                        case 'h':case 'H': { key = Wl_Key_H;            } break;
+                        case 'i':case 'I': { key = Wl_Key_I;            } break;
+                        case 'j':case 'J': { key = Wl_Key_J;            } break;
+                        case 'k':case 'K': { key = Wl_Key_K;            } break;
+                        case 'l':case 'L': { key = Wl_Key_L;            } break;
+                        case 'm':case 'M': { key = Wl_Key_M;            } break;
+                        case 'n':case 'N': { key = Wl_Key_N;            } break;
+                        case 'o':case 'O': { key = Wl_Key_O;            } break;
+                        case 'p':case 'P': { key = Wl_Key_P;            } break;
+                        case 'q':case 'Q': { key = Wl_Key_Q;            } break;
+                        case 'r':case 'R': { key = Wl_Key_R;            } break;
+                        case 's':case 'S': { key = Wl_Key_S;            } break;
+                        case 't':case 'T': { key = Wl_Key_T;            } break;
+                        case 'u':case 'U': { key = Wl_Key_U;            } break;
+                        case 'v':case 'V': { key = Wl_Key_V;            } break;
+                        case 'w':case 'W': { key = Wl_Key_W;            } break;
+                        case 'x':case 'X': { key = Wl_Key_X;            } break;
+                        case 'y':case 'Y': { key = Wl_Key_Y;            } break;
+                        case 'z':case 'Z': { key = Wl_Key_Z;            } break;
+                        case ' ':          { key = Wl_Key_Space;        } break;
+                    }
+                    _Wl_X11_Window *window = _wl_x11_window_from_xwindow(key_event->event);
+                    // NOTE(ak): Native text layout translation (such as XIM)
+                    // is omitted here as XCB does not natively support XIM.
+                    // For Unicode input, Xlib-XCB or library integration
+                    // (such as xkbcommon) is recommended.
+
+                    // Push keypress event
+                    Wl_Event *e = wl_event_list_push_new(arena, &events, (response_type == XCB_KEY_PRESS) ? Wl_Event_Kind_Press : Wl_Event_Kind_Release);
+                    e->window.u64[0] = (uint64_t)window;
+                    e->modifiers = modifiers;
+                    e->key = key;
+                    e->right_sided = is_right_sided;
+                } break;
+                
+                // ak: Mouse button presses/releases
+                case XCB_BUTTON_PRESS:
+                case XCB_BUTTON_RELEASE:
+                {
+                    xcb_button_press_event_t *button_event = (xcb_button_press_event_t *)event;
+                    // ak: Map modifiers
+                    Wl_Modifiers modifiers = 0;
+                    if(button_event->state & XCB_MOD_MASK_SHIFT)
+                    {
+                        modifiers |= Wl_Modifier_Shift;
+                    }
+                    if(button_event->state & XCB_MOD_MASK_CONTROL)
+                    {
+                        modifiers |= Wl_Modifier_Ctrl;
+                    }
+                    if(button_event->state & XCB_MOD_MASK_1)
+                    {
+                        modifiers |= Wl_Modifier_Alt;
+                    }
+                    Wl_Key key = Wl_Key_Null;
+                    switch(button_event->detail)
+                    {
+                        default:{} break;
+                        case 1: { key = Wl_Key_LeftMouseButton;} break;
+                        case 2: { key = Wl_Key_MiddleMouseButton;} break;
+                        case 3: { key = Wl_Key_RightMouseButton;} break;
+                    }
+                    _Wl_X11_Window *window = _wl_x11_window_from_xwindow(button_event->event);
+                    if(key != Wl_Key_Null)
+                    {
+                        Wl_Event *e = wl_event_list_push_new(arena, &events, (response_type ==
+                                    XCB_BUTTON_PRESS) ? Wl_Event_Kind_Press : Wl_Event_Kind_Release);
+                        e->window.u64[0] = (uint64_t)window;
+                        e->modifiers = modifiers;
+                        e->key = key;
+                        e->pos = (Vec2_F32){ (float)button_event->event_x, (float)button_event->event_y };
+                    }
+                    // ak: Scroll wheels (Up / Down)
+                    else if(button_event->detail == 4 || button_event->detail == 5)
+                    {
+                        Wl_Event *e = wl_event_list_push_new(arena, &events, Wl_Event_Kind_Scroll);
+                        e->window.u64[0] = (uint64_t)window;
+                        e->modifiers = modifiers;
+                        e->delta = (Vec2_F32){ 0.f, button_event->detail == 4 ? -1.f : +1.f };
+                        e->pos = (Vec2_F32){ (float)button_event->event_x, (float)button_event->event_y };
+                    }
+                } break;
+                
+                // ak: mouse motion
+                case XCB_MOTION_NOTIFY:
+                {
+                    xcb_motion_notify_event_t *motion_event = (xcb_motion_notify_event_t *)event;
+                    _Wl_X11_Window *window = _wl_x11_window_from_xwindow(motion_event->event);
+
+                    Wl_Event *e = wl_event_list_push_new(arena, &events, Wl_Event_Kind_MouseMove);
+                    e->window.u64[0] = (uint64_t)window;
+                    e->pos.x = (float)motion_event->event_x;
+                    e->pos.y = (float)motion_event->event_y;
+                    set_mouse_cursor = true;
+                } break;
+                
+                // ak: focus Events
+                case XCB_FOCUS_IN: break;
+                case XCB_FOCUS_OUT:
+                {
+                    xcb_focus_out_event_t *focus_event = (xcb_focus_out_event_t *)event;
+                    _Wl_X11_Window *window = _wl_x11_window_from_xwindow(focus_event->event);
+                    Wl_Event *e = wl_event_list_push_new(arena, &events,
+                            Wl_Event_Kind_WindowLoseFocus);
+                    e->window.u64[0] = (uint64_t)window;
+                } break;
+                
+                // ak: window resize and positioning
+                case XCB_CONFIGURE_NOTIFY:
+                {
+                    xcb_configure_notify_event_t *conf_event = (xcb_configure_notify_event_t *)event;
+                    _Wl_X11_Window *window = _wl_x11_window_from_xwindow(conf_event->event);
+                    if (window != NULL)
+                    {
+                        // ak: update cached window coordinates
+                        window->rect = rng2p(
+                            (float)conf_event->x + (float)conf_event->border_width,
+                            (float)conf_event->y + (float)conf_event->border_width,
+                            (float)conf_event->x + (float)conf_event->width,
+                            (float)conf_event->y + (float)conf_event->height
+                        );
+                        Wl_Event *e = wl_event_list_push_new(arena, &events, Wl_Event_Kind_WindowResize);
+                        e->window.u64[0] = (uint64_t)window;
+                    }
+                } break;
+                
+                // ak: client Messages (window closes & sync counters)
+                case XCB_CLIENT_MESSAGE:
+                {
+                    xcb_client_message_event_t *msg_event = (xcb_client_message_event_t *)event;
+                    _Wl_X11_Window *window = _wl_x11_window_from_xwindow(msg_event->window);
+
+                    if(msg_event->data.data32[0] == _wl_x11_state->wm_delete_window)
+                    {
+                        Wl_Event *e = wl_event_list_push_new(arena, &events, Wl_Event_Kind_WindowClose);
+                        e->window.u64[0] = (uint64_t)window;
+                    }
+                    else if(msg_event->data.data32[0] == _wl_x11_state->wm_sync_request_counter)
+                    {
+                        if(window != NULL)
+                        {
+                            // ak: update and acknowledge the window resize sync
+                            // counter to avoid tearing
+                            window->counter_value = 0;
+                            window->counter_value |= (uint64_t)msg_event->data.data32[2];
+                            window->counter_value |= ((uint64_t)msg_event->data.data32[3] << 32);
+                            
+                            xcb_sync_int64_t value;
+                            value.lo = (uint32_t)(window->counter_value & 0xFFFFFFFF);
+                            value.hi = (int32_t)(window->counter_value >> 32);
+
+                            xcb_sync_set_counter(_wl_x11_state->connection, window->counter_xid, value);
+                            xcb_flush(_wl_x11_state->connection);
+                        }
+                    }
+                } break;
+            }
+            
+            // ak: cursor logic
+            if(set_mouse_cursor)
             {
-                xcb_configure_notify_event_t *resize_event = (xcb_configure_notify_event_t *)xcb_event;
-                _Wl_X11_Window *window_os = _wl_x11_window_from_xwindow(resize_event->window);
-                // ak: add to event variable
-                window_os->rect = rng2p(
-                    (float)resize_event->x,     (float)resize_event->y,
-                    (float)resize_event->width, (float)resize_event->height
-                );
-                window_os->canvas_rect = rng2p(
-                    .0f, .0f,
-                    (float)resize_event->width, (float)resize_event->height
-                );
-                event.type = Wl_EventType_WindowResize;
-                event.window.u64[0] = (uint64_t)window_os;
-            }break;
-            case XCB_EXPOSE:{
-            }break;
-        } // switch
-        free(xcb_event);
-    } // while
-    return event;
+                xcb_query_pointer_cookie_t cookie = xcb_query_pointer(_wl_x11_state->connection, _wl_x11_state->screen->root);
+                xcb_query_pointer_reply_t *reply = xcb_query_pointer_reply(_wl_x11_state->connection, cookie, NULL);
+                if(reply)
+                {
+                    xcb_change_window_attributes(_wl_x11_state->connection,
+                        _wl_x11_state->screen->root,
+                        XCB_CW_CURSOR,
+                        &_wl_x11_state->cursors[_wl_x11_state->last_set_cursor]);
+                    xcb_flush(_wl_x11_state->connection);
+                    free(reply);
+                }
+            }
+            
+            free(event);
+            event = xcb_poll_for_event(_wl_x11_state->connection);
+        }
+
+        // ak: Stop querying if we have events, or if we were running in non-blocking mode.
+        if(events.length > 0 || (wait == 0 && events.length == 0))
+        {
+            break;
+        }
+    }
+
+    return events;
 }
 
-// Window property
-// ============================================================================
+// ak: Window property
+//=============================================================================
 
 internal Rng2_F32 wl_rect_from_window(Wl_Window window)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return (Rng2_F32){0, 0, 0, 0};}
+    if (wl_window_match(window, wl_window_zero()))
+    {
+        return (Rng2_F32){0, 0, 0, 0};
+    }
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     return window_os->rect;
 }
 
 internal Rng2_F32 wl_canvas_rect_from_window(Wl_Window window)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return (Rng2_F32){0, 0, 0, 0};}
-    _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
-    return window_os->canvas_rect;
+    Rng2_F32 rect = wl_rect_from_window(window);
+    Rng2_F32 canvas_rect = rng2p(0.f, 0.f, rect.x1-rect.x0, rect.y1-rect.y0);
+    return canvas_rect;
 }
 
 internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return;}
+    if (wl_window_match(window, wl_window_zero())){return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     xcb_configure_window(_wl_x11_state->connection, window_os->xwindow,
@@ -408,8 +512,7 @@ internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y)
 
 internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t width, size_t height)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return;}
+    if (wl_window_match(window, wl_window_zero())){return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     WlX11LoadAtom(_wl_x11_state, _NET_WM_ICON);
@@ -426,8 +529,7 @@ internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t w
 
 internal void wl_window_border_set(Wl_Window window, bool enable)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return;}
+    if (wl_window_match(window, wl_window_zero())){return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     WlX11LoadAtom(_wl_x11_state, _MOTIF_WM_HINTS);
@@ -445,14 +547,14 @@ internal void wl_window_border_set(Wl_Window window, bool enable)
 }
 
 // ak: software render
-// ============================================================================
+//=============================================================================
 
 internal void wl_render_init(Wl_Window window, void *buffer)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return;}
+    if (wl_window_match(window, wl_window_zero())){return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
-    window_os->buffer = buffer;
+    window_os->pixels_buffer = buffer;
+    Rng2_F32 display_rect = wl_display_rect();
     
     // ak: create pixmap format
     if (!_wl_x11_state->pixmap)
@@ -464,11 +566,11 @@ internal void wl_render_init(Wl_Window window, void *buffer)
         int32_t pixmap_format_length = xcb_setup_pixmap_formats_length(
             xcb_get_setup(_wl_x11_state->connection)
         );
-        for (int i = 0; i < pixmap_format_length; i++) 
+        for (int i = 0; i < pixmap_format_length; i++)
         {
             if (
                     _wl_x11_state->pixmap_format[i].depth==24 && _wl_x11_state->pixmap_format[i].bits_per_pixel==32
-               ) 
+               )
             {
                 _wl_x11_state->pixmap_format += i;
             }
@@ -479,7 +581,7 @@ internal void wl_render_init(Wl_Window window, void *buffer)
     xcb_create_pixmap(
         _wl_x11_state->connection, _wl_x11_state->screen->root_depth,
         _wl_x11_state->pixmap, window_os->xwindow,
-        wl_display_width_get(), wl_display_height_get()
+        display_rect.x1, display_rect.y1
     );
     
     // ak: create graphics context
@@ -497,13 +599,14 @@ internal void wl_render_init(Wl_Window window, void *buffer)
     
     // ak: create image
     window_os->image = xcb_image_create(
-        wl_display_width_get(), wl_display_height_get(), XCB_IMAGE_FORMAT_Z_PIXMAP,
+        display_rect.x1, display_rect.y1,
+        XCB_IMAGE_FORMAT_Z_PIXMAP,
         _wl_x11_state->pixmap_format->scanline_pad,
         _wl_x11_state->pixmap_format->depth,
         _wl_x11_state->pixmap_format->bits_per_pixel, 0,
         xcb_get_setup(_wl_x11_state->connection)->image_byte_order,
         XCB_IMAGE_ORDER_LSB_FIRST,
-        window_os->buffer, sizeof(*window_os->buffer), window_os->buffer
+        window_os->pixels_buffer, sizeof(*window_os->pixels_buffer), window_os->pixels_buffer
     );
     xcb_flush(_wl_x11_state->connection);
 }
@@ -516,18 +619,18 @@ internal void wl_render_deinit(void)
 
 internal void wl_render_begin(Wl_Window window)
 {
-    if (wl_window_match(window, wl_window_zero())) 
-    {return;}
+    if (wl_window_match(window, wl_window_zero())){return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     xcb_image_put(
         _wl_x11_state->connection, _wl_x11_state->pixmap,
         _wl_x11_state->gc, window_os->image, 0, 0, 0
     );
+    Rng2_F32 display_rect = wl_display_rect();
     xcb_copy_area(
         _wl_x11_state->connection, _wl_x11_state->pixmap, window_os->xwindow,
         _wl_x11_state->gc, 0, 0, 0, 0,
-        wl_display_width_get(), wl_display_height_get()
+        display_rect.x1, display_rect.y1
     );
 }
 

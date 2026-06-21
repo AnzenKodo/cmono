@@ -208,7 +208,7 @@ internal void build_compile_gcc(Build_Info *info)
     }
     else
     {
-        build_cmd_append(info, " -lm -lxcb -lXau -lXdmcp -lxcb-image -lEGL -lGL");
+        build_cmd_append(info, " -lm -lxcb -lxcb-image -lxcb-sync -lxcb-keysyms -lxcb-cursor -lXau -lXdmcp  -lEGL -lGL");
     }
 }
 
@@ -258,8 +258,8 @@ internal int build_run(Build_Info *info)
 internal void base_main(void)
 {
     Build_Info info = ZERO_STRUCT;
-    info.name = str8(APP_NAME);
-    info.cmd_name = str8(APP_CMD_NAME);
+    info.name = APP_NAME;
+    info.cmd_name = APP_CMD_NAME;
     info.entry_point = str8("src/app/app_main.c");
     info.dir = str8("build");
     info.os = Context_Os_CURRENT;

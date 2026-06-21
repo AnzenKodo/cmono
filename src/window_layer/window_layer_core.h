@@ -12,30 +12,30 @@ struct Wl_Window
     uint64_t u64[1];
 };
 
-typedef enum Wl_EventType Wl_EventType;
-enum Wl_EventType
+typedef enum Wl_Event_Kind Wl_Event_Kind;
+enum Wl_Event_Kind
 {
-    Wl_EventType_Null,
-    Wl_EventType_Press,
-    Wl_EventType_Release,
-    Wl_EventType_MouseMove,
-    Wl_EventType_Text,
-    Wl_EventType_Scroll,
-    Wl_EventType_WindowLoseFocus,
-    Wl_EventType_WindowClose,
-    Wl_EventType_WindowResize,
-    Wl_EventType_FileDrop,
-    Wl_EventType_Wakeup,
-    Wl_EventType_COUNT
+    Wl_Event_Kind_Null,
+    Wl_Event_Kind_Press,
+    Wl_Event_Kind_Release,
+    Wl_Event_Kind_MouseMove,
+    Wl_Event_Kind_Text,
+    Wl_Event_Kind_Scroll,
+    Wl_Event_Kind_WindowLoseFocus,
+    Wl_Event_Kind_WindowClose,
+    Wl_Event_Kind_WindowResize,
+    Wl_Event_Kind_FileDrop,
+    Wl_Event_Kind_Wakeup,
+    Wl_Event_Kind_COUNT
 };
 
-typedef enum Wl_ModKey Wl_ModKey;
-enum Wl_ModKey
+typedef enum Wl_Modifiers Wl_Modifiers;
+enum Wl_Modifiers
 {
-    Wl_ModKey_Ctrl  = (1<<0),
-    Wl_ModKey_Shift = (1<<1),
-    Wl_ModKey_Alt   = (1<<2),
-    Wl_ModKey_Window = (1<<3),
+    Wl_Modifier_Ctrl  = (1<<0),
+    Wl_Modifier_Shift = (1<<1),
+    Wl_Modifier_Alt   = (1<<2),
+    Wl_Modifier_Window = (1<<3),
 };
 
 typedef enum Wl_Key Wl_Key;
@@ -198,28 +198,50 @@ enum Wl_Key
 };
 
 typedef struct Wl_Event Wl_Event;
-struct Wl_Event {
-    Wl_ModKey mod_key;
+struct Wl_Event
+{
+    Wl_Event *next;
+    Wl_Event *prev;
+    uint64_t timestamp_us;
+    Wl_Window window;
+    Wl_Event_Kind kind;
+    Wl_Modifiers modifiers;
     Wl_Key key;
-    Wl_EventType type;
+    bool is_repeat;
+    bool right_sided;
+    uint32_t character;
+    uint32_t repeat_count;
     Vec2_F32 pos;
     Vec2_F32 delta;
-    Wl_Window window;
+    Str8_List strings;
 };
+
+typedef struct Wl_Event_List Wl_Event_List;
+struct Wl_Event_List
+{
+    size_t length;
+    Wl_Event *first;
+    Wl_Event *last;
+};
+
+typedef enum Wl_Cursor
+{
+    Wl_Cursor_Pointer,
+    Wl_Cursor_IBar,
+    Wl_Cursor_LeftRight,
+    Wl_Cursor_UpDown,
+    Wl_Cursor_DownRight,
+    Wl_Cursor_UpRight,
+    Wl_Cursor_UpDownLeftRight,
+    Wl_Cursor_HandPoint,
+    Wl_Cursor_Disabled,
+    Wl_Cursor_COUNT,
+} Wl_Cursor;
 
 typedef struct _Wl_Core_State _Wl_Core_State;
 struct _Wl_Core_State {
-    Wl_Event event;
     bool   exit;
-    
-    // ak: size
-    size_t display_width;
-    size_t display_height;
-    
-    // ak: frame rate
-    uint64_t frame_prev_time;
-    size_t frame_count;
-    size_t fps;
+    Rng2_F32 display_rect;
 };
 
 // ak: Functions
@@ -233,8 +255,9 @@ internal bool wl_window_match(Wl_Window a, Wl_Window b);
 // ak: Basic window functions =================================================
 
 internal void wl_init(void);
-internal Wl_Window wl_window_open(Str8 title, size_t width, size_t height);
-internal void wl_window_close(void);
+internal void wl_cleanup(void);
+internal Wl_Window wl_window_open(Str8 title);
+internal void wl_window_close(Wl_Window window);
 
 // ak: Window close functions =================================================
 
@@ -244,15 +267,14 @@ internal bool wl_should_exit(void);
 // ak: Event functions ========================================================
 
 internal void wl_update_events(void);
-internal Wl_Event wl_get_event(void);
-internal bool wl_is_key_pressed(Wl_Key key);
+internal Wl_Event_List wl_get_events(Arena *arena, bool wait);
+internal void wl_set_fps(uint32_t fps);
 
 // ak: Window property ========================================================
 
 internal Rng2_F32 wl_rect_from_window(Wl_Window window);
 internal Rng2_F32 wl_canvas_rect_from_window(Wl_Window window);
-internal uint32_t wl_display_width_get(void);
-internal uint32_t wl_display_height_get(void);
+internal Rng2_F32 wl_display_rect(void);
 internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y);
 internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t width, size_t height);
 internal void wl_window_border_set(Wl_Window window, bool enable);

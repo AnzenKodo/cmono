@@ -123,9 +123,9 @@ internal void os_exit(int32_t exit_code);
 //~ ak: Time ==================================================================
 
 internal uint32_t os_now_unix(void);
-internal uint64_t os_now_microsec(void);
-internal void os_sleep_microsec(uint64_t microsec);
-internal void os_sleep_millisec(uint32_t millisec);
+internal uint64_t os_now_us(void);
+internal void os_sleep_us(uint64_t microsec);
+internal void os_sleep_ms(uint32_t millisec);
 
 //~ ak: Command-Line Operations ===============================================
 

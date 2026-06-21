@@ -316,27 +316,27 @@ PragmaPop()
 
 read_only global Str8 mdg_str_expr_op_symbol_string_table[MDG_Str_Expr_Op_COUNT] =
 {
-    str8_comp(""),
-    str8_comp("."),  // MDG_Str_Expr_Op_Dot
-    str8_comp("->"), // MDG_Str_Expr_Op_ExpandIfTrue
-    str8_comp(".."), // MDG_Str_Expr_Op_Concat
-    str8_comp("=>"), // MDG_Str_Expr_Op_BumpToColumn
-    str8_comp("+"),  // MDG_Str_Expr_Op_Add
-    str8_comp("-"),  // MDG_Str_Expr_Op_Subtract
-    str8_comp("*"),  // MDG_Str_Expr_Op_Multiply
-    str8_comp("/"),  // MDG_Str_Expr_Op_Divide
-    str8_comp("%"),  // MDG_Str_Expr_Op_Modulo
-    str8_comp("<<"), // MDG_Str_Expr_Op_LeftShift
-    str8_comp(">>"), // MDG_Str_Expr_Op_RightShift
-    str8_comp("&"),  // MDG_Str_Expr_Op_BitwiseAnd
-    str8_comp("|"),  // MDG_Str_Expr_Op_BitwiseOr
-    str8_comp("^"),  // MDG_Str_Expr_Op_BitwiseXor
-    str8_comp("~"),  // MDG_Str_Expr_Op_BitwiseNegate
-    str8_comp("&&"), // MDG_Str_Expr_Op_BooleanAnd
-    str8_comp("||"), // MDG_Str_Expr_Op_BooleanOr
-    str8_comp("!"),  // MDG_Str_Expr_Op_BooleanNot
-    str8_comp("=="), // MDG_Str_Expr_Op_Equals
-    str8_comp("!="), // MDG_Str_Expr_Op_DoesNotEqual
+    str8(""),
+    str8("."),  // MDG_Str_Expr_Op_Dot
+    str8("->"), // MDG_Str_Expr_Op_ExpandIfTrue
+    str8(".."), // MDG_Str_Expr_Op_Concat
+    str8("=>"), // MDG_Str_Expr_Op_BumpToColumn
+    str8("+"),  // MDG_Str_Expr_Op_Add
+    str8("-"),  // MDG_Str_Expr_Op_Subtract
+    str8("*"),  // MDG_Str_Expr_Op_Multiply
+    str8("/"),  // MDG_Str_Expr_Op_Divide
+    str8("%"),  // MDG_Str_Expr_Op_Modulo
+    str8("<<"), // MDG_Str_Expr_Op_LeftShift
+    str8(">>"), // MDG_Str_Expr_Op_RightShift
+    str8("&"),  // MDG_Str_Expr_Op_BitwiseAnd
+    str8("|"),  // MDG_Str_Expr_Op_BitwiseOr
+    str8("^"),  // MDG_Str_Expr_Op_BitwiseXor
+    str8("~"),  // MDG_Str_Expr_Op_BitwiseNegate
+    str8("&&"), // MDG_Str_Expr_Op_BooleanAnd
+    str8("||"), // MDG_Str_Expr_Op_BooleanOr
+    str8("!"),  // MDG_Str_Expr_Op_BooleanNot
+    str8("=="), // MDG_Str_Expr_Op_Equals
+    str8("!="), // MDG_Str_Expr_Op_DoesNotEqual
 };
 
 read_only global MDG_Str_Expr_Op_Kind mdg_str_expr_op_kind_table[MDG_Str_Expr_Op_COUNT] =

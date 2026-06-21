@@ -1,4 +1,4 @@
-// Scalar Math Ops
+// ak: Scalar Math Ops
 //=============================================================================
 
 internal float remainder_f32(float x, float y)
@@ -27,7 +27,7 @@ internal double fmod_f64(double x, double y)
 	return copysign_f64(result, x);
 }
 
-// Exponential functions ======================================================
+// ak: Exponential functions ==================================================
 
 internal float exp_f32(float a)
 {
@@ -73,11 +73,11 @@ internal double log2_f64(double x)
     return log_f64(x) / LOG_TWO_F64;
 }
 
-// Power functions ============================================================
+// ak: Power functions ========================================================
 
 internal float sqrt_f32(float number)
 {
-    // Error handling for negative numbers
+    // ak: Error handling for negative numbers
     if (number < 0)
     {
         return -1.0;
@@ -114,14 +114,14 @@ internal float pow_f32(float a, float b)
 {
     int32_t flipped = 0, e;
     float f, r = 1.0f;
-    if (b < 0) 
+    if (b < 0)
     {
         flipped = 1;
         b = -b;
     }
     e = (int32_t)b;
     f = exp_f32(b - e);
-    while (e) 
+    while (e)
     {
         if (e & 1) r *= a;
         a *= a;
@@ -133,7 +133,7 @@ internal float pow_f32(float a, float b)
 
 internal double sqrt_f64(double number)
 {
-    // Error handling for negative numbers
+    // ak: Error handling for negative numbers
     if (number < 0)
     {
         return -1.0;
@@ -150,7 +150,7 @@ internal double sqrt_f64(double number)
     while (1)
     {
         next_guess = 0.5 * (guess + number / guess);
-        if (Abs(guess - next_guess) < tolerance) 
+        if (Abs(guess - next_guess) < tolerance)
         {
             break;
         }
@@ -170,7 +170,7 @@ internal double rsqrt_f64(double a)
     double const three_halfs = 1.5;
     x2 = a * 0.5;
     t.f = a;
-    // The Magic Number for 64-bit Double Precision
+    // ak: The Magic Number for 64-bit Double Precision
     t.i = 0x5fe6eb50c7b537a9LL - (t.i >> 1);
     t.f = t.f * (three_halfs - (x2 * t.f * t.f)); /* 1st iteration */
     t.f = t.f * (three_halfs - (x2 * t.f * t.f)); /* 2nd iteration */
@@ -181,14 +181,14 @@ internal double pow_f64(double a, double b)
     int32_t flipped = 0;
     int64_t e;
     double f, r = 1.0;
-    if (b < 0) 
+    if (b < 0)
     {
         flipped = 1;
         b = -b;
     }
     e = (int64_t)b;
     f = exp_f64(b - e);
-    while (e) 
+    while (e)
     {
         if (e & 1) r *= a;
         a *= a;
@@ -198,7 +198,7 @@ internal double pow_f64(double a, double b)
     return flipped ? 1.0 / r : r;
 }
 
-// Trigonometric functions ====================================================
+// ak: Trigonometric functions ================================================
 
 
 internal float sin_f32(float a)
@@ -382,7 +382,7 @@ internal double atan2_f64(double y, double x)
     return result;
 }
 
-// Nearest integer floating-point operations ==================================
+// ak: Nearest integer floating-point operations ==============================
 
 internal float round_f32(float x)
 {
@@ -410,7 +410,7 @@ internal double ceil_f64(double x)
     return (double)((x < 0) ? (int64_t)x : (int64_t)(x + 0.9999999999999999));
 }
 
-// Floating-point manipulation functions ======================================
+// ak: Floating-point manipulation functions ==================================
 
 internal float copysign_f32(float x, float y)
 {
@@ -432,13 +432,13 @@ internal double copysign_f64(double x, double y)
     return *(double *)&ix;
 }
 
-// Vector Ops
+// ak: ak: Vector Ops
 //=============================================================================
 
-// Range Ops
+// ak: Range Ops
 //=============================================================================
 
-// 1 Range ====================================================================
+// ak: 1 Range ================================================================
 
 // ak: 1 Range U8
 
@@ -462,7 +462,7 @@ internal uint8_t dim1_u8(Rng1_U8 r)
 internal Rng1_U16 rng1_u16(uint16_t min, uint16_t max)
 {
     Rng1_U16 rng = {min, max};
-    if (rng.min > rng.max) 
+    if (rng.min > rng.max)
     {
         Swap(uint16_t, rng.min, rng.max);
     }
@@ -479,7 +479,7 @@ internal uint16_t dim1_u16(Rng1_U16 r)
 internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max)
 {
     Rng1_U32 rng = {min, max};
-    if (rng.min > rng.max) 
+    if (rng.min > rng.max)
     {
         Swap(uint32_t, rng.min, rng.max);
     }
@@ -496,7 +496,7 @@ internal uint32_t dim1_u32(Rng1_U32 r)
 internal Rng1_I32 rng1_i32(int32_t min, int32_t max)
 {
     Rng1_I32 rng = {min, max};
-    if (rng.min > rng.max) 
+    if (rng.min > rng.max)
     {
         Swap(int32_t, rng.min, rng.max);
     }
@@ -547,7 +547,7 @@ internal int64_t dim1_i64(Rng1_I64 r)
 internal Rng1_F32 rng1_f32(float min, float max)
 {
     Rng1_F32 rng = {min, max};
-    if (rng.min > rng.max) 
+    if (rng.min > rng.max)
     {
         Swap(float, rng.min, rng.max);
     }
@@ -559,7 +559,7 @@ internal float dim1_f32(Rng1_F32 r)
     return c;
 }
 
-// 2 Range (Rectangles) =======================================================
+// ak: 2 Range (Rectangles) ===================================================
 
 // ak: 2 Rng I16
 
@@ -625,11 +625,64 @@ internal Vec2_F32 dim2_f32(Rng2_F32 rng)
     return dim;
 }
 
-// Random-number generation
+// ak: Random-number generation
 //=============================================================================
 
 internal uint32_t rand_u32(uint32_t seed)
 {
     seed = (seed << 13) ^ seed;
     return ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 0x7fffffff);
+}
+
+// ak: Color Operations
+//=============================================================================
+
+// ak: srgb <-> linear
+
+internal Vec3_F32 linear_from_srgb(Vec3_F32 srgb)
+{
+    Vec3_F32 result;
+    for EachElement(idx, srgb.v)
+    {
+        result.v[idx] = (srgb.v[idx] < 0.0404482362771082f ? srgb.v[idx] / 12.92f : pow_f32((srgb.v[idx] + 0.055f) / 1.055f, 2.4f));
+    }
+    return result;
+}
+
+internal Vec3_F32 srgb_from_linear(Vec3_F32 linear)
+{
+    Vec3_F32 result;
+    for EachElement(idx, linear.v)
+    {
+        result.v[idx] = (0 <= linear.v[idx] && linear.v[idx] < 0.00313066844250063) ? linear.v[idx]*12.92f : 1.05f * pow_f32(linear.v[idx], 1.f/2.4f) - 0.055f;
+    }
+    return result;
+}
+
+internal Vec4_F32 linear_from_srgba(Vec4_F32 srgba)
+{
+    Vec4_F32 result;
+    result.xyz = linear_from_srgb(srgba.xyz);
+    result.w = srgba.w;
+    return result;
+}
+
+internal Vec4_F32 srgba_from_linear(Vec4_F32 linear)
+{
+    Vec4_F32 result;
+    result.xyz = srgb_from_linear(linear.xyz);
+    result.w = linear.w;
+    return result;
+}
+
+// ak: rgba <-> u32
+
+internal uint32_t u32_from_rgba(Vec4_F32 rgba)
+{
+    uint32_t result = 0;
+    result |= ((uint32_t)((uint8_t)(rgba.x*255.f))) << 24;
+    result |= ((uint32_t)((uint8_t)(rgba.y*255.f))) << 16;
+    result |= ((uint32_t)((uint8_t)(rgba.z*255.f))) <<  8;
+    result |= ((uint32_t)((uint8_t)(rgba.w*255.f))) <<  0;
+    return result;
 }
