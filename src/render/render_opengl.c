@@ -2,7 +2,7 @@
 //=============================================================================
 
 // ak: shader source
-read_only global Str8 _render_opengl_shader_rect_vert_src = str8_comp(
+read_only global Str8 _render_opengl_shader_rect_vert_src = str8(
     ""
     "\n"
     "#version 330 core\n"
@@ -78,7 +78,7 @@ read_only global Str8 _render_opengl_shader_rect_vert_src = str8_comp(
     "}\n"
     ""
 );
-read_only global Str8 _render_opengl_shader_rect_frag_src = str8_comp(
+read_only global Str8 _render_opengl_shader_rect_frag_src = str8(
     ""
     "\n"
     "#version 330 core\n"
@@ -163,18 +163,18 @@ read_only global Str8 _render_opengl_shader_rect_frag_src = str8_comp(
 
 global read_only _Render_Opengl_Attribute _render_opengl_rect_input_attributes[] =
 {
-    {0, str8_comp("c2v_dst_rect"),        GL_FLOAT,  4},
-    {1, str8_comp("c2v_src_rect"),        GL_FLOAT,  4},
-    {2, str8_comp("c2v_colors_0"),        GL_FLOAT,  4},
-    {3, str8_comp("c2v_colors_1"),        GL_FLOAT,  4},
-    {4, str8_comp("c2v_colors_2"),        GL_FLOAT,  4},
-    {5, str8_comp("c2v_colors_3"),        GL_FLOAT,  4},
-    {6, str8_comp("c2v_corner_radii"),    GL_FLOAT,  4},
-    {7, str8_comp("c2v_style"),           GL_FLOAT,  4},
+    {0, str8("c2v_dst_rect"),        GL_FLOAT,  4},
+    {1, str8("c2v_src_rect"),        GL_FLOAT,  4},
+    {2, str8("c2v_colors_0"),        GL_FLOAT,  4},
+    {3, str8("c2v_colors_1"),        GL_FLOAT,  4},
+    {4, str8("c2v_colors_2"),        GL_FLOAT,  4},
+    {5, str8("c2v_colors_3"),        GL_FLOAT,  4},
+    {6, str8("c2v_corner_radii"),    GL_FLOAT,  4},
+    {7, str8("c2v_style"),           GL_FLOAT,  4},
 };
 global read_only _Render_Opengl_Attribute _render_opengl_single_color_output_attributes[] =
 {
-    {0, str8_comp("final_color"), 0, 0},
+    {0, str8("final_color"), 0, 0},
 };
 
 // ak: shader source table
@@ -554,7 +554,7 @@ internal void render_window_begin_frame(Wl_Window window, Render_Handle handle)
             glBindFramebufferScope(GL_FRAMEBUFFER, fbos[idx])
             {
                 GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-                glClearColor(0, 0, 0, 0);
+                glClearColor(1.f, 0.f, 1.f, 1.f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
         }
