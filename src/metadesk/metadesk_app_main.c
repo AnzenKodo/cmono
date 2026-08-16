@@ -73,12 +73,12 @@ void base_main(void)
         src_path = str8_chop_last_slash(src_path);
     }
     Str8 ext_name = str8("mdesk");
-    MDG_Msg_List msgs = ZERO_STRUCT;
+    MDG_Msg_List msgs = STRUCT_ZERO;
     MDG_State *state = mdg_state_init(256, arena);
     Log_Context log = log_init();
     
     //- ak: collect file paths ================================================
-    Str8_List file_paths = ZERO_STRUCT;
+    Str8_List file_paths = STRUCT_ZERO;
     log_infof(&log, "Searching %s8...", src_path);
     {
         typedef struct Dir Dir;
@@ -93,7 +93,7 @@ void base_main(void)
         for (Dir *dir = first_dir; dir != NULL; dir = dir->next)
         {
             Os_File_Walk *walk = os_file_walk_begin(arena, dir->src_path, 0);
-            for (Os_File_Info info = ZERO_STRUCT; os_file_walk_next(arena, walk, &info);)
+            for (Os_File_Info info = STRUCT_ZERO; os_file_walk_next(arena, walk, &info);)
             {
                 Str8 file_path = str8f(arena, "%.*s/%.*s", str8_varg(dir->src_path), str8_varg(info.name));
                 if (info.props.flags & Os_File_Property_Flag_IsFolder)
@@ -114,7 +114,7 @@ void base_main(void)
     
     //- ak: parse all metatable files =========================================
     log_info(&log, "Parsing metatable...");
-    MDG_ParsedFile_List parses = ZERO_STRUCT;
+    MDG_ParsedFile_List parses = STRUCT_ZERO;
     {
         for (Str8_Node *node = file_paths.first; node != NULL; node = node->next)
         {
@@ -476,7 +476,7 @@ void base_main(void)
         for (MDG_Layer_Node *mdg_layer_node = slot->first; mdg_layer_node != NULL; mdg_layer_node = mdg_layer_node->next)
         {
             MDG_Layer *layer = &mdg_layer_node->v;
-            Str8 layer_generated_folder = ZERO_STRUCT;
+            Str8 layer_generated_folder = STRUCT_ZERO;
             if (layer->gen_folder_name.size != 0)
             {
                 Str8 gen_folder = layer->gen_folder_name;
@@ -490,7 +490,7 @@ void base_main(void)
             if (os_dir_ensure(layer_generated_folder))
             {
                 Str8_List layer_key_parts = str8_split_path(arena, layer->key);
-                Str_Join join = ZERO_STRUCT;
+                Str_Join join = STRUCT_ZERO;
                 join.sep = str8("_");
                 Str8 layer_key_filename = str8_list_join(arena, &layer_key_parts, &join);
                 Str8 layer_key_filename_upper = upper_from_str8(layer_key_filename, arena);

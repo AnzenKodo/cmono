@@ -61,7 +61,7 @@ internal void md_token_chunk_list_push(MD_Token_Chunk_List *list, size_t cap, MD
 
 internal MD_Token_Array md_token_array_from_chunk_list(Arena *arena, MD_Token_Chunk_List *chunks)
 {
-    MD_Token_Array result = ZERO_STRUCT;
+    MD_Token_Array result = STRUCT_ZERO;
     result.count = chunks->total_token_count;
     result.v = arena_push_nz(arena, MD_Token, result.count);
     size_t write_index = 0;
@@ -208,8 +208,8 @@ internal bool md_node_has_tag(MD_Node *node, Str8 string, Str_Match_Flags flags)
 internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
-    MD_Msg_List msgs = ZERO_STRUCT;
-    MD_Token_Chunk_List tokens = ZERO_STRUCT;
+    MD_Msg_List msgs = STRUCT_ZERO;
+    MD_Token_Chunk_List tokens = STRUCT_ZERO;
     uint8_t *byte_first = string.cstr;
     uint8_t *byte_opl = byte_first + string.length;
     uint8_t *byte = byte_first;
@@ -497,7 +497,7 @@ internal MD_Tokenize md_tokenize_from_string(Str8 string, Arena *arena)
     }
     
     //- ak: bake, fill & return
-    MD_Tokenize result = ZERO_STRUCT;
+    MD_Tokenize result = STRUCT_ZERO;
     {
         result.tokens = md_token_array_from_chunk_list(arena, &tokens);
         result.msgs = msgs;
@@ -514,7 +514,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     
     //- ak: set up outputs
-    MD_Msg_List msgs = ZERO_STRUCT;
+    MD_Msg_List msgs = STRUCT_ZERO;
     MD_Node *root = md_node_push(MD_Node_Kind_File, 0, filename, string, 0, arena);
     
     //- ak: set up parse rule stack
@@ -537,10 +537,10 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
         MD_Node_Flags gathered_node_flags;
         size_t counted_newlines;
     };
-    MD_Parse_Work_Node first_work = ZERO_STRUCT;
+    MD_Parse_Work_Node first_work = STRUCT_ZERO;
     first_work.kind = MD_Parse_Work_Kind_Main;
     first_work.parent = root;
-    MD_Parse_Work_Node broken_work = ZERO_STRUCT;
+    MD_Parse_Work_Node broken_work = STRUCT_ZERO;
     broken_work.kind = MD_Parse_Work_Kind_Main;
     broken_work.parent = root;
     MD_Parse_Work_Node *work_top = &first_work;
@@ -811,7 +811,7 @@ internal MD_Parse md_parse_from_string_tokens(Str8 string, MD_Token_Array tokens
             token += 1;
         }
     }
-    MD_Parse parse = ZERO_STRUCT;
+    MD_Parse parse = STRUCT_ZERO;
     parse.root = root;
     parse.msgs = msgs;
     arena_scratch_end(scratch);

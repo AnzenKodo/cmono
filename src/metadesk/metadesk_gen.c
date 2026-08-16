@@ -27,7 +27,7 @@ internal void mdg_msg_list_push(MDG_Msg_List *msgs, MDG_Msg *msg, Arena *arena)
 
 internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *arena)
 {
-    Str8_List strings = ZERO_STRUCT;
+    Str8_List strings = STRUCT_ZERO;
     {
         str8_list_push(arena, &strings, str8("\"\"\n"));
         size_t active_line_start_off = 0;
@@ -65,13 +65,13 @@ internal Str8 mdg_c_string_literal_from_multiline_string(Str8 string, Arena *are
 internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(0, 0);
-    Str8_List strings = ZERO_STRUCT;
+    Str8_List strings = STRUCT_ZERO;
     {
         for (size_t off = 0; off < string.length;)
         {
             size_t chunk_size = Min(string.length-off, 64);
             uint8_t *chunk_bytes = string.cstr+off;
-            Str8 chunk_text_string = ZERO_STRUCT;
+            Str8 chunk_text_string = STRUCT_ZERO;
             chunk_text_string.size = chunk_size*5;
             chunk_text_string.cstr = arena_push(arena, uint8_t, chunk_text_string.size);
             for (size_t byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
@@ -94,7 +94,7 @@ internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena
 
 internal MDG_Map mdg_map_push(size_t slot_count, Arena *arena)
 {
-    MDG_Map map = ZERO_STRUCT;
+    MDG_Map map = STRUCT_ZERO;
     map.slots_count = slot_count;
     map.slots = arena_push(arena, MDG_Map_Slot, map.slots_count);
     return map;
@@ -144,7 +144,7 @@ internal MDG_Str_Expr *mdg_str_expr_push(Arena *arena, MDG_Str_Expr_Op op, MD_No
 
 internal MDG_Str_Expr_ParseResult mdg_str_expr_parse_from_first_opl_min_prec(Arena *arena, MD_Node *first, MD_Node *opl, char min_prec)
 {
-    MDG_Str_Expr_ParseResult parse = ZERO_STRUCT;
+    MDG_Str_Expr_ParseResult parse = STRUCT_ZERO;
     parse.root = &mdg_str_expr_nil;
     {
         MD_Node *it = first;
@@ -272,7 +272,7 @@ internal MDG_Str_Expr_ParseResult mdg_str_expr_parse_from_root(MD_Node *root, Ar
 
 internal MDG_Node_Array mdg_node_array_make(size_t count, Arena *arena)
 {
-    MDG_Node_Array result = ZERO_STRUCT;
+    MDG_Node_Array result = STRUCT_ZERO;
     result.count = count;
     result.v = arena_push(arena, MD_Node *, result.count);
     for (size_t index = 0; index < result.count; index += 1)
@@ -284,7 +284,7 @@ internal MDG_Node_Array mdg_node_array_make(size_t count, Arena *arena)
 
 internal MDG_Node_Grid mdg_node_grid_make_from_node(MD_Node *root, Arena *arena)
 {
-    MDG_Node_Grid grid = ZERO_STRUCT;
+    MDG_Node_Grid grid = STRUCT_ZERO;
     // ak: determine dimensions
     size_t row_count = md_child_count_from_node(root);
     size_t column_count = 0;
@@ -318,7 +318,7 @@ internal MDG_Node_Grid mdg_node_grid_make_from_node(MD_Node *root, Arena *arena)
 
 internal MDG_Column_Desc_Array mdg_column_desc_array_from_tag(MD_Node *tag, Arena *arena)
 {
-    MDG_Column_Desc_Array result = ZERO_STRUCT;
+    MDG_Column_Desc_Array result = STRUCT_ZERO;
     result.count = md_child_count_from_node(tag);
     result.v = arena_push(arena, MDG_Column_Desc, result.count);
     size_t index = 0;
@@ -357,7 +357,7 @@ internal size_t mdg_column_index_from_name(MDG_Column_Desc_Array descs, Str8 nam
 
 internal Str8 mdg_string_from_row_desc_index(MD_Node *row_parent, MDG_Column_Desc_Array descs, size_t index)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     // ak: grab relevant column description
     MDG_Column_Desc *desc = 0;
     if (index < descs.count)
@@ -415,7 +415,7 @@ internal int64_t mdg_eval_table_expand_expr_numeric(MDG_Str_Expr *expr, MDG_Tabl
             if (MDG_Str_Expr_Op_FirstString <= op && op <= MDG_Str_Expr_Op_LastString)
             {
                 Arena_Temp scratch = arena_scratch_begin(0, 0);
-                Str8_List result_strs = ZERO_STRUCT;
+                Str8_List result_strs = STRUCT_ZERO;
                 mdg_eval_table_expand_expr_string(expr, info, &result_strs, scratch.arena);
                 Str8 result_str = str8_list_join(scratch.arena, &result_strs, 0);
                 try_s64_from_str8_c_rules(result_str, &result);
@@ -480,8 +480,8 @@ internal int64_t mdg_eval_table_expand_expr_numeric(MDG_Str_Expr *expr, MDG_Tabl
         case MDG_Str_Expr_Op_DoesNotEqual:
         {
             Arena_Temp scratch = arena_scratch_begin(0, 0);
-            Str8_List left_strs = ZERO_STRUCT;
-            Str8_List right_strs = ZERO_STRUCT;
+            Str8_List left_strs = STRUCT_ZERO;
+            Str8_List right_strs = STRUCT_ZERO;
             mdg_eval_table_expand_expr_string(expr->left, info, &left_strs,  scratch.arena);
             mdg_eval_table_expand_expr_string(expr->right, info, &right_strs, scratch.arena);
             Str8 left_str = str8_list_join(scratch.arena, &left_strs, 0);
@@ -505,7 +505,7 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
             if (MDG_Str_Expr_Op_FirstNumeric <= op && op <= MDG_Str_Expr_Op_LastNumeric)
             {
                 int64_t numeric_eval = mdg_eval_table_expand_expr_numeric(expr, info);
-                Str8 numeric_eval_stringized = ZERO_STRUCT;
+                Str8 numeric_eval_stringized = STRUCT_ZERO;
                 if (md_node_has_tag(md_root_from_node(expr->node), str8("hex"), 0))
                 {
                     numeric_eval_stringized = str8f(arena, "0x%lx", numeric_eval);
@@ -536,7 +536,7 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
             // ak: find which task corresponds to this table
             size_t row_idx = 0;
             MDG_Node_Grid *grid = NULL;
-            MDG_Column_Desc_Array column_descs = ZERO_STRUCT;
+            MDG_Column_Desc_Array column_descs = STRUCT_ZERO;
             {
                 for (MDG_TableExpand_Task *task = info->first_expand_task; task != NULL; task = task->next)
                 {
@@ -556,7 +556,7 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
                 row_parent = grid->row_parents.v[row_idx];
             }
             // ak: get string for this table lookup
-            Str8 lookup_string = ZERO_STRUCT;
+            Str8 lookup_string = STRUCT_ZERO;
             {
                 size_t column_idx = 0;
                 if (str8_match(column_lookup, str8("_it"), 0))
@@ -617,7 +617,7 @@ internal void mdg_eval_table_expand_expr_string(MDG_Str_Expr *expr, MDG_TableExp
             int64_t spaces_to_push = column - current_column;
             if (spaces_to_push > 0)
             {
-                Str8 str = ZERO_STRUCT;
+                Str8 str = STRUCT_ZERO;
                 str.size = spaces_to_push;
                 str.length = spaces_to_push;
                 str.cstr = arena_push(arena, uint8_t, spaces_to_push);
@@ -646,7 +646,7 @@ internal void mdg_loop_table_column_expansion(Str8 strexpr, MDG_TableExpand_Info
         //- ak: if this is the last task in the chain, perform expansion
         else
         {
-            Str8_List expansion_strs = ZERO_STRUCT;
+            Str8_List expansion_strs = STRUCT_ZERO;
             size_t start = 0;
             for (size_t char_idx = 0; char_idx <= strexpr.length;)
             {
@@ -664,7 +664,7 @@ internal void mdg_loop_table_column_expansion(Str8 strexpr, MDG_TableExpand_Info
                 if (strexpr.cstr[char_idx] == '$')
                 {
                     Str8 string = str8_skip(strexpr, char_idx+1);
-                    Rng1_U64 expr_range = ZERO_STRUCT;
+                    Rng1_U64 expr_range = STRUCT_ZERO;
                     uint64_t paren_nest = 0;
                     for (size_t index = 0; index < string.length; index += 1)
                     {
@@ -711,7 +711,7 @@ internal void mdg_loop_table_column_expansion(Str8 strexpr, MDG_TableExpand_Info
 
 internal Str8_List mdg_str_list_from_table_gen(MDG_Map grid_name_map, MDG_Map grid_column_desc_map, Str8 fallback, MD_Node *gen, Arena *arena)
 {
-    Str8_List result = ZERO_STRUCT;
+    Str8_List result = STRUCT_ZERO;
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     if (md_node_is_nil(gen->first) && gen->string.length != 0)
     {
@@ -785,7 +785,7 @@ internal Str8 mdg_layer_key_from_path(Str8 path, Str8 skip_str, Arena *arena)
     Str8 path_skip = str8_skip(path, skip_str.length);
     Str8 path_last_slash_chopped = str8_chop_last_slash(path_skip);
     Str8_List path_parts = str8_split_path(scratch.arena, path_last_slash_chopped);
-    Str_Join join = ZERO_STRUCT;
+    Str_Join join = STRUCT_ZERO;
     join.sep = str8("/");
     Str8 key = str8_list_join(arena, &path_parts, &join);
     arena_scratch_end(scratch);
