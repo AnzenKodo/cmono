@@ -44,7 +44,7 @@ internal bool ui_key_match(UI_Key a, UI_Key b)
 
 internal UI_Key ui_key_zero(void)
 {
-    UI_Key result = ZERO_STRUCT;
+    UI_Key result = STRUCT_ZERO;
     return result;
 }
 
@@ -84,7 +84,7 @@ internal UI_Key ui_active_seed_key(void)
 
 internal UI_Key ui_key_from_string(UI_Key seed_key, Str8 string)
 {
-    UI_Key result = ZERO_STRUCT;
+    UI_Key result = STRUCT_ZERO;
     if (string.size != 0)
     {
         uint64_t hash_replace_signifier_pos = str8_find_substr(string, 0, str8("###"), 0);
@@ -185,7 +185,7 @@ internal UI_Box *ui_box_build_from_stringf(UI_Box_Flags flags, char *fmt, ...)
 
 internal UI_Box_Rec ui_box_rec_df(UI_Box *box, UI_Box *root, uint64_t sib_member_off, uint64_t child_member_off)
 {
-    UI_Box_Rec result = ZERO_STRUCT;
+    UI_Box_Rec result = STRUCT_ZERO;
     if (!ui_box_is_nil(*MemFromOffset(UI_Box **, box, child_member_off)))
     {
         result.next = *MemFromOffset(UI_Box **, box, child_member_off);
