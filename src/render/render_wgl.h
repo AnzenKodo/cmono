@@ -101,7 +101,7 @@ struct _Render_Wgl_State
 // ak: Global Variables
 //=============================================================================
 
-global _Render_Wgl_State _render_wgl_state = ZERO_STRUCT;
+global _Render_Wgl_State _render_wgl_state = STRUCT_ZERO;
 global char* shader_source_header = "#version 330\n";
 
 // ak: Functions

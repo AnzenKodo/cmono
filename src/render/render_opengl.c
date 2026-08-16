@@ -31,33 +31,33 @@ read_only global Str8 _render_opengl_shader_rect_vert_src = str8(
     "\n"
     "void main(void)\n"
     "{\n"
-    "  // rjf: constants\n"
+    "  // ak: constants\n"
     "  vec2 vertices[] = vec2[](vec2(-1, -1), vec2(-1, +1), vec2(+1, -1), vec2(+1, +1));\n"
     "  \n"
-    "  // rjf: unpack shears\n"
+    "  // ak: unpack shears\n"
     "  float shears[] = float[](0, 0, c2v_style.w, c2v_style.w);\n"
     "  \n"
-    "  // rjf: find dst position\n"
+    "  // ak: find dst position\n"
     "  vec2 dst_half_size = (c2v_dst_rect.zw - c2v_dst_rect.xy) / 2;\n"
     "  vec2 dst_center    = (c2v_dst_rect.zw + c2v_dst_rect.xy) / 2;\n"
     "  vec2 dst_position  = vertices[gl_VertexID] * dst_half_size + dst_center;\n"
     "  dst_position.y += shears[gl_VertexID];\n"
     "  dst_position = (u_xform * vec3(dst_position.x, dst_position.y, 1)).xy;\n"
     "  \n"
-    "  // rjf: find src position\n"
+    "  // ak: find src position\n"
     "  vec2 src_half_size = (c2v_src_rect.zw - c2v_src_rect.xy) / 2;\n"
     "  vec2 src_center    = (c2v_src_rect.zw + c2v_src_rect.xy) / 2;\n"
     "  vec2 src_position  = vertices[gl_VertexID] * src_half_size + src_center;\n"
     "  \n"
-    "  // rjf: find color\n"
+    "  // ak: find color\n"
     "  vec4 colors[] = vec4[](c2v_colors_0, c2v_colors_1, c2v_colors_2, c2v_colors_3);\n"
     "  vec4 color = colors[gl_VertexID];\n"
     "  \n"
-    "  // rjf: find corner radius\n"
+    "  // ak: find corner radius\n"
     "  float corner_radii[] = float[](c2v_corner_radii.x, c2v_corner_radii.y, c2v_corner_radii.z, c2v_corner_radii.w);\n"
     "  float corner_radius = corner_radii[gl_VertexID];\n"
     "  \n"
-    "  // rjf: fill outputs\n"
+    "  // ak: fill outputs\n"
     "  vec2 dst_verts_pct = vec2(((gl_VertexID >> 1) != 1) ? 1.f : 0.f,\n"
     "                            ((gl_VertexID & 1) != 0)  ? 0.f : 1.f);\n"
     "  ivec2 u_tex_color_size_i = textureSize(u_tex_color, 0);\n"
@@ -119,7 +119,7 @@ read_only global Str8 _render_opengl_shader_rect_frag_src = str8(
     "\n"
     "void main(void)\n"
     "{\n"
-    "  // rjf: sample texture\n"
+    "  // ak: sample texture\n"
     "  vec4 albedo_sample = vec4(1, 1, 1, 1);\n"
     "  if(v2p_omit_texture < 1)\n"
     "  {\n"
@@ -127,7 +127,7 @@ read_only global Str8 _render_opengl_shader_rect_frag_src = str8(
     "    albedo_sample = linear_from_srgba(albedo_sample);\n"
     "  }\n"
     "  \n"
-    "  // rjf: sample for borders\n"
+    "  // ak: sample for borders\n"
     "  float border_sdf_t = 1;\n"
     "  if(v2p_border_thickness > 0)\n"
     "  {\n"
@@ -141,7 +141,7 @@ read_only global Str8 _render_opengl_shader_rect_frag_src = str8(
     "    discard;\n"
     "  }\n"
     "  \n"
-    "  // rjf: sample for corners\n"
+    "  // ak: sample for corners\n"
     "  float corner_sdf_t = 1;\n"
     "  if(v2p_corner_radius > 0 || v2p_softness > 0.75f)\n"
     "  {\n"
@@ -151,7 +151,7 @@ read_only global Str8 _render_opengl_shader_rect_frag_src = str8(
     "    corner_sdf_t = 1-smoothstep(0, 2*v2p_softness, corner_sdf_s);\n"
     "  }\n"
     "  \n"
-    "  // rjf: form+return final color\n"
+    "  // ak: form+return final color\n"
     "  final_color = albedo_sample;\n"
     "  final_color *= v2p_tint;\n"
     "  final_color.a *= u_opacity;\n"
@@ -205,7 +205,7 @@ internal GLuint _render_opengl_instance_buffer_from_size(size_t size)
     GLuint buffer = _render_opengl_state->scratch_buffer_64kb;
     if (size > KB(64))
     {
-        // rjf: build buffer
+        // ak: build buffer
         size_t flushed_buffer_size = size;
         flushed_buffer_size += MB(1)-1;
         flushed_buffer_size -= flushed_buffer_size%MB(1);
@@ -214,7 +214,7 @@ internal GLuint _render_opengl_instance_buffer_from_size(size_t size)
         glBufferData(GL_ARRAY_BUFFER, flushed_buffer_size, 0, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        // rjf: push buffer to flush list
+        // ak: push buffer to flush list
         _Render_Opengl_FlushBuffer *n = arena_push(_render_opengl_state->buffer_flush_arena, _Render_Opengl_FlushBuffer, 1);
         n->id = buffer;
         SLLQueuePush(_render_opengl_state->first_buffer_to_flush, _render_opengl_state->last_buffer_to_flush, n);
@@ -261,9 +261,9 @@ internal _Render_Opengl_Tex_2D *_render_opengl_tex2d_from_handle(Render_Handle h
   return tex2d;
 }
 
-internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex_2D_Format format)
+internal _Render_Opengl_Format_Info _render_opengl_format_info_from_tex2d_format(Render_Tex_2D_Format format)
 {
-    _Render_Opengl_FormatInfo result = ZERO_STRUCT;
+    _Render_Opengl_Format_Info result = STRUCT_ZERO;
     switch (format)
     {
         case Render_Tex_2D_Format_R8:
@@ -512,7 +512,7 @@ internal void render_window_begin_frame(Wl_Window window, Render_Handle handle)
     
     // ak: unpack window viewport info
     Rng2_F32 canvas_rect = wl_canvas_rect_from_window(window);
-    Vec2_F32 canvas_rect_dim = dim2(canvas_rect);
+    Vec2_F32 canvas_rect_dim = dim_rng2(canvas_rect);
     
     // ak: set up targets if needed
     if(canvas_rect_dim.x != window_opengl->last_canvas_rect_dim.x || canvas_rect_dim.y != window_opengl->last_canvas_rect_dim.y)
@@ -586,7 +586,7 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
 {
     _Render_Opengl_Window *w = (_Render_Opengl_Window *)window_equip.u64[0];
     Rng2_F32 viewport_rect = wl_canvas_rect_from_window(window);
-    Vec2_F32 viewport_dim = dim2(viewport_rect);
+    Vec2_F32 viewport_dim = dim_rng2(viewport_rect);
     for(Render_Pass_Node *pass_n = passes->first; pass_n != 0; pass_n = pass_n->next)
     {
         Render_Pass *pass = &pass_n->v;
@@ -713,7 +713,7 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
 // ak: Texture functions
 //=============================================================================
 
-internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format, Vec2_I32 size, void *data, Arena *arena)
+internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format, Vec2_I32 size, void *data)
 {
     // ak: allocate texture record
     _Render_Opengl_Tex_2D *tex2d = _render_opengl_state->free_tex2d;
@@ -723,11 +723,11 @@ internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_
     }
     else
     {
-        tex2d = arena_push(arena, _Render_Opengl_Tex_2D, 1);
+        tex2d = arena_push(_render_opengl_state->arena, _Render_Opengl_Tex_2D, 1);
     }
     
     // ak: map kind/format -> gl counterparts
-    _Render_Opengl_FormatInfo format_info = _render_opengl_format_info_from_tex2d_format(format);
+    _Render_Opengl_Format_Info format_info = _render_opengl_format_info_from_tex2d_format(format);
     
     // ak: allocate GL texture
     glGenTextures(1, &tex2d->id);
@@ -756,3 +756,15 @@ internal void render_tex2d_free(Render_Handle handle)
     }
 }
 
+internal void render_fill_tex2d_region(Render_Handle texture, Rng2_I32 subrect, void *data)
+{
+  _Render_Opengl_Tex_2D *tex = _render_opengl_tex2d_from_handle(texture);
+  if(tex)
+  {
+    _Render_Opengl_Format_Info fmt_info = _render_opengl_format_info_from_tex2d_format(tex->format);
+    glBindTexture(GL_TEXTURE_2D, tex->id);
+    Vec2_I32 rect_size = dim_rng2(subrect);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, subrect.x0, subrect.y0, rect_size.x, rect_size.y, fmt_info.format, fmt_info.base_type, data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
+}

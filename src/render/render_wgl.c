@@ -21,7 +21,7 @@ internal void _render_opengl_init(void)
     // Build pixel format descriptor
     int pf = 0;
     {
-        PIXELFORMATDESCRIPTOR pfd = ZERO_STRUCT;
+        PIXELFORMATDESCRIPTOR pfd = STRUCT_ZERO;
         pfd.nSize      = sizeof(pfd);
         pfd.nVersion   = 1;
         pfd.dwFlags    = PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER;

@@ -36,8 +36,8 @@ _Render_Opengl_Shader_Kind;
 
 // ak: State Types ============================================================
 
-typedef struct _Render_Opengl_FormatInfo _Render_Opengl_FormatInfo;
-struct _Render_Opengl_FormatInfo
+typedef struct _Render_Opengl_Format_Info _Render_Opengl_Format_Info;
+struct _Render_Opengl_Format_Info
 {
     GLint internal_format;
     GLenum format;
@@ -163,7 +163,7 @@ typedef ptrdiff_t GLsizeiptr;
 // ak: Helpers ================================================================
 
 // ak: general helper functions
-internal Void_Proc *_render_opengl_load_procedure(char *name);
+internal Void_Proc *_render_opengl_load_procedure(const char *name);
 internal GLuint _render_opengl_instance_buffer_from_size(size_t size);
 internal bool _render_opengl_scissor(Rng2_F32 clip, Vec2_F32 viewport_dim);
 internal void _render_opengl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);
@@ -171,7 +171,7 @@ internal void _render_opengl_debug_message_callback(GLenum source, GLenum type, 
 // ak: texture helper functions
 internal Render_Handle _render_opengl_handle_from_tex2d(_Render_Opengl_Tex_2D *tex2d);
 internal _Render_Opengl_Tex_2D *_render_opengl_tex2d_from_handle(Render_Handle handle);
-internal _Render_Opengl_FormatInfo _render_opengl_format_info_from_tex2d_format(Render_Tex_2D_Format format);
+internal _Render_Opengl_Format_Info _render_opengl_format_info_from_tex2d_format(Render_Tex_2D_Format format);
 
 // ak: Internal OpneGL functions ==============================================
 
@@ -189,11 +189,7 @@ internal void _render_opengl_window_swap(Wl_Window window, Render_Handle r);
 //=============================================================================
 
 // ak: state
-global _Render_Opengl_State *_render_opengl_state = ZERO_STRUCT;
-
-// ak: shader source
-read_only global Str8 _render_opengl_shader_rect_vert_src;
-read_only global Str8 _render_opengl_shader_rect_frag_src;
+global _Render_Opengl_State *_render_opengl_state = STRUCT_ZERO;
 
 // ak: shader source table
 extern Str8 *_render_opengl_shader_kind_vert_src_table[_Render_Opengl_Shader_Kind_COUNT];

@@ -8,8 +8,13 @@
 
 internal Render_Handle render_handle_zero(void)
 {
-    Render_Handle handle = ZERO_STRUCT;
+    Render_Handle handle = STRUCT_ZERO;
     return handle;
+}
+
+internal bool render_handle_match(Render_Handle a, Render_Handle b)
+{
+    return MemMatchStruct(&a, &b);
 }
 
 internal Mat4x4_F32 render_sample_channel_map_from_tex2dformat(Render_Tex_2D_Format fmt)
@@ -38,7 +43,7 @@ internal Mat4x4_F32 render_sample_channel_map_from_tex2dformat(Render_Tex_2D_For
 
 internal Render_Batch_List render_batch_list_make(size_t instance_size)
 {
-    Render_Batch_List list = ZERO_STRUCT;
+    Render_Batch_List list = STRUCT_ZERO;
     list.bytes_per_inst = instance_size;
     return list;
 }

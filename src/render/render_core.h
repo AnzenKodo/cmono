@@ -122,6 +122,7 @@ struct Render_Pass_List
 
 // ak: Helpers ================================================================
 
+internal bool render_handle_match(Render_Handle a, Render_Handle b);
 internal Render_Handle render_handle_zero(void);
 internal Mat4x4_F32 render_sample_channel_map_from_tex2dformat(Render_Tex_2D_Format fmt);
 
@@ -145,7 +146,8 @@ internal void render_window_end_frame(Wl_Window window, Render_Handle handle);
 internal void render_window_submit(Wl_Window window, Render_Handle window_equip, Render_Pass_List *passes);
 
 // ak: Texture functions
-internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format, Vec2_I32 size, void *data, Arena *arena);
+internal Render_Handle render_tex2d_alloc(Render_Resource_Kind kind, Render_Tex_2D_Format format, Vec2_I32 size, void *data);
 internal void render_tex2d_free(Render_Handle handle);
+internal void render_fill_tex2d_region(Render_Handle texture, Rng2_I32 subrect, void *data);
 
 #endif // RENDER_CORE_H

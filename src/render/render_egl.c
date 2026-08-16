@@ -1,7 +1,7 @@
 // ak: OpenGL helper functions
 //=============================================================================
 
-internal Void_Proc *_render_opengl_load_procedure(char *name)
+internal Void_Proc *_render_opengl_load_procedure(const char *name)
 {
     Void_Proc *p = (Void_Proc *)(void *)eglGetProcAddress(name);
     if (p == (Void_Proc*)1 || p == (Void_Proc*)2 || p == (Void_Proc*)3 || p == (Void_Proc*)-1)
