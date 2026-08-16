@@ -1,22 +1,22 @@
-//~ ak: Includes
+// ak: Includes
 //=============================================================================
 
-//- ak: headers
+// ak: headers
 #include "src/base/base_include.h"
 #include "src/os/os_include.h"
 #include "src/metadesk/metadesk_app.h"
 
-//- ak: implementation
+// ak: implementation
 #include "src/base/base_include.c"
 #include "src/os/os_include.c"
 #include "src/app/app.h"
 
-//~ ak: Defines
+// ak: Defines
 //=============================================================================
 
 #define BUILD_CMD_SIZE 1024
 
-//~ ak: Types
+// ak: Types
 //=============================================================================
 
 typedef enum Build_Type
@@ -42,9 +42,10 @@ struct Build_Info
     Build_Type type;
     uint8_t cmd[BUILD_CMD_SIZE];
     Log_Context log_context;
+    bool is_cpp;
 };
 
-//~ ak: Globals
+// ak: Globals
 //=============================================================================
 
 
@@ -61,7 +62,7 @@ global const char *help_message = "DESCRIPTION:\n"
 "   gen-meta             Generate code from Metaprogram\n"
 "   --help -h            Print help\n";
 
-//~ ak: Functions
+// ak: Functions
 //=============================================================================
 
 internal void build_cmd_append(Build_Info *info, const char *format, ...);
@@ -89,7 +90,7 @@ internal void build_cmd_append_output(Build_Info *info)
     }
 }
 
-//~ ak: Compilers functions ===================================================
+// ak: Compilers functions ====================================================
 
 internal void build_compile_msvc(Build_Info *info)
 {
@@ -98,19 +99,19 @@ internal void build_compile_msvc(Build_Info *info)
     {
         build_cmd_append(info, " -Zs");
     }
-    //~ ak: Looks
+    // ak: looks
     build_cmd_append(info, " -nologo -diagnostics:caret");
-    //~ ak: Output
+    // ak: output
     build_cmd_append(info, " -Fo:%s\\ -Fe:", info->dir.cstr);
     build_cmd_append_output(info);
-    //~ ak: Debug
+    // ak: debug
     if (info->type != Build_Type_Release)
     {
         build_cmd_append(info, " -Zi -Fd\"%s\\vc140.pbd\" -DBUILD_DEBUG=1", info->dir.cstr);
     }
-    //~ ak: Lock C Version
+    // ak: lock lang Version
     build_cmd_append(info, " -std:c11");
-    //~ ak: Optimaization
+    // ak: Optimaization
     if (info->type == Build_Type_Release)
     {
         build_cmd_append(info, " -Ox -wd4711"); // Enable
@@ -119,25 +120,28 @@ internal void build_compile_msvc(Build_Info *info)
     {
         build_cmd_append(info,
             " -Od"
-            " -Ob1 -wd4710" //~ ak: Disable inline functions and it's warnings
+            " -Ob1 -wd4710" // ak: Disable inline functions and it's warnings
         );
     }
-    //~ ak: Warnings
-    build_cmd_append(info, " -W4 -Wall");
-    //~ ak: Disbale uselss warnings
+    // ak: warnings
+    if (info->type != Build_Type_Release)
+    {
+        build_cmd_append(info, " -W4 -Wall");
+    }
+    // ak: disbale uselss warnings
     build_cmd_append(info,
-        " -wd4668"                 //~ ak: For macros magic
-        " -wd4464"                 //~ ak: Warning about '..' in path
-        " -wd4310 -wd4146 -wd4245" //~ ak: Cast conversion
-        " -wd4201"                 //~ ak: Nameless struct/union
-        " -wd4820"                 //~ ak: Struct padding
-        " -wd4061"                 //~ ak: Enum switch enumeration
+        " -wd4668"                 // ak: For macros magic
+        " -wd4464"                 // ak: Warning about '..' in path
+        " -wd4310 -wd4146 -wd4245" // ak: Cast conversion
+        " -wd4201"                 // ak: Nameless struct/union
+        " -wd4820"                 // ak: Struct padding
+        " -wd4061"                 // ak: Enum switch enumeration
     );
-    //~ ak: Security
+    // ak: security
     build_cmd_append(info,
-        " -Qspectre -wd5045"  //~ ak: Spectre variant 1 vulnerability
-        " -GS"                //~ ak: Canary insertion
-        " -guard:cf"          //~ ak: Control-flow protection
+        " -Qspectre -wd5045"  // ak: Spectre variant 1 vulnerability
+        " -GS"                // ak: Canary insertion
+        " -guard:cf"          // ak: Control-flow protection
     );
     if (info->type != Build_Type_Debug && info->type != Build_Type_Release)
     {
@@ -151,26 +155,36 @@ internal void build_compile_gcc(Build_Info *info)
     {
         build_cmd_append(info, "x86_64-w64-mingw32-gcc");
     }
+    else if (info->is_cpp)
+    {
+        
+        build_cmd_append(info, "g++");
+    }
     else
     {
         build_cmd_append(info, "gcc");
     }
+    // ak: dry run
     if (info->dry_run)
     {
         build_cmd_append(info, " -fsyntax-only");
+        // build_cmd_append(info, " -fmax-errors=50");
     }
     build_cmd_append(info, " %s", info->entry_point.cstr);
-    //~ ak: Output
+    // ak: output
     build_cmd_append(info, " -o ");
     build_cmd_append_output(info);
-    //~ ak: Lock C Version
-    build_cmd_append(info, " -std=gnu99");
-    //~ ak: Optimaization
-    if (info->type == Build_Type_Debug)
+    // ak: lock lang version
+    if (info->is_cpp)
     {
-        build_cmd_append(info, " -O0"); //~ ak: Enable Debug friendly optimaization
+        build_cmd_append(info, " -std=c++14");
     }
-    else if (info->type == Build_Type_Release)
+    else
+    {
+        build_cmd_append(info, " -std=gnu99");
+    }
+    // ak: optimaization
+    if (info->type == Build_Type_Release)
     {
         build_cmd_append(info, " -O3");
     }
@@ -178,30 +192,31 @@ internal void build_compile_gcc(Build_Info *info)
     {
         build_cmd_append(info, " -O0");
     }
-    //~ ak: Debug
+    // ak: debug
     if (info->type != Build_Type_Release)
     {
         build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
     }
-    //~ ak: Warning
-    build_cmd_append(info, " -Wall -Wextra");
-    //~ ak: Disable useless warnings in C
+    // ak: warning
+    if (info->type != Build_Type_Release)
+    {
+        build_cmd_append(info, " -Wall -Wextra");
+    }
+    // ak: disable useless warnings
     build_cmd_append(info,
         " -Wno-unknown-pragmas"
         " -Wno-missing-braces"
         " -Wno-unused-function"
         " -Wno-unused-variable"
     );
-    // ak:
-    build_cmd_append(info, " -fmax-errors=50");
-    //~ ak: Security
+    // ak: security
     build_cmd_append(info, " -mshstk -fcf-protection=full -fstack-protector");
     if ((info->type != Build_Type_Debug && info->type != Build_Type_Release) && !info->mingw)
     {
         build_cmd_append(info, " -fsanitize=address -fno-omit-frame-pointer");
         // build_cmd_append(info, " -fanalyzer");
     }
-    //~ ak: Libs
+    // ak: libs
     if (info->mingw || info->os == Context_Os_Windows)
     {
         build_cmd_append(info, " -lopengl32 -luser32 -lgdi32");
@@ -212,7 +227,7 @@ internal void build_compile_gcc(Build_Info *info)
     }
 }
 
-//~ ak: Build types functions =================================================
+// ak: Build types functions ==================================================
 
 internal int build_compile(Build_Info *info)
 {
@@ -237,7 +252,7 @@ internal int build_compile(Build_Info *info)
     return build_cmd_finish(info);
 }
 
-//~ ak: Build run functions ===================================================
+// ak: Build run functions ====================================================
 
 internal int build_run(Build_Info *info)
 {
@@ -257,9 +272,10 @@ internal int build_run(Build_Info *info)
 
 internal void base_main(void)
 {
-    Build_Info info = ZERO_STRUCT;
+    Build_Info info = STRUCT_ZERO;
     info.name = APP_NAME;
     info.cmd_name = APP_CMD_NAME;
+    info.is_cpp = true;
     info.entry_point = str8("src/app/app_main.c");
     info.dir = str8("build");
     info.os = Context_Os_CURRENT;
@@ -272,7 +288,7 @@ internal void base_main(void)
     if (args->length >= 2)
     {
         Str8 arg1 = args->v[1];
-        Str8 arg2 = ZERO_STRUCT;
+        Str8 arg2 = STRUCT_ZERO;
         if (args->length == 3)
         {
             arg2 = args->v[2];
@@ -350,6 +366,7 @@ internal void base_main(void)
         fmt_printfln("Build Type: %s", build_type_to_str8(&info));
         if (gen_meta_program)
         {
+            info = StructZeroType(Build_Info);
             info.type = Build_Type_Debug;
             info.name = str8(MDA_NAME);
             info.cmd_name = str8(MDA_CMD_NAME);
