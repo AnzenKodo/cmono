@@ -1,30 +1,3 @@
-// NOTE(ak): references taken from:
-//  - [Ginger Bill](https://www.gingerbill.org): [gb.h](https://github.com/gingerBill/gb/blob/master/gb.h)
-
-internal inline bool mem_match(void const *s1, void const *s2, size_t size)
-{
-    bool result = true;
-    if (s1 == NULL || s2 == NULL)
-    {
-        if (size != 0) result = false;
-    }
-    else if (size != 0)
-    {
-        uint8_t const *s1p8 = (uint8_t const *)s1;
-        uint8_t const *s2p8 = (uint8_t const *)s2;
-        while (size--)
-        {
-            if (*s1p8 != *s2p8)
-            {
-                result = false;
-                break;
-            }
-            s1p8++, s2p8++;
-        }
-    }
-    return result;
-}
-
 internal inline void *mem_copy(void *dest, void const *source, size_t n)
 {
     if (dest == NULL)
@@ -110,27 +83,6 @@ internal inline void *mem_move(void *dest, void const *source, size_t n)
     return dest;
 }
 
-internal inline bool mem_cmp(void const *s1, void const *s2, size_t size)
-{
-	uint8_t const *s1p8 = (uint8_t const *)s1;
-	uint8_t const *s2p8 = (uint8_t const *)s2;
-
-	if (s1 == NULL || s2 == NULL)
-    {
-		return false;
-	}
-
-	while (size--)
-    {
-		if (*s1p8 != *s2p8)
-        {
-			return (*s1p8 - *s2p8);
-		}
-		s1p8++, s2p8++;
-	}
-	return false;
-}
-
 internal inline void *mem_set(void *dest, uint8_t c, size_t n)
 {
     uint8_t *s = (uint8_t *)dest;
@@ -140,17 +92,17 @@ internal inline void *mem_set(void *dest, uint8_t c, size_t n)
     {
         return NULL;
     }
-    if (n == 0) 
+    if (n == 0)
     { return dest; }
     s[0] = s[n-1] = c;
-    if (n < 3) 
+    if (n < 3)
     { return dest; }
     s[1] = s[n-2] = c;
     s[2] = s[n-3] = c;
-    if (n < 7) 
+    if (n < 7)
     { return dest; }
     s[3] = s[n-4] = c;
-    if (n < 9) 
+    if (n < 9)
     { return dest; }
     k = -(int64_t)s & 3;
     s += k;
@@ -158,13 +110,13 @@ internal inline void *mem_set(void *dest, uint8_t c, size_t n)
     n &= -4;
     *(uint32_t *)(s+0) = c32;
     *(uint32_t *)(s+n-4) = c32;
-    if (n < 9) 
+    if (n < 9)
     { return dest; }
     *(uint32_t *)(s +  4)    = c32;
     *(uint32_t *)(s +  8)    = c32;
     *(uint32_t *)(s+n-12) = c32;
     *(uint32_t *)(s+n- 8) = c32;
-    if (n < 25) 
+    if (n < 25)
     { return dest; }
     *(uint32_t *)(s + 12) = c32;
     *(uint32_t *)(s + 16) = c32;
@@ -192,7 +144,23 @@ internal inline void *mem_set(void *dest, uint8_t c, size_t n)
     return dest;
 }
 
-internal int32_t mem_is_zero(void *ptr, uint64_t size)
+internal inline int32_t mem_cmp(void const *s1, void const *s2, size_t size)
+{
+    int32_t result = 0;
+	uint8_t const *s1p8 = Cast(uint8_t const *)s1;
+	uint8_t const *s2p8 = Cast(uint8_t const *)s2;
+
+	while (size-- && s1 && s2) {
+		if (*s1p8 != *s2p8) {
+			result = (*s1p8 - *s2p8);
+			break;
+		}
+		s1p8++, s2p8++;
+	}
+	return result;
+}
+
+internal int32_t mem_is_zero(void *ptr, size_t size)
 {
     int32_t result = 1;
     //- ak: break down size

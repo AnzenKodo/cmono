@@ -1,6 +1,10 @@
 #ifndef BASE_CORE_H
 #define BASE_CORE_H
 
+#if !defined(BUILD_DEBUG)
+#   define BUILD_DEBUG 0
+#endif
+
 // ak: External Includes
 //=============================================================================
 
@@ -204,18 +208,29 @@ global const uint64_t bit64 = (1ull<<63);
 #define AlignPow2(x,b)  (((x) + (b) - 1)&(~((b) - 1)))
 #define OffsetOf(T,m)   offsetof(T, m)
 
+// ak: Branch Predictor Hints =================================================
+
+#if COMPILER_CLANG || COMPILER_GCC
+#   define Expect(expr, val) __builtin_expect((expr), (val))
+#else
+#   define Expect(expr, val) (expr)
+#endif
+
+#define Likely(expr)            Expect(expr,1)
+#define Unlikely(expr)          Expect(expr,0)
+
 // ak: For-Loop Construct =====================================================
 
 #define DeferLoop(begin, end)      for(int _i_ = ((begin), 0); !_i_; _i_ += 1, (end))
 #define DeferLoopCheck(begin, end) for(int _i_ = 2 * !(begin); (_i_ == 2 ? ((end), 0) : !_i_); _i_ += 1, (end))
 
-#define EachIndex(it, count)         (size_t it = 0; it < (count); it += 1)
-#define EachElement(it, array)       (size_t it = 0; it < ArrayLength(array); it += 1)
-#define EachEnumVal(type, it)        (type it = (type)0; it < type##_COUNT; it = (type)(it+1))
-#define EachNonZeroEnumVal(type, it) (type it = (type)1; it < type##_COUNT; it = (type)(it+1))
-#define EachInRange(it, range)       (size_t it = (range).min; it < (range).max; it += 1)
-#define EachNode(it, T, first)       (T *it = first; it != 0; it = it->next)
-#define EachBit(it, flags)           (size_t (_i_) = (flags), it = (flags) & -(flags); (_i_) != 0; (_i_) &= ((_i_) - 1), it = (flags) & -(flags))
+#define EachIndex(it, count)       (size_t it = 0; it < (count); it += 1)
+#define EachElement(it, array)     (size_t it = 0; it < ArrayLength(array); it += 1)
+#define EachEnumVal(T, it)         (T it = (T)0; it < T##_COUNT; it = (T)(it+1))
+#define EachNonZeroEnumVal(T, it)  (T it = (T)1; it < T##_COUNT; it = (T)(it+1))
+#define EachInRange(it, range)     (size_t it = (range).min; it < (range).max; it += 1)
+#define EachNode(it, T, first)     (T *it = first; it != 0; it = it->next)
+#define EachBit(it, flags)         (size_t (_i_) = (flags), it = (flags) & -(flags); (_i_) != 0; (_i_) &= ((_i_) - 1), it = (flags) & -(flags))
 
 // ak: Alignment ==============================================================
 
@@ -247,7 +262,7 @@ global const uint64_t bit64 = (1ull<<63);
 #else
 #   define Assert(x) (void)(x)
 #endif
-#define UNREACHABLE(msg) Assert(!""msg)
+#define UNREACHABLE(msg) Assert(!"" msg)
 #define TODO(msg)        Assert(!msg)
 
 // ak: ak: Linkage Keyword Macros =============================================

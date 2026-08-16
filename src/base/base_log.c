@@ -1,9 +1,9 @@
 //~ ak: Helper Functions
 //=============================================================================
 
-internal char *log_get_reset_color(Log_Context *log)
+internal const char *log_get_reset_color(Log_Context *log)
 {
-    char *reset_color = "";
+    const char *reset_color = "";
     if (log->enable_color_log && term_is_color_allowed())
     {
         reset_color = TERM_RESET;
@@ -11,9 +11,9 @@ internal char *log_get_reset_color(Log_Context *log)
     return reset_color;
 }
 
-internal char *log_get_level_color(Log_Level level)
+internal const char *log_get_level_color(Log_Level level)
 {
-    char *level_color = "";
+    const char *level_color = "";
     switch (level)
     {
         case Log_Level_None:
@@ -38,9 +38,9 @@ internal char *log_get_level_color(Log_Level level)
     }
     return level_color;
 }
-internal char *log_get_level_string(Log_Level level)
+internal const char *log_get_level_string(Log_Level level)
 {
-    char *level_string = "";
+    const char *level_string = "";
     switch (level)
     {
         case Log_Level_None:
@@ -67,9 +67,9 @@ internal char *log_get_level_string(Log_Level level)
     return level_string;
 }
 
-internal char *log_get_file_info_color(Log_Context *log)
+internal const char *log_get_file_info_color(Log_Context *log)
 {
-    char *line_info_color = "";
+    const char *line_info_color = "";
     if (log->enable_color_log && term_is_color_allowed())
     {
         line_info_color = TERM_FG_CYAN;
@@ -81,8 +81,8 @@ internal void log_print_color_level(Log_Context *log, Log_Level level)
 {
     if (log->print_level_prefix)
     {
-        char *level_string = log_get_level_string(level);
-        char *level_color = "";
+        const char *level_string = log_get_level_string(level);
+        const char *level_color = "";
         if (log->enable_color_log && term_is_color_allowed())
         {
             level_color = log_get_level_color(level);
@@ -96,7 +96,7 @@ internal void log_print_color_level(Log_Context *log, Log_Level level)
 
 internal Log_Context log_init(void)
 {
-    Log_Context log = ZERO_STRUCT;
+    Log_Context log = STRUCT_ZERO;
     log.level = Log_Level_Info;
     log.file = OS_STDOUT;
     log.print_level_prefix = true;

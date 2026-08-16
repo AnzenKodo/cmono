@@ -19,6 +19,17 @@ typedef void Void_Proc(void);
 
 // ak: Base Type Array ========================================================
 
+typedef union U128 U128;
+union U128
+{
+    uint8_t  u8[16];
+    uint16_t u16[8];
+    uint32_t u32[4];
+    uint64_t u64[2];
+    float    f32[4];
+    double   f64[2];
+};
+
 typedef struct U8Array U8Array;
 struct U8Array
 {
@@ -95,19 +106,22 @@ struct F64Array
 // ak: Macros
 //=============================================================================
 
+#define Cast(T) (T)
 #define Swap(T,a,b)   do{T t__ = a; a = b; b = t__;}while(0)
 #define TypeOf(T)     __typeof__(T)
 
 #if LANGUAGE_C
-#   define ZERO_STRUCT {0}
+#   define STRUCT_ZERO {0}
+#   define StructZeroType(T) (T)STRUCT_ZERO
 #else
-#   define ZERO_STRUCT {}
+#   define STRUCT_ZERO {}
+#   define StructZeroType(T) (T)STRUCT_ZERO
 #endif
 
 // NOTE(ak): MSVC C++ compiler does not support compound literals
 // (C99 feature) Plain structures in C++ (without constructors) can be
 // initialized with { } This is called aggregate initialization (C++11 feature)
-#if defined(__cplusplus)
+#if LANGUAGE_CPP
     #define Literal(type)      type
 #else
     #define Literal(type)      (type)
@@ -132,12 +146,22 @@ struct F64Array
 // ak: Array Macros ===========================================================
 
 #define ArrayLength(a) (sizeof(a) / sizeof((a)[0]))
-#define array_alloc(a, T, s) \
-    (T){ \
-        .size = (s), \
-        .length = 0, \
-        .v = arena_push((a), TypeOf(((T)ZERO_STRUCT).v[0]), (s)) \
-    }
+#if LANGUAGE_CPP
+    #define array_alloc(a, T, s) ({ \
+        T _arr = {}; \
+        _arr.size = (size_t)(s); \
+        _arr.length = 0; \
+        _arr.v = (decltype(_arr.v))_arena_push((a), sizeof(_arr.v[0]) * (size_t)(s), AlignOf(decltype(_arr.v[0])), true); \
+        _arr; \
+    })
+#else
+    #define array_alloc(a, T, s) \
+        (T){ \
+            .size = (s), \
+            .length = 0, \
+            .v = arena_push((a), TypeOf(StructZeroType(T).v[0]), (s)) \
+        }
+#endif
 #define array_append(array, data) (Assert((array)->length < (array)->size), (array)->v[(array)->length++] = (data))
 #define array_get(array, index) (Assert((index) <= (array)->size), (array)->v[(index)])
 #define carray_get(array, index) (Assert((size_t)index < ArrayLength(array)), array[(size_t)index])

@@ -73,12 +73,14 @@ struct Str_Join
 
 typedef enum Str_Split_Flags
 {
+    Str_Split_Flag_None        = 0,
     Str_Split_Flag_KeepEmpties = (1 << 0),
 }
 Str_Split_Flags;
 
 typedef enum Str_Match_Flags
 {
+    Str_Match_Flag_None             = 0,
     Str_Match_Flag_CaseInsensitive  = (1 << 0),
     Str_Match_Flag_RightSideSloppy  = (1 << 1),
     Str_Match_Flag_SlashInsensitive = (1 << 2),
@@ -174,7 +176,7 @@ internal Str8     str8_from_bool(bool value);
 // ak: String List Construction Functions =====================================
 
 internal Str8_Node *str8_list_push(Arena *arena, Str8_List *list, Str8 str);
-internal Str8_Node *str8_list_pushf(Arena *arena, Str8_List *list, char *fmt, ...);
+internal Str8_Node *str8_list_pushf(Arena *arena, Str8_List *list, const char *fmt, ...);
 
 // ak: String Arrays Construction Functions ===================================
 
@@ -196,8 +198,8 @@ internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_p
 // ak: String Formatting & Copying ============================================
 
 internal Str8 str8_copy(Arena *arena, Str8 s);
-internal Str8 str8fv(Arena *arena, char *format, va_list args);
-internal Str8 str8f(Arena *arena, char *format, ...);
+internal Str8 str8fv(Arena *arena, const char *format, va_list args);
+internal Str8 str8f(Arena *arena, const char *format, ...);
 
 // ak: UTF-8 & UTF-16 Decoding/Encoding =======================================
 

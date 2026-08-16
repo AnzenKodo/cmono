@@ -26,7 +26,27 @@ struct ArenaParams
 #define ARENA_DEFAULT_COMMIT_SIZE  KB(64)
 
 internal Arena *_arena_alloc(ArenaParams *params);
-#define arena_alloc(...) _arena_alloc(&(ArenaParams){.reserve_size = ARENA_DEFAULT_RESERVE_SIZE, .commit_size = ARENA_DEFAULT_COMMIT_SIZE, .allocation_site_file = FILE_NAME, .allocation_site_line = LINE_NUMBER, __VA_ARGS__})
+#if LANGUAGE_CPP
+    inline Arena *arena_alloc_cpp(
+        uint64_t reserve_size = ARENA_DEFAULT_RESERVE_SIZE,
+        uint64_t commit_size = ARENA_DEFAULT_COMMIT_SIZE,
+        void *optional_backing_buffer = NULL,
+        const char *allocation_site_file = FILE_NAME,
+        int allocation_site_line = LINE_NUMBER)
+    {
+        ArenaParams params = {
+            reserve_size,
+            commit_size,
+            optional_backing_buffer,
+            (char *)allocation_site_file, // Explicit cast to silence ISO C++ warning
+            allocation_site_line
+        };
+        return _arena_alloc(&params);
+    }
+    #define arena_alloc(...) arena_alloc_cpp(__VA_ARGS__)
+#else
+    #define arena_alloc(...) _arena_alloc(&(ArenaParams){.reserve_size = ARENA_DEFAULT_RESERVE_SIZE, .commit_size = ARENA_DEFAULT_COMMIT_SIZE, .allocation_site_file = FILE_NAME, .allocation_site_line = LINE_NUMBER, __VA_ARGS__})
+#endif
 internal void arena_free(Arena *arena);
 
 internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_zero);

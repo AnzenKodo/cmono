@@ -25,10 +25,10 @@ struct Log_Context {
 
 //~ ak: Helper Functions ======================================================
 
-internal char *log_get_reset_color(Log_Context *log);
-internal char *log_get_level_color(Log_Level level);
-internal char *log_get_level_string(Log_Level level);
-internal char *log_get_file_info_color(Log_Context *log);
+internal const char *log_get_reset_color(Log_Context *log);
+internal const char *log_get_level_color(Log_Level level);
+internal const char *log_get_level_string(Log_Level level);
+internal const char *log_get_file_info_color(Log_Context *log);
 internal void log_print_color_level(Log_Context *log, Log_Level level);
 
 //~ ak: Initialization Functions ==============================================
@@ -69,7 +69,7 @@ internal void log_errorfln(Log_Context *log, const char *format, ...);
 //=============================================================================
 
 #define LogPrintfLine(log, level, format, ...) do { \
-    char *line_info_color = log_get_file_info_color(log); \
+    const char *line_info_color = log_get_file_info_color(log); \
     fmt_fprintf((log)->file, "%s%s:%d%s ", line_info_color, FILE_NAME, LINE_NUMBER, log_get_reset_color(log)); \
     log_print_color_level((log), level); \
     fmt_fprintfln((log)->file, format, ##__VA_ARGS__); \

@@ -6,11 +6,11 @@ internal Flags_Option *_flags_get_option(Str8 name)
     Flags_Option *result = NULL;
     for (Flags_Option *option = _flags_state->first_option; option != NULL; option = option->next)
     {
-        if (str8_match(name, option->name, 0))
+        if (str8_match(name, option->name, Str_Match_Flag_None))
         {
             result = option;
         }
-        if (str8_match(name, option->shortname, 0))
+        if (str8_match(name, option->shortname, Str_Match_Flag_None))
         {
             result = option;
         }
@@ -77,17 +77,17 @@ internal bool _flags_is_arg_option(Str8 arg)
 
 internal Str8 _flags_get_options_from_arg(Str8 arg)
 {
-    Str8 result = ZERO_STRUCT;
-    if (str8_match(str8_prefix(arg, 2), str8("--"), 0))
+    Str8 result = STRUCT_ZERO;
+    if (str8_match(str8_prefix(arg, 2), str8("--"), Str_Match_Flag_None))
     {
         result = str8_skip(arg, 2);
     }
-    else if (str8_match(str8_prefix(arg, 1), str8("-"), 0))
+    else if (str8_match(str8_prefix(arg, 1), str8("-"), Str_Match_Flag_None))
     {
         result = str8_skip(arg, 1);
     }
     else if (Context_Os_CURRENT == Context_Os_Windows &&
-            str8_match(str8_prefix(arg, 1), str8("/"), 0))
+            str8_match(str8_prefix(arg, 1), str8("/"), Str_Match_Flag_None))
     {
         result = str8_skip(arg, 1);
     }
@@ -130,7 +130,7 @@ internal bool flags_parse(Str8_Array *args)
     {
         Str8 arg = args->v[index];
         Base base = Base_10;
-        if (str8_match(arg, str8("--"), 0))
+        if (str8_match(arg, str8("--"), Str_Match_Flag_None))
         {
             has_passthrough_option = 1;
             Unused(has_passthrough_option);
@@ -150,7 +150,7 @@ internal bool flags_parse(Str8_Array *args)
                 {
                     _flags_add_option_error(_Flags_Error_Kind_DuplicateOption, option_name);
                 }
-                Str8 arg_next = ZERO_STRUCT;
+                Str8 arg_next = STRUCT_ZERO;
                 if (args->length < index+1)
                 {
                     arg_next = array_get(args, index+1);
@@ -238,7 +238,7 @@ internal bool flags_parse(Str8_Array *args)
                 break;
                 case _Flags_Option_Kind_StrArr:
                 {
-                    Str8_Array array = ZERO_STRUCT;
+                    Str8_Array array = STRUCT_ZERO;
                     uint64_t items_count = _flags_get_values_count(args, index);
                     array.v = arena_push(_flags_state->arena, Str8, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
@@ -253,7 +253,7 @@ internal bool flags_parse(Str8_Array *args)
                 break;
                 case _Flags_Option_Kind_IntArr:
                 {
-                    I64Array array = ZERO_STRUCT;
+                    I64Array array = STRUCT_ZERO;
                     uint64_t items_count = _flags_get_values_count(args, index);
                     array.v = arena_push(_flags_state->arena, int64_t, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
@@ -275,7 +275,7 @@ internal bool flags_parse(Str8_Array *args)
                 break;
                 case _Flags_Option_Kind_UIntArr:
                 {
-                    U64Array array = ZERO_STRUCT;
+                    U64Array array = STRUCT_ZERO;
                     uint64_t items_count = _flags_get_values_count(args, index);
                     array.v = arena_push(_flags_state->arena, uint64_t, index);
                     for (uint64_t i = 0; i < items_count; i++)
@@ -304,7 +304,7 @@ internal bool flags_parse(Str8_Array *args)
                 break;
                 case _Flags_Option_Kind_FloatArr:
                 {
-                    F64Array array = ZERO_STRUCT;
+                    F64Array array = STRUCT_ZERO;
                     uint64_t items_count = _flags_get_values_count(args, index);
                     array.v = arena_push(_flags_state->arena, double, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
@@ -623,7 +623,7 @@ internal void flags_print_help(void)
             fmt_printf(" (required)");
         }
         uint8_t desc_spacing = 8;
-        char *default_syntex = "(default: ";
+        const char *default_syntex = "(default: ";
         fmt_printfln("\n%-*s%.*s", desc_spacing, "", str8_varg(option->description));
         switch (option->kind)
         {

@@ -22,26 +22,15 @@ typedef enum Base
 
 // ak: 2-Vectors ==============================================================
 
-typedef union Vec2_F32 Vec2_F32;
-union Vec2_F32
+typedef union Vec2_I16 Vec2_I16;
+union Vec2_I16
 {
     struct
     {
-        float x;
-        float y;
+        int16_t x;
+        int16_t y;
     };
-    float v[2];
-};
-
-typedef union Vec2_I64 Vec2_I64;
-union Vec2_I64
-{
-    struct
-    {
-        int64_t x;
-        int64_t y;
-    };
-    int64_t v[2];
+    int16_t v[2];
 };
 
 typedef union Vec2_I32 Vec2_I32;
@@ -55,40 +44,29 @@ union Vec2_I32
     int32_t v[2];
 };
 
-typedef union Vec2_I16 Vec2_I16;
-union Vec2_I16
+typedef union Vec2_I64 Vec2_I64;
+union Vec2_I64
 {
     struct
     {
-        int16_t x;
-        int16_t y;
+        int64_t x;
+        int64_t y;
     };
-    int16_t v[2];
+    int64_t v[2];
 };
 
-// ak: 3-Vectors ==============================================================
-
-typedef union Vec3_F32 Vec3_F32;
-union Vec3_F32
+typedef union Vec2_F32 Vec2_F32;
+union Vec2_F32
 {
     struct
     {
         float x;
         float y;
-        float z;
     };
-    struct
-    {
-        Vec2_F32 xy;
-        float _z0;
-    };
-    struct
-    {
-        float _x0;
-        Vec2_F32 yz;
-    };
-    float v[3];
+    float v[2];
 };
+
+// ak: 3-Vectors ==============================================================
 
 typedef union Vec3_I32 Vec3_I32;
 union Vec3_I32
@@ -112,35 +90,29 @@ union Vec3_I32
     int32_t v[3];
 };
 
-// ak: 4-vectors ==============================================================
-
-typedef union Vec4_F32 Vec4_F32;
-union Vec4_F32
+typedef union Vec3_F32 Vec3_F32;
+union Vec3_F32
 {
     struct
     {
         float x;
         float y;
         float z;
-        float w;
     };
     struct
     {
         Vec2_F32 xy;
-        Vec2_F32 zw;
-    };
-    struct
-    {
-        Vec3_F32 xyz;
         float _z0;
     };
     struct
     {
         float _x0;
-        Vec3_F32 yzw;
+        Vec2_F32 yz;
     };
-    float v[4];
+    float v[3];
 };
+
+// ak: 4-vectors ==============================================================
 
 typedef union Vec4_I32 Vec4_I32;
 union Vec4_I32
@@ -168,6 +140,34 @@ union Vec4_I32
         Vec3_I32 yzw;
     };
     int32_t v[4];
+};
+
+typedef union Vec4_F32 Vec4_F32;
+union Vec4_F32
+{
+    struct
+    {
+        float x;
+        float y;
+        float z;
+        float w;
+    };
+    struct
+    {
+        Vec2_F32 xy;
+        Vec2_F32 zw;
+    };
+    struct
+    {
+        Vec3_F32 xyz;
+        float _z0;
+    };
+    struct
+    {
+        float _x0;
+        Vec3_F32 yzw;
+    };
+    float v[4];
 };
 
 // ak: Matrix Types
@@ -432,10 +432,10 @@ union Rng2_I64
 // NOTE(ak): function list comes: https://en.wikipedia.org/wiki/C_mathematical_functions
 
 internal float remainder_f32(float x, float y);
-internal float fmod_f32(float x, float y);
+internal float mod_f32(float x, float y);
 
 internal double remainder_f64(double x, double y);
-internal double fmod_f64(double x, double y);
+internal double mod_f64(double x, double y);
 
 // TODO(ak): more scalar math ops functions
 // - div       computes the quotient and remainder of integer division
@@ -543,6 +543,46 @@ internal double copysign_f64(double x, double y);
 //=============================================================================
 
 
+// ak: 2-Vectors ==============================================================
+
+// 2-Vector I16
+internal Vec2_I16 vec2_scale_i16(Vec2_I16 v, int16_t s);
+internal Vec2_I16 add_vec2_i16(Vec2_I16 a, Vec2_I16 b);
+
+// 2-Vector I32
+internal Vec2_I32 vec2_scale_i32(Vec2_I32 v, int32_t s);
+internal Vec2_I32 add_vec2_i32(Vec2_I32 v, Vec2_I32 s);
+
+// 2-Vector I64
+internal Vec2_I64 vec2_scale_i64(Vec2_I64 v, int64_t s);
+internal Vec2_I64 add_vec2_i64(Vec2_I64 a, Vec2_I64 b);
+
+// 2-Vector F32
+internal Vec2_F32 vec2_scale_f32(Vec2_F32 v, float s);
+internal Vec2_F32 add_vec2_f32(Vec2_F32 a, Vec2_F32 b);
+
+#if LANGUAGE_CPP
+    inline Vec2_I16 vec2_scale(Vec2_I16 v, int16_t s) { return vec2_scale_i16(v, s); }
+    inline Vec2_I32 vec2_scale(Vec2_I32 v, int32_t s) { return vec2_scale_i32(v, s); }
+    inline Vec2_I64 vec2_scale(Vec2_I64 v, int64_t s) { return vec2_scale_i64(v, s); }
+    inline Vec2_F32 vec2_scale(Vec2_F32 v, float s)   { return vec2_scale_f32(v, s); }
+    
+    inline Vec2_I16 add_vec2(Vec2_I16 a, Vec2_I16 b) { return add_vec2_i16(a, b); }
+    inline Vec2_I32 add_vec2(Vec2_I32 a, Vec2_I32 b) { return add_vec2_i32(a, b); }
+    inline Vec2_I64 add_vec2(Vec2_I64 a, Vec2_I64 b) { return add_vec2_i64(a, b); }
+    inline Vec2_F32 add_vec2(Vec2_F32 a, Vec2_F32 b) { return add_vec2_f32(a, b); }
+#else
+    #define vec2_scale(min, max) _Generic((v), \
+        int16_t: vec2_scale_i16,  \
+        int32_t: vec2_scale_i32, \
+        int64_t: vec2_scale_i64, \
+        float:   vec2_scale_f32  \
+    )(v, s)
+#endif
+
+// ak: 3-Vectors ==============================================================
+
+// ak: 4-vectors ==============================================================
 
 // ak: Range Ops
 //=============================================================================
@@ -551,94 +591,148 @@ internal double copysign_f64(double x, double y);
 
 // ak: 1D Range U8
 internal Rng1_U8 rng1_u8(uint8_t min, uint8_t max);
-internal uint8_t dim1_u8(Rng1_U8 r);
+internal uint8_t dim_rng1_u8(Rng1_U8 r);
 
 // ak: 1D Range U16
 internal Rng1_U16 rng1_u16(uint16_t min, uint16_t max);
-internal uint16_t dim1_u16(Rng1_U16 r);
+internal uint16_t dim_rng1_u16(Rng1_U16 r);
 
 // ak: 1D Range U32
 internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max);
-internal uint32_t dim1_u32(Rng1_U32 r);
+internal uint32_t dim_rng1_u32(Rng1_U32 r);
 
 // ak: 1D Range I32
 internal Rng1_I32 rng1_i32(int32_t min, int32_t max);
-internal int32_t dim1_i32(Rng1_I32 r);
+internal int32_t dim_rng1_i32(Rng1_I32 r);
 
 // ak: 1D Range U64
 internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max);
-internal uint64_t dim1_u64(Rng1_U64 r);
+internal uint64_t dim_rng1_u64(Rng1_U64 r);
 
 // ak: 1D Range I64
 internal Rng1_I64 rng1_s64(int64_t min, int64_t max);
-internal int64_t dim1_i64(Rng1_I64 r);
+internal int64_t dim_rng1_i64(Rng1_I64 r);
 
 // ak: 1D Range F32
 internal Rng1_F32 rng1_f32(float min, float max);
-internal float dim1_f32(Rng1_F32 r);
+internal float dim_rng1_f32(Rng1_F32 r);
 
 // ak: 1D Rng Macros
 
-#define rng1(min, max) _Generic((min), \
-    uint8_t:  rng1_u8,  \
-    uint16_t: rng1_u16, \
-    uint32_t: rng1_u32, \
-    uint64_t: rng1_u64, \
-    int32_t:  rng1_i32, \
-    int64_t:  rng1_s64, \
-    float:    rng1_f32  \
-)(min, max)
+#if LANGUAGE_CPP
+    inline Rng1_U8  rng1(uint8_t min, uint8_t max)   { return rng1_u8(min, max); }
+    inline Rng1_U16 rng1(uint16_t min, uint16_t max) { return rng1_u16(min, max); }
+    inline Rng1_U32 rng1(uint32_t min, uint32_t max) { return rng1_u32(min, max); }
+    inline Rng1_U64 rng1(uint64_t min, uint64_t max) { return rng1_u64(min, max); }
+    inline Rng1_I32 rng1(int32_t min, int32_t max)   { return rng1_i32(min, max); }
+    inline Rng1_I64 rng1(int64_t min, int64_t max)   { return rng1_s64(min, max); }
+    inline Rng1_F32 rng1(float min, float max)       { return rng1_f32(min, max); }
 
-#define dim1(r) _Generic((r), \
-    Rng1_U8:  dim1_u8,  \
-    Rng1_U16: dim1_u16, \
-    Rng1_U32: dim1_u32, \
-    Rng1_U64: dim1_u64, \
-    Rng1_I32: dim1_i32, \
-    Rng1_I64: dim1_i64, \
-    Rng1_F32: dim1_f32  \
-)(r)
+    inline uint8_t  dim_rng1(Rng1_U8 r)  { return dim_rng1_u8(r); }
+    inline uint16_t dim_rng1(Rng1_U16 r) { return dim_rng1_u16(r); }
+    inline uint32_t dim_rng1(Rng1_U32 r) { return dim_rng1_u32(r); }
+    inline uint64_t dim_rng1(Rng1_U64 r) { return dim_rng1_u64(r); }
+    inline int32_t  dim_rng1(Rng1_I32 r) { return dim_rng1_i32(r); }
+    inline int64_t  dim_rng1(Rng1_I64 r) { return dim_rng1_i64(r); }
+    inline float    dim_rng1(Rng1_F32 r) { return dim_rng1_f32(r); }
+#else
+    #define rng1(min, max) _Generic((min), \
+        uint8_t:  rng1_u8,  \
+        uint16_t: rng1_u16, \
+        uint32_t: rng1_u32, \
+        uint64_t: rng1_u64, \
+        int32_t:  rng1_i32, \
+        int64_t:  rng1_s64, \
+        float:    rng1_f32  \
+    )(min, max)
+    
+    #define dim_rng1(r) _Generic((r), \
+        Rng1_U8:  dim_rng1_u8,  \
+        Rng1_U16: dim_rng1_u16, \
+        Rng1_U32: dim_rng1_u32, \
+        Rng1_U64: dim_rng1_u64, \
+        Rng1_I32: dim_rng1_i32, \
+        Rng1_I64: dim_rng1_i64, \
+        Rng1_F32: dim_rng1_f32  \
+    )(r)
+#endif
 
 // ak: 2D Range (Rectangles) ==================================================
 
 // ak: 2D Rng I16
 internal Rng2_I16 rng2_i16(Vec2_I16 min, Vec2_I16 max);
-internal Vec2_I16 dim2_i16(Rng2_I16 r);
+internal Vec2_I16 dim_rng2_i16(Rng2_I16 r);
+internal Vec2_I16 center_rng2_i16(Rng2_I16 rng);
 
 // ak: 2D Rng I32
 internal Rng2_I32 rng2_i32(Vec2_I32 min, Vec2_I32 max);
-internal Vec2_I32 dim2_i32(Rng2_I32 r);
+internal Vec2_I32 dim_rng2_i32(Rng2_I32 r);
+internal Vec2_I32 center_rng2_i32(Rng2_I32 rng);
 
 // ak: 2D Rng I64
 internal Rng2_I64 rng2_i64(Vec2_I64 min, Vec2_I64 max);
-internal Vec2_I64 dim2_i64(Rng2_I64 r);
+internal Vec2_I64 dim_rng2_i64(Rng2_I64 r);
+internal Vec2_I64 center_rng2_i64(Rng2_I64 rng);
 
 // ak: 2D Rng F32
 internal Rng2_F32 rng2_f32(Vec2_F32 min, Vec2_F32 max);
-internal Vec2_F32 dim2_f32(Rng2_F32 r);
+internal Vec2_F32 dim_rng2_f32(Rng2_F32 r);
+internal Vec2_F32 center_rng2_f32(Rng2_F32 rng);
 
 // ak: 2D Rng Macros
-
-#define rng2p(x, y, z, w) _Generic((x), \
-    int16_t: rng2_i16((Vec2_I16){(x), (y)}, (Vec2_I16){(z), (w)}), \
-    int32_t: rng2_i32((Vec2_I32){(x), (y)}, (Vec2_I32){(z), (w)}), \
-    int64_t: rng2_i64((Vec2_I64){(x), (y)}, (Vec2_I64){(z), (w)}), \
-    float:   rng2_f32((Vec2_F32){(x), (y)}, (Vec2_F32){(z), (w)})  \
-)
-
-#define rng2(min, max) _Generic((min), \
-    Vec2_I16: rng2_i16, \
-    Vec2_I32: rng2_i32, \
-    Vec2_I64: rng2_i64, \
-    Vec2_F32: rng2_f32  \
-)(min, max)
-
-#define dim2(r) _Generic((r), \
-    Rng2_I16: dim2_i16, \
-    Rng2_I32: dim2_i32, \
-    Rng2_I64: dim2_i64, \
-    Rng2_F32: dim2_f32  \
-)(r)
+#if LANGUAGE_CPP
+    inline Rng2_I16 rng2p(int16_t x, int16_t y, int16_t z, int16_t w) { return
+  rng2_i16(Vec2_I16{x, y}, Vec2_I16{z, w}); }
+    inline Rng2_I32 rng2p(int32_t x, int32_t y, int32_t z, int32_t w) { return
+  rng2_i32(Vec2_I32{x, y}, Vec2_I32{z, w}); }
+    inline Rng2_I64 rng2p(int64_t x, int64_t y, int64_t z, int64_t w) { return
+  rng2_i64(Vec2_I64{x, y}, Vec2_I64{z, w}); }
+    inline Rng2_F32 rng2p(float x, float y, float z, float w)         { return
+  rng2_f32(Vec2_F32{x, y}, Vec2_F32{z, w}); }
+    
+    inline Rng2_I16 rng2(Vec2_I16 min, Vec2_I16 max) { return rng2_i16(min, max); }
+    inline Rng2_I32 rng2(Vec2_I32 min, Vec2_I32 max) { return rng2_i32(min, max); }
+    inline Rng2_I64 rng2(Vec2_I64 min, Vec2_I64 max) { return rng2_i64(min, max); }
+    inline Rng2_F32 rng2(Vec2_F32 min, Vec2_F32 max) { return rng2_f32(min, max); }
+    
+    inline Vec2_I16 dim_rng2(Rng2_I16 r) { return dim_rng2_i16(r); }
+    inline Vec2_I32 dim_rng2(Rng2_I32 r) { return dim_rng2_i32(r); }
+    inline Vec2_I64 dim_rng2(Rng2_I64 r) { return dim_rng2_i64(r); }
+    inline Vec2_F32 dim_rng2(Rng2_F32 r) { return dim_rng2_f32(r); }
+    
+    inline Vec2_I16 center_rng2(Rng2_I16 r) { return center_rng2_i16(r); }
+    inline Vec2_I32 center_rng2(Rng2_I32 r) { return center_rng2_i32(r); }
+    inline Vec2_I64 center_rng2(Rng2_I64 r) { return center_rng2_i64(r); }
+    inline Vec2_F32 center_rng2(Rng2_F32 r) { return center_rng2_f32(r); }
+#else
+    #define rng2p(x, y, z, w) _Generic((x), \
+        int16_t: rng2_i16((Vec2_I16){(x), (y)}, (Vec2_I16){(z), (w)}), \
+        int32_t: rng2_i32((Vec2_I32){(x), (y)}, (Vec2_I32){(z), (w)}), \
+        int64_t: rng2_i64((Vec2_I64){(x), (y)}, (Vec2_I64){(z), (w)}), \
+        float:   rng2_f32((Vec2_F32){(x), (y)}, (Vec2_F32){(z), (w)})  \
+    )
+    
+    #define rng2(min, max) _Generic((min), \
+        Vec2_I16: rng2_i16, \
+        Vec2_I32: rng2_i32, \
+        Vec2_I64: rng2_i64, \
+        Vec2_F32: rng2_f32  \
+    )(min, max)
+    
+    #define dim_rng2(r) _Generic((r), \
+        Rng2_I16: dim_rng2_i16, \
+        Rng2_I32: dim_rng2_i32, \
+        Rng2_I64: dim_rng2_i64, \
+        Rng2_F32: dim_rng2_f32  \
+    )(r)
+    
+    #define center_rng2(r) _Generic((r), \
+        Rng2_I16: center_rng2_i16, \
+        Rng2_I32: center_rng2_i32, \
+        Rng2_I64: center_rng2_i64, \
+        Rng2_F32: center_rng2_f32  \
+    )(r)
+#endif
 
 // ak: Random-number generation
 //=============================================================================

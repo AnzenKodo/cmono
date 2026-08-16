@@ -190,24 +190,41 @@ internal Flags_Arg *flags_arg_float(double *result_value, double default_value);
 
 // ak: Generic Macros =========================================================
 
-#define flags_option(name, result_value, default_value, description) _Generic((result_value), \
-    Str8*:        flags_option_str,       \
-    int64_t*:     flags_option_int,       \
-    uint64_t*:    flags_option_uint,      \
-    double*:      flags_option_float,     \
-    bool*:        flags_option_bool,      \
-    Str8_Array*:  flags_option_str_arr,   \
-    I64Array*:    flags_option_int_arr,   \
-    U64Array*:    flags_option_uint_arr,  \
-    F64Array*:    flags_option_float_arr  \
-)(name, result_value, default_value, description)
-
-#define flags_arg(result_value, default_value) _Generic((result_value), \
-    Str8*:        flags_arg_str,     \
-    int64_t*:     flags_arg_int,     \
-    uint64_t*:    flags_arg_uint,    \
-    double*:      flags_arg_float    \
-)(result_value, default_value)
+#if LANGUAGE_CPP
+    inline Flags_Option *flags_option(Str8 name, Str8* val, Str8 def, Str8 desc) { return flags_option_str(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, int64_t* val, int64_t def, Str8 desc) { return flags_option_int(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, uint64_t* val, uint64_t def, Str8 desc) { return flags_option_uint(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, double* val, double def, Str8 desc) { return flags_option_float(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, bool* val, bool def, Str8 desc) { return flags_option_bool(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, Str8_Array* val, Str8_Array* def, Str8 desc) { return flags_option_str_arr(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, I64Array* val, I64Array* def, Str8 desc) { return flags_option_int_arr(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, U64Array* val, U64Array* def, Str8 desc) { return flags_option_uint_arr(name, val, def, desc); }
+    inline Flags_Option *flags_option(Str8 name, F64Array* val, F64Array* def, Str8 desc) { return flags_option_float_arr(name, val, def, desc); }
+    
+    inline Flags_Arg *flags_arg(Str8* val, Str8 def) { return flags_arg_str(val, def); }
+    inline Flags_Arg *flags_arg(int64_t* val, int64_t def) { return flags_arg_int(val, def); }
+    inline Flags_Arg *flags_arg(uint64_t* val, uint64_t def) { return flags_arg_uint(val, def); }
+    inline Flags_Arg *flags_arg(double* val, double def) { return flags_arg_float(val, def); }
+#else
+    #define flags_option(name, result_value, default_value, description) _Generic((result_value), \
+        Str8*:        flags_option_str,       \
+        int64_t*:     flags_option_int,       \
+        uint64_t*:    flags_option_uint,      \
+        double*:      flags_option_float,     \
+        bool*:        flags_option_bool,      \
+        Str8_Array*:  flags_option_str_arr,   \
+        I64Array*:    flags_option_int_arr,   \
+        U64Array*:    flags_option_uint_arr,  \
+        F64Array*:    flags_option_float_arr  \
+    )(name, result_value, default_value, description)
+    
+    #define flags_arg(result_value, default_value) _Generic((result_value), \
+        Str8*:        flags_arg_str,     \
+        int64_t*:     flags_arg_int,     \
+        uint64_t*:    flags_arg_uint,    \
+        double*:      flags_arg_float    \
+    )(result_value, default_value)
+#endif
 
 // ak: Globals
 //=============================================================================

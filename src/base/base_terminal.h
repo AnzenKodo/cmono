@@ -106,6 +106,6 @@ internal char *term_style_get(const char *style);
 // Global Variables
 //=============================================================================
 
-_Term_State _term_state = ZERO_STRUCT;
+_Term_State _term_state = STRUCT_ZERO;
 
 #endif // BASE_TERM_H

@@ -24,7 +24,7 @@ dense_time_from_date_time(DateTime date_time)
 internal DateTime
 date_time_from_dense_time(DenseTime time)
 {
-    DateTime result = ZERO_STRUCT;
+    DateTime result = STRUCT_ZERO;
     result.msec = time%1000;
     time /= 1000;
     result.sec  = time%61;
@@ -45,7 +45,7 @@ date_time_from_dense_time(DenseTime time)
 internal DateTime
 date_time_from_micro_seconds(uint64_t time)
 {
-    DateTime result = ZERO_STRUCT;
+    DateTime result = STRUCT_ZERO;
     result.micro_sec = time%1000;
     time /= 1000;
     result.msec = time%1000;
@@ -68,7 +68,7 @@ date_time_from_micro_seconds(uint64_t time)
 internal DateTime
 date_time_from_unix_time(uint64_t unix_time)
 {
-    DateTime date = ZERO_STRUCT;
+    DateTime date = STRUCT_ZERO;
     date.year     = 1970;
     date.day      = (uint16_t)(1 + (unix_time / 86400));
     date.sec      = (uint32_t)unix_time % 60;
@@ -77,7 +77,7 @@ date_time_from_unix_time(uint64_t unix_time)
 
     for (;;)
     {
-        for (date.month = 0; date.month < 12; ++date.month)
+    for (date.month = Month_Jan; date.month < Month_COUNT; date.month = (Month)(date.month + 1))
         {
             uint64_t c = 0;
             switch(date.month)

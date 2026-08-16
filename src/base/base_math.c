@@ -5,26 +5,36 @@ internal float remainder_f32(float x, float y)
 {
 	return x - (round_f32(x/y)*y);
 }
-internal float fmod_f32(float x, float y)
+internal float mod_f32(float x, float y)
 {
-	float result;
-	y = Abs(y);
-	result = remainder_f32(Abs(x), y);
-	if (Sign(result)) result += y;
-	return copysign_f32(result, x);
+    if (y == 0.0f)
+    {
+        return 0.0f;
+    }
+    float q = x / y;
+    if (Abs(q) < 8388608.0f)
+    {
+        return x - (float)(int64_t)q * y;
+    }
+    return 0.0f;
 }
 
 internal double remainder_f64(double x, double y)
 {
 	return x - (round_f64(x/y)*y);
 }
-internal double fmod_f64(double x, double y)
+internal double mod_f64(double x, double y)
 {
-	double result;
-	y = Abs(y);
-	result = remainder_f64(Abs(x), y);
-	if (Sign(result)) result += y;
-	return copysign_f64(result, x);
+    if (y == 0.0)
+    {
+        return 0.0;
+    }
+    double q = x / y;
+    if (Abs(q) < 9007199254740992.0)
+    {
+        return x - (double)(int64_t)q * y;
+    }
+    return 0.0;
 }
 
 // ak: Exponential functions ==================================================
@@ -435,6 +445,58 @@ internal double copysign_f64(double x, double y)
 // ak: ak: Vector Ops
 //=============================================================================
 
+// 2-Vector I16
+
+internal Vec2_I16 vec2_scale_i16(Vec2_I16 v, int16_t s)
+{
+    Vec2_I16 c = {Cast(int16_t)(v.x * s), Cast(int16_t)(v.y * s)};
+    return c;
+}
+internal Vec2_I16 add_vec2_i16(Vec2_I16 a, Vec2_I16 b)
+{
+    Vec2_I16 c = {Cast(int16_t)(a.x+b.x), Cast(int16_t)(a.y+b.y)};
+    return c;
+}
+
+// 2-Vector I32
+
+internal Vec2_I32 vec2_scale_i32(Vec2_I32 v, int32_t s)
+{
+    Vec2_I32 c = {v.x*s, v.y*s};
+    return c;
+}
+internal Vec2_I32 add_vec2_i32(Vec2_I32 a, Vec2_I32 b)
+{
+    Vec2_I32 c = {a.x+b.x, a.y+b.y};
+    return c;
+}
+
+// 2-Vector I64
+
+internal Vec2_I64 vec2_scale_i64(Vec2_I64 v, int64_t s)
+{
+    Vec2_I64 c = {v.x*s, v.y*s};
+    return c;
+}
+internal Vec2_I64 add_vec2_i64(Vec2_I64 a, Vec2_I64 b)
+{
+    Vec2_I64 c = {a.x+b.x, a.y+b.y};
+    return c;
+}
+
+// 2-Vector F32
+
+internal Vec2_F32 vec2_scale_f32(Vec2_F32 v, float s)
+{
+    Vec2_F32 c = {v.x*s, v.y*s};
+    return c;
+}
+internal Vec2_F32 add_vec2_f32(Vec2_F32 a, Vec2_F32 b)
+{
+    Vec2_F32 c = {a.x+b.x, a.y+b.y};
+    return c;
+}
+
 // ak: Range Ops
 //=============================================================================
 
@@ -451,7 +513,7 @@ internal Rng1_U8 rng1_u8(uint8_t min, uint8_t max)
     }
     return rng;
 }
-internal uint8_t dim1_u8(Rng1_U8 r)
+internal uint8_t dim_rng1_u8(Rng1_U8 r)
 {
     uint8_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -468,7 +530,7 @@ internal Rng1_U16 rng1_u16(uint16_t min, uint16_t max)
     }
     return rng;
 }
-internal uint16_t dim1_u16(Rng1_U16 r)
+internal uint16_t dim_rng1_u16(Rng1_U16 r)
 {
     uint16_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -485,7 +547,7 @@ internal Rng1_U32 rng1_u32(uint32_t min, uint32_t max)
     }
     return rng;
 }
-internal uint32_t dim1_u32(Rng1_U32 r)
+internal uint32_t dim_rng1_u32(Rng1_U32 r)
 {
     uint32_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -502,7 +564,7 @@ internal Rng1_I32 rng1_i32(int32_t min, int32_t max)
     }
     return rng;
 }
-internal int32_t dim1_i32(Rng1_I32 r)
+internal int32_t dim_rng1_i32(Rng1_I32 r)
 {
     int32_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -519,7 +581,7 @@ internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max)
     }
     return rng;
 }
-internal uint64_t dim1_u64(Rng1_U64 r)
+internal uint64_t dim_rng1_u64(Rng1_U64 r)
 {
     uint64_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -536,7 +598,7 @@ internal Rng1_I64 rng1_i64(int64_t min, int64_t max)
     }
     return rng;
 }
-internal int64_t dim1_i64(Rng1_I64 r)
+internal int64_t dim_rng1_i64(Rng1_I64 r)
 {
     int64_t c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -553,7 +615,7 @@ internal Rng1_F32 rng1_f32(float min, float max)
     }
     return rng;
 }
-internal float dim1_f32(Rng1_F32 r)
+internal float dim_rng1_f32(Rng1_F32 r)
 {
     float c = ((r.max > r.min) ? (r.max - r.min) : 0);
     return c;
@@ -568,13 +630,21 @@ internal Rng2_I16 rng2_i16(Vec2_I16 min, Vec2_I16 max)
     Rng2_I16 rng = {min, max};
     return rng;
 }
-internal Vec2_I16 dim2_i16(Rng2_I16 rng)
+internal Vec2_I16 dim_rng2_i16(Rng2_I16 rng)
 {
     Vec2_I16 dim = {
-        ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
-        ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
+        (int16_t)((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
+        (int16_t)((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
     };
     return dim;
+}
+internal Vec2_I16 center_rng2_i16(Rng2_I16 rng)
+{
+    Vec2_I16 center = {
+        (int16_t)((rng.min.x + rng.max.x) / 2),
+        (int16_t)((rng.min.y + rng.max.y) / 2)
+    };
+    return center;
 }
 
 // ak: 2 Rng I32
@@ -584,13 +654,18 @@ internal Rng2_I32 rng2_i32(Vec2_I32 min, Vec2_I32 max)
     Rng2_I32 rng = {min, max};
     return rng;
 }
-internal Vec2_I32 dim2_i32(Rng2_I32 rng)
+internal Vec2_I32 dim_rng2_i32(Rng2_I32 rng)
 {
     Vec2_I32 dim = {
         ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
         ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
     };
     return dim;
+}
+internal Vec2_I32 center_rng2_i32(Rng2_I32 rng)
+{
+    Vec2_I32 center = {(rng.min.x+rng.max.x)/2, (rng.min.y+rng.max.y)/2};
+    return center;
 }
 
 // ak: 2 Rng I64
@@ -600,13 +675,18 @@ internal Rng2_I64 rng2_i64(Vec2_I64 min, Vec2_I64 max)
     Rng2_I64 rng = {min, max};
     return rng;
 }
-internal Vec2_I64 dim2_i64(Rng2_I64 rng)
+internal Vec2_I64 dim_rng2_i64(Rng2_I64 rng)
 {
     Vec2_I64 dim = {
         ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
         ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
     };
     return dim;
+}
+internal Vec2_I64 center_rng2_i64(Rng2_I64 rng)
+{
+    Vec2_I64 center = {(rng.min.x+rng.max.x)/2, (rng.min.y+rng.max.y)/2};
+    return center;
 }
 
 // ak: 2 Rng F32
@@ -616,13 +696,18 @@ internal Rng2_F32 rng2_f32(Vec2_F32 min, Vec2_F32 max)
     Rng2_F32 rng = {min, max};
     return rng;
 }
-internal Vec2_F32 dim2_f32(Rng2_F32 rng)
+internal Vec2_F32 dim_rng2_f32(Rng2_F32 rng)
 {
     Vec2_F32 dim = {
         ((rng.max.x > rng.min.x) ? (rng.max.x - rng.min.x) : 0),
         ((rng.max.y > rng.min.y) ? (rng.max.y - rng.min.y) : 0)
     };
     return dim;
+}
+internal Vec2_F32 center_rng2_f32(Rng2_F32 rng)
+{
+    Vec2_F32 center = {(rng.min.x+rng.max.x)/2, (rng.min.y+rng.max.y)/2};
+    return center;
 }
 
 // ak: Random-number generation

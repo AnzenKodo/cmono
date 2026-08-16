@@ -29,13 +29,13 @@ internal bool char_is_alpha(uint8_t c)
 }
 internal bool char_is_digit(uint8_t c, uint32_t base)
 {
-    bool result = 0;
+    bool result = false;
     if (0 < base && base <= 16)
     {
         uint8_t val = integer_symbol_reverse[c];
         if (val < base)
         {
-            result = 1;
+            result = true;
         }
     }
     return result;
@@ -100,7 +100,7 @@ internal size_t cstr32_length(uint32_t *cstr)
 
 internal Str8 str8_zero(void)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     return result;
 }
 internal Str8 str8_init(uint8_t *cstr, size_t size)
@@ -176,10 +176,10 @@ internal Str8 backslashed_from_str8(Str8 string, Arena *arena)
 
 internal bool str8_match(Str8 a, Str8 b, Str_Match_Flags flags)
 {
-    bool result = 0;
-    if (a.length == b.length && flags == 0)
+    bool result = false;
+    if (a.length == b.length && flags == Str_Match_Flag_None)
     {
-        result = mem_match(a.cstr, b.cstr, b.length);
+        result = MemMatch(a.cstr, b.cstr, b.length);
     }
     else if (a.length == b.length || (flags & Str_Match_Flag_RightSideSloppy))
     {
@@ -203,7 +203,7 @@ internal bool str8_match(Str8 a, Str8 b, Str_Match_Flags flags)
             }
             if (at != bt)
             {
-                result = 0;
+                result = false;
                 break;
             }
         }
@@ -214,7 +214,7 @@ internal bool str8_match(Str8 a, Str8 b, Str_Match_Flags flags)
 internal bool str8_ends_with(Str8 str, Str8 end)
 {
     Str8 postfix = str8_postfix(str, end.length);
-    bool is_match = str8_match(end, postfix, 0);
+    bool is_match = str8_match(end, postfix, Str_Match_Flag_None);
     return is_match;
 }
 
@@ -227,7 +227,7 @@ internal size_t str8_find_substr(Str8 str, size_t start_pos, Str8 substr, Str_Ma
     {
         uint8_t *string_opl = str.cstr + str.length;
         Str8 needle_tail = str8_skip(substr, 1);
-        Str_Match_Flags adjusted_flags = flags | Str_Match_Flag_RightSideSloppy;
+        Str_Match_Flags adjusted_flags = (Str_Match_Flags)(flags | Str_Match_Flag_RightSideSloppy);
         uint8_t needle_first_char_adjusted = substr.cstr[0];
         if (adjusted_flags & Str_Match_Flag_CaseInsensitive)
         {
@@ -262,7 +262,7 @@ internal size_t str8_find_substr_reverse(Str8 str, size_t start_pos, Str8 substr
     size_t result = 0;
     for (int64_t i = str.length - start_pos - substr.length; i >= 0; --i)
     {
-        Str8 haystack = str8_substr(str, (Rng1_U64){i, i + substr.length});
+        Str8 haystack = str8_substr(str, (Rng1_U64){(uint64_t)i, (uint64_t)(i + substr.length)});
         if (str8_match(haystack, substr, flags))
         {
             result = (size_t)i + substr.length;
@@ -280,7 +280,7 @@ internal Str8 str8_substr(Str8 str, Rng1_U64 range)
     range.min = Min(range.min, str.length);
     range.max = Min(range.max, str.length);
     str.cstr += range.min;
-    str.length = dim1(range);
+    str.length = dim_rng1(range);
     return(str);
 }
 
@@ -358,17 +358,17 @@ internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2)
 
 internal bool str8_is_integer(Str8 str, size_t radix)
 {
-  bool result = false;
-  Str8 sign = str8_prefix(str, 1);
-  if (str8_match(sign, str8("-"), 0))
-  {
-    result = str8_is_integer_unsigned(str8_skip(str, 1), radix);
-  }
-  else
-  {
-    result = str8_is_integer_unsigned(str, radix);
-  }
-  return result;
+    bool result = false;
+    Str8 sign = str8_prefix(str, 1);
+    if (str8_match(sign, str8("-"), Str_Match_Flag_None))
+    {
+        result = str8_is_integer_unsigned(str8_skip(str, 1), radix);
+    }
+    else
+    {
+        result = str8_is_integer_unsigned(str, radix);
+    }
+    return result;
 }
 
 
@@ -489,7 +489,7 @@ internal bool try_u64_from_str8_c_rules(Str8 string, uint64_t *x)
 
 internal bool try_s64_from_str8_c_rules(Str8 string, int64_t  *x)
 {
-    Str8 string_tail    = ZERO_STRUCT;
+    Str8 string_tail    = STRUCT_ZERO;
     int64_t  sign       = sign_from_str8(string, &string_tail);
     uint64_t x_u64      = 0;
     bool     is_integer = try_u64_from_str8_c_rules(string_tail, &x_u64);
@@ -603,12 +603,12 @@ internal double f64_from_str8(Str8 str)
 
 internal bool str8_is_bool(Str8 str)
 {
-    bool result = str8_match(str, str8("true"), 0) || str8_match(str, str8("false"), 0);
+    bool result = str8_match(str, str8("true"), Str_Match_Flag_None) || str8_match(str, str8("false"), Str_Match_Flag_None);
     return result;
 }
 internal bool bool_from_str8(Str8 str)
 {
-    bool result = str8_match(str, str8("true"), 0) ? true : false;
+    bool result = str8_match(str, str8("true"), Str_Match_Flag_None) ? true : false;
     return result;
 }
 
@@ -631,7 +631,7 @@ internal Str8_Node* str8_list_push(Arena *arena, Str8_List *list, Str8 str)
     return node;
 }
 
-internal Str8_Node* str8_list_pushf(Arena *arena, Str8_List *list, char *fmt, ...)
+internal Str8_Node* str8_list_pushf(Arena *arena, Str8_List *list, const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -741,7 +741,7 @@ internal Str8 str8_skip_last_dot(Str8 string)
 
 internal Str8_List str8_split_path(Arena *arena, Str8 string)
 {
-    Str8_List result = str8_split(arena, string, (uint8_t*)"/\\", 2, 0);
+    Str8_List result = str8_split(arena, string, (uint8_t*)"/\\", 2, Str_Split_Flag_None);
     return result;
 }
 
@@ -751,7 +751,7 @@ internal Str8_List str8_split_path(Arena *arena, Str8 string)
 
 internal Str8_List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags)
 {
-    Str8_List list = ZERO_STRUCT;
+    Str8_List list = STRUCT_ZERO;
     bool keep_empties = (flags & Str_Split_Flag_KeepEmpties);
     uint8_t *ptr = str.cstr;
     uint8_t *opl = str.cstr + str.length;
@@ -787,7 +787,7 @@ internal Str8_List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size
 
 internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_params)
 {
-    Str_Join join = ZERO_STRUCT;
+    Str_Join join = STRUCT_ZERO;
     if (optional_params != 0)
     {
         MemCopyStruct(&join, optional_params);
@@ -832,9 +832,9 @@ internal Str8 str8_copy(Arena *arena, Str8 s)
     return(str);
 }
 
-internal Str8 str8fv(Arena *arena, char *format, va_list args)
+internal Str8 str8fv(Arena *arena, const char *format, va_list args)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     va_list args_copy;
     va_copy(args_copy, args);
         uint32_t needed = fmt_vsnprintf(0, 0, format, args) + 1;
@@ -846,7 +846,7 @@ internal Str8 str8fv(Arena *arena, char *format, va_list args)
     return result;
 }
 
-internal Str8 str8f(Arena *arena, char *format, ...)
+internal Str8 str8f(Arena *arena, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -992,7 +992,7 @@ internal uint32_t utf8_from_utf32_single(uint8_t *buffer, uint32_t character)
 
 internal Str8 str8_from_16(Arena *arena, Str16 in)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     if (in.length)
     {
         size_t cap = in.length*3;
@@ -1015,7 +1015,7 @@ internal Str8 str8_from_16(Arena *arena, Str16 in)
 
 internal Str16 str16_from_8(Arena *arena, Str8 in)
 {
-    Str16 result = ZERO_STRUCT;
+    Str16 result = STRUCT_ZERO;
     if (in.length)
     {
         size_t cap = in.length*2;
@@ -1038,7 +1038,7 @@ internal Str16 str16_from_8(Arena *arena, Str8 in)
 
 internal Str8 str8_from_32(Arena *arena, Str32 in)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     if (in.length)
     {
         size_t cap = in.length*4;
@@ -1059,7 +1059,7 @@ internal Str8 str8_from_32(Arena *arena, Str32 in)
 
 internal Str32 str32_from_8(Arena *arena, Str8 in)
 {
-    Str32 result = ZERO_STRUCT;
+    Str32 result = STRUCT_ZERO;
     if (in.length)
     {
         size_t cap = in.length;
@@ -1088,7 +1088,7 @@ internal Str8 indented_from_string(Str8 string, size_t size, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
     read_only local_persist uint8_t indentation_bytes[] = "                                                                                                                                ";
-    Str8_List indented_strings = ZERO_STRUCT;
+    Str8_List indented_strings = STRUCT_ZERO;
     int64_t depth = 0;
     int64_t next_depth = 0;
     size_t line_begin_off = 0;
@@ -1134,7 +1134,7 @@ internal Str8 indented_from_string(Str8 string, size_t size, Arena *arena)
 internal Str8 raw_from_escaped_str8(Str8 string, Arena *arena)
 {
     Arena_Temp scratch = arena_scratch_begin(&arena, 1);
-    Str8_List strs = ZERO_STRUCT;
+    Str8_List strs = STRUCT_ZERO;
     size_t start = 0;
     for (size_t index = 0; index <= string.length; index += 1)
     {
