@@ -145,6 +145,6 @@ internal void os_main(void);
 //~ ak: Global Variables
 //=============================================================================
 
-global _Os_Core_State _os_core_state = ZERO_STRUCT;
+global _Os_Core_State _os_core_state = STRUCT_ZERO;
 
 #endif // OS_CORE_H

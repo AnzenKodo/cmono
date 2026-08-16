@@ -3,7 +3,7 @@
 
 internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec)
 {
-    DateTime dt = ZERO_STRUCT;
+    DateTime dt = STRUCT_ZERO;
     dt.sec  = in.tm_sec;
     dt.min  = in.tm_min;
     dt.hour = in.tm_hour;
@@ -18,7 +18,7 @@ internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in)
 {
     DenseTime result = 0;
     {
-        struct tm tm_time = ZERO_STRUCT;
+        struct tm tm_time = STRUCT_ZERO;
         gmtime_r(&in.tv_sec, &tm_time);
         DateTime date_time = _os_linux_date_time_from_tm(
             tm_time, in.tv_nsec/Million(1)
@@ -30,7 +30,7 @@ internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in)
 
 internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s)
 {
-    Os_File_Properties props = ZERO_STRUCT;
+    Os_File_Properties props = STRUCT_ZERO;
     props.size     = s->st_size;
     props.created  = _os_linux_dense_time_from_timespec(s->st_ctim);
     props.modified = _os_linux_dense_time_from_timespec(s->st_mtim);
@@ -118,7 +118,7 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     }
     if (share_mode)
     {
-        struct flock lock = ZERO_STRUCT;
+        struct flock lock = STRUCT_ZERO;
         lock.l_type = share_mode;
         lock.l_start = 0;
         lock.l_whence = SEEK_SET;
@@ -135,7 +135,7 @@ internal void os_file_close(Os_File file)
 
 internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 {
-    size_t total_num_bytes_to_read = dim1(rng);
+    size_t total_num_bytes_to_read = dim_rng1(rng);
     size_t total_num_bytes_read = 0;
     size_t total_num_bytes_left_to_read = total_num_bytes_to_read;
     while (total_num_bytes_left_to_read > 0)
@@ -159,7 +159,7 @@ internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 
 internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
 {
-    size_t total_num_bytes_to_write = dim1(rng);
+    size_t total_num_bytes_to_write = dim_rng1(rng);
     size_t total_num_bytes_written = 0;
     size_t total_num_bytes_left_to_write = total_num_bytes_to_write;
     while (total_num_bytes_left_to_write > 0)
@@ -189,9 +189,9 @@ internal size_t os_file_write_append(Os_File file, void *data, size_t size)
 
 internal Os_File_Properties os_file_properties(Os_File file)
 {
-    struct stat fd_stat = ZERO_STRUCT;
+    struct stat fd_stat = STRUCT_ZERO;
     int fstat_result = fstat(file, &fd_stat);
-    Os_File_Properties props = ZERO_STRUCT;
+    Os_File_Properties props = STRUCT_ZERO;
     if (fstat_result != -1)
     {
         props = _os_linux_file_properties_from_stat(&fd_stat);
@@ -237,7 +237,7 @@ internal bool os_file_walk_next(Arena *arena, Os_File_Walk *walk, Os_File_Info *
         linux_walk->dp = readdir(linux_walk->dir);
         good = (linux_walk->dp != 0);
         //- ak: unpack entry info
-        struct stat st = ZERO_STRUCT;
+        struct stat st = STRUCT_ZERO;
         int stat_result = 0;
         if (good)
         {
@@ -307,10 +307,9 @@ internal uint64_t os_now_us(void)
 
 internal void os_sleep_us(uint64_t micosec)
 {
-    struct timespec ts = {
-        .tv_sec = micosec / Million(1),
-        .tv_nsec = (micosec % Million(1)) * Thousand(1),
-    };
+    struct timespec ts;
+    ts.tv_sec = (time_t)(micosec / Million(1));
+    ts.tv_nsec = (long)((micosec % Million(1)) * Thousand(1));
     nanosleep(&ts, NULL);
 }
 
@@ -337,9 +336,9 @@ internal bool os_env_is_set(Str8 name)
     for (char **e = environ; *e != NULL; e++)
     {
         Str8 env = str8_from_cstr(*e);
-        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), 0);
+        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), Str_Match_Flag_None);
         Str8 env_name = str8_prefix(env, equal_pos);
-        if (str8_match(env_name, name, 0))
+        if (str8_match(env_name, name, Str_Match_Flag_None))
         {
             result = true;
         }
@@ -349,11 +348,11 @@ internal bool os_env_is_set(Str8 name)
 
 internal Str8 os_env_get(Str8 name)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     for (char **e = environ; *e != NULL; e++)
     {
         Str8 env = str8_from_cstr(*e);
-        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), 0);
+        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), Str_Match_Flag_None);
         if (os_env_is_set(name))
         {
             result = str8_skip(env, equal_pos+1);
@@ -368,7 +367,7 @@ internal Str8 os_env_get(Str8 name)
 int main(int argc, char *argv[])
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
-    _os_core_state.args = array_alloc(scratch.arena, Str8_Array, argc);
+    _os_core_state.args = array_alloc(scratch.arena, Str8_Array, (size_t)argc);
     for (int i = 0; i < argc; i++)
     {
         Str8 str = str8_from_cstr(argv[i]);

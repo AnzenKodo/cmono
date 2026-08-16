@@ -81,6 +81,6 @@ internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in
 // ak: Global Variables
 //=============================================================================
 
-global _OS_Win32_State _os_win32_state = ZERO_STRUCT;
+global _OS_Win32_State _os_win32_state = STRUCT_ZERO;
 
 #endif // OS_WINDOWS_H

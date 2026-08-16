@@ -25,7 +25,7 @@ internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 {
     size_t pre_pos = arena_pos(arena);
     Str8 result;
-    result.length = dim1(range);
+    result.length = dim_rng1(range);
     result.cstr = arena_push(arena, uint8_t, result.length);
     size_t actual_read_size = os_file_read(file, range, result.cstr);
     if (actual_read_size < result.length)
@@ -38,7 +38,7 @@ internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 
 internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     Os_File_Properties prop = os_file_properties(file);
     result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
     return result;
@@ -46,7 +46,7 @@ internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
 
 internal Str8 os_path_read_str(Str8 path, Rng1_U64 range, Arena *arena)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     Os_File file = os_file_open(path, Os_AccessFlag_Read|Os_AccessFlag_ShareRead);
     result = os_file_read_str(file, range, arena);
     os_file_close(file);
@@ -55,7 +55,7 @@ internal Str8 os_path_read_str(Str8 path, Rng1_U64 range, Arena *arena)
 
 internal Str8 os_path_read_str_full(Str8 path, Arena *arena)
 {
-    Str8 result = ZERO_STRUCT;
+    Str8 result = STRUCT_ZERO;
     Os_File file = os_file_open(path, Os_AccessFlag_Read|Os_AccessFlag_ShareRead);
     Os_File_Properties prop = os_file_properties(file);
     result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
@@ -68,7 +68,7 @@ internal Str8 os_path_read_str_full(Str8 path, Arena *arena)
 internal bool os_dir_ensure(Str8 path)
 {
     bool result = os_is_dir_exist(path);
-    if (!result) 
+    if (!result)
     {
         result = os_dir_make(path);
     }
