@@ -3,7 +3,7 @@
 
 internal Wl_Window wl_window_zero(void)
 {
-    Wl_Window window = ZERO_STRUCT;
+    Wl_Window window = STRUCT_ZERO;
     return window;
 }
 

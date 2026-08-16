@@ -107,7 +107,7 @@ internal Wl_Window wl_window_open(Str8 title)
     
     // ak: create window
     int mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-    int value_list[] = {
+    uint32_t value_list[] = {
         _wl_x11_state->screen->black_pixel,
 		XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS |
 		XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION |
@@ -153,8 +153,8 @@ internal Wl_Window wl_window_open(Str8 title)
     // ak: get display size
     _wl_core_state.display_rect = rng2p(
         0.f, 0.f,
-        _wl_x11_state->screen->width_in_pixels,
-        _wl_x11_state->screen->height_in_pixels);
+        (float)_wl_x11_state->screen->width_in_pixels,
+        (float)_wl_x11_state->screen->height_in_pixels);
     window_os->rect = rng2p(0.0f, 0.0f, (float)width, (float)height);
      
     // ak: convert to handle & return
@@ -175,7 +175,7 @@ internal void wl_window_close(Wl_Window window)
 
 internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
 {
-    Wl_Event_List events = {0};
+    Wl_Event_List events = STRUCT_ZERO;
     for(;;)
     {
         // ak: 1. check if we have events waiting in the queue.
@@ -188,11 +188,13 @@ internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
             {
                 {
                     .fd = xcb_get_file_descriptor(_wl_x11_state->connection),
-                    .events = POLLIN
+                    .events = POLLIN,
+                    .revents = 0
                 },
                 {
                     .fd = _wl_x11_state->wakeup_fd,
-                    .events = POLLIN
+                    .events = POLLIN,
+                    .revents = 0
                 },
             };
 
@@ -224,17 +226,17 @@ internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
                 {
                     xcb_key_press_event_t *key_event = (xcb_key_press_event_t *)event;
                     // ak: map modifiers
-                    Wl_Modifiers modifiers = 0;
+                    Wl_Modifiers modifiers = Wl_Modifier_None;
                     if(key_event->state & XCB_MOD_MASK_SHIFT)
                     {
-                        modifiers |= Wl_Modifier_Shift;
+                        modifiers = (Wl_Modifiers)(modifiers | Wl_Modifier_Shift);
                     }
                     if(key_event->state & XCB_MOD_MASK_CONTROL)
                     {
-                        modifiers |= Wl_Modifier_Ctrl;
+                        modifiers = (Wl_Modifiers)(modifiers | Wl_Modifier_Ctrl);
                     }
                     if(key_event->state & XCB_MOD_MASK_1) {
-                        modifiers |= Wl_Modifier_Alt;
+                        modifiers = (Wl_Modifiers)(modifiers | Wl_Modifier_Alt);
                     }
                     // ak: map raw keycode to standard keysym using xcb-keysyms
                     xcb_keysym_t keysym = xcb_key_symbols_get_keysym(_wl_x11_state->key_symbols, key_event->detail, 0);
@@ -251,7 +253,7 @@ internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
                             }
                             else if('0' <= keysym && keysym <= '9')
                             {
-                                key = Wl_Key_0 + (keysym-'0');
+                                key = (Wl_Key)(Wl_Key_0 + (keysym - '0'));
                             }
                         } break;
                         case XK_Escape:    { key = Wl_Key_Esc;          }; break;
@@ -332,18 +334,18 @@ internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
                 {
                     xcb_button_press_event_t *button_event = (xcb_button_press_event_t *)event;
                     // ak: Map modifiers
-                    Wl_Modifiers modifiers = 0;
+                    Wl_Modifiers modifiers = Wl_Modifier_None;
                     if(button_event->state & XCB_MOD_MASK_SHIFT)
                     {
-                        modifiers |= Wl_Modifier_Shift;
+                        modifiers = (Wl_Modifiers)(modifiers | Wl_Modifier_Shift);
                     }
                     if(button_event->state & XCB_MOD_MASK_CONTROL)
                     {
-                        modifiers |= Wl_Modifier_Ctrl;
+                        modifiers = (Wl_Modifiers)(modifiers | Wl_Modifier_Ctrl);
                     }
                     if(button_event->state & XCB_MOD_MASK_1)
                     {
-                        modifiers |= Wl_Modifier_Alt;
+                        modifiers = (Wl_Modifiers)(modifiers | Wl_Modifier_Alt);
                     }
                     Wl_Key key = Wl_Key_Null;
                     switch(button_event->detail)
@@ -506,7 +508,7 @@ internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y)
     
     xcb_configure_window(_wl_x11_state->connection, window_os->xwindow,
         XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
-        (int[2]){ x, y });
+        (int[2]){ (int)x, (int)y });
     xcb_flush(_wl_x11_state->connection);
 }
 
@@ -539,7 +541,7 @@ internal void wl_window_border_set(Wl_Window window, bool enable)
         uint32_t decorations;
         int32_t  input_mode;
         uint32_t status;
-    } hints = ZERO_STRUCT;
+    } hints = STRUCT_ZERO;
 	hints.flags = 2;
 	hints.decorations = enable;
     xcb_change_property(_wl_x11_state->connection, XCB_PROP_MODE_REPLACE, window_os->xwindow, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32, 5, &hints);
@@ -549,7 +551,7 @@ internal void wl_window_border_set(Wl_Window window, bool enable)
 // ak: software render
 //=============================================================================
 
-internal void wl_render_init(Wl_Window window, void *buffer)
+internal void wl_render_init(Wl_Window window, uint8_t *buffer)
 {
     if (wl_window_match(window, wl_window_zero())){return;}
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
@@ -604,9 +606,14 @@ internal void wl_render_init(Wl_Window window, void *buffer)
         _wl_x11_state->pixmap_format->scanline_pad,
         _wl_x11_state->pixmap_format->depth,
         _wl_x11_state->pixmap_format->bits_per_pixel, 0,
-        xcb_get_setup(_wl_x11_state->connection)->image_byte_order,
+        (xcb_image_order_t)xcb_get_setup(_wl_x11_state->connection)->image_byte_order,
         XCB_IMAGE_ORDER_LSB_FIRST,
-        window_os->pixels_buffer, sizeof(*window_os->pixels_buffer), window_os->pixels_buffer
+        window_os->pixels_buffer,
+        // NOTE(ak):
+        // Here was `sizeof(*window_os->pixels_buffer)` but changed to 1,
+        // because in C, GCC has a non-standard extension where `sizeof(void) == 1`.
+        1,
+        window_os->pixels_buffer
     );
     xcb_flush(_wl_x11_state->connection);
 }

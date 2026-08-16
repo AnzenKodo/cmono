@@ -4,6 +4,8 @@
 // ak: External Includes
 //=============================================================================
 
+#pragma push_macro("read_only")
+#undef read_only
 #include <xcb/xcb.h>
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_image.h>
@@ -11,7 +13,7 @@
 #include <xcb/sync.h>
 #include <poll.h>
 #include <sys/eventfd.h>
-
+#pragma pop_macro("read_only")
 // ak: Types
 //=============================================================================
 
@@ -25,7 +27,7 @@ struct _Wl_X11_Window
     uint64_t counter_value;
     xcb_sync_counter_t counter_xid;
     xcb_image_t *image;
-    void *pixels_buffer;
+    uint8_t *pixels_buffer;
 };
 
 typedef struct _Wl_X11_State _Wl_X11_State;

@@ -12,8 +12,7 @@ struct Wl_Window
     uint64_t u64[1];
 };
 
-typedef enum Wl_Event_Kind Wl_Event_Kind;
-enum Wl_Event_Kind
+typedef enum Wl_Event_Kind
 {
     Wl_Event_Kind_Null,
     Wl_Event_Kind_Press,
@@ -27,19 +26,20 @@ enum Wl_Event_Kind
     Wl_Event_Kind_FileDrop,
     Wl_Event_Kind_Wakeup,
     Wl_Event_Kind_COUNT
-};
+}
+Wl_Event_Kind;
 
-typedef enum Wl_Modifiers Wl_Modifiers;
-enum Wl_Modifiers
+typedef enum Wl_Modifiers
 {
-    Wl_Modifier_Ctrl  = (1<<0),
-    Wl_Modifier_Shift = (1<<1),
-    Wl_Modifier_Alt   = (1<<2),
+    Wl_Modifier_None   = 0,
+    Wl_Modifier_Ctrl   = (1<<0),
+    Wl_Modifier_Shift  = (1<<1),
+    Wl_Modifier_Alt    = (1<<2),
     Wl_Modifier_Window = (1<<3),
-};
+}
+Wl_Modifiers;
 
-typedef enum Wl_Key Wl_Key;
-enum Wl_Key
+typedef enum Wl_Key
 {
     Wl_Key_Null,
     Wl_Key_Esc,
@@ -195,7 +195,8 @@ enum Wl_Key
     Wl_Key_MiddleMouseButton,
     Wl_Key_RightMouseButton,
     Wl_Key_COUNT,
-};
+}
+Wl_Key;
 
 typedef struct Wl_Event Wl_Event;
 struct Wl_Event
@@ -281,7 +282,7 @@ internal void wl_window_border_set(Wl_Window window, bool enable);
 
 // ak: Software render ========================================================
 
-internal void wl_render_init(Wl_Window window, void *render_buffer);
+internal void wl_render_init(Wl_Window window, uint8_t *render_buffer);
 internal void wl_render_deinit(void);
 internal void wl_render_begin(Wl_Window window);
 internal void wl_render_end(void);
@@ -289,6 +290,6 @@ internal void wl_render_end(void);
 // ak: Global variables
 //=============================================================================
 
-global _Wl_Core_State _wl_core_state = ZERO_STRUCT;
+global _Wl_Core_State _wl_core_state = STRUCT_ZERO;
 
 #endif // WINDOW_LAYER_CORE_H

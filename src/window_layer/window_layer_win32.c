@@ -110,7 +110,7 @@ internal WPARAM _os_win32_vkey_from_os_key(Wl_Key key)
     WPARAM result = 0;
     {
         local_persist int32_t initialized = 0;
-        local_persist WPARAM vkey_table[Wl_Key_COUNT] = ZERO_STRUCT;
+        local_persist WPARAM vkey_table[Wl_Key_COUNT] = STRUCT_ZERO;
         if (initialized == 0)
         {
             initialized = 1;
@@ -334,7 +334,7 @@ internal void wl_init(void)
     _wl_win32_state->arena = arena;
     _wl_win32_state->instance = GetModuleHandle(0);
     
-    //- rjf: set dpi awareness
+    // ak: set dpi awareness
     w32_SetProcessDpiAwarenessContext_Type *SetProcessDpiAwarenessContext_func = 0;
     HMODULE module = LoadLibraryA("user32.dll");
     if(module != 0)
@@ -400,7 +400,7 @@ internal Wl_Handle wl_window_open(Str8 title, unsigned int width, unsigned int h
         arena_scratch_end(scratch);
     }
 
-    //- rjf- make/fill window
+    // ak: make/fill window
     OS_W32_Window *window = os_w32_window_alloc();
     {
         window->hwnd = hwnd;
@@ -415,7 +415,7 @@ internal Wl_Handle wl_window_open(Str8 title, unsigned int width, unsigned int h
         }
     }
 
-    //- rjf: convert to handle + return
+    // ak: convert to handle + return
     OS_Handle result = os_w32_handle_from_window(window);
     return result;
 }
@@ -430,9 +430,9 @@ internal void wl_window_close(void)
 
 internal Wl_Event wl_get_event(void)
 {
-    Wl_Event event = ZERO_STRUCT;
+    Wl_Event event = STRUCT_ZERO;
     bool release = 0;
-    MSG msg = ZERO_STRUCT;
+    MSG msg = STRUCT_ZERO;
     if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
         switch(msg.message)
@@ -616,7 +616,7 @@ internal void wl_window_icon_set_raw(uint32_t *icon_data, uint32_t width, uint32
     HDC hdc = GetDC(NULL);
     if (!hdc) return;
 
-    BITMAPINFO bmi = ZERO_STRUCT;
+    BITMAPINFO bmi = STRUCT_ZERO;
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = (LONG)width;
     bmi.bmiHeader.biHeight = -(LONG)height;  // Top-down DIB
