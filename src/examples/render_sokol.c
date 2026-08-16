@@ -330,7 +330,7 @@ static const char *_render_sokol_tri_vk_fs_src =
 // ak: Internal globals
 // ============================================================================
 
-global _Render_Sokol_State *_render_sokol_state = ZERO_STRUCT;
+global _Render_Sokol_State *_render_sokol_state = STRUCT_ZERO;
 
 // ============================================================================
 // ak: Sokol logger

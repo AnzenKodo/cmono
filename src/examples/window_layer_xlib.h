@@ -18,7 +18,7 @@ struct Wl_Linux_State {
 
 // Global Variables
 //=============================================================================
-global Wl_Linux_State wl_linux_state = ZERO_STRUCT;
+global Wl_Linux_State wl_linux_state = STRUCT_ZERO;
 
 // Function Declarations
 //=============================================================================

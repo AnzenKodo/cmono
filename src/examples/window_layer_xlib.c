@@ -8,7 +8,7 @@ internal void wl_window_open(Str8 title, U32 win_width, U32 win_height)
     Display *display = XOpenDisplay(NULL);
 
     // Visula Info ============================================================
-    XVisualInfo visual_info = ZERO_STRUCT;
+    XVisualInfo visual_info = STRUCT_ZERO;
     render_set_wl_linux_visual_info(&visual_info, display);
 
     // Window Attributes ======================================================
@@ -86,11 +86,11 @@ internal void wl_update_events(void)
 
 internal Wl_Event wl_get_event(void)
 {
-    Wl_Event event = ZERO_STRUCT;
+    Wl_Event event = STRUCT_ZERO;
     Display *display = wl_linux_state.display;
 
     while (XPending(display) > 0) {
-        XEvent xevent = ZERO_STRUCT;
+        XEvent xevent = STRUCT_ZERO;
         XNextEvent(display, &xevent);
 
         switch(xevent.type)
@@ -195,7 +195,7 @@ internal Wl_Event wl_get_event(void)
                     mod_key = cast(Wl_ModKey)(mod_key | Wl_ModKey_Alt);
                 }
 
-                // rjf: map button -> Wl_Key
+                // ak: map button -> Wl_Key
                 Wl_Key key = Wl_Key_Null;
                 switch(xevent.xbutton.button)
                 {
