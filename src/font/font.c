@@ -1,3 +1,6 @@
+// ak: External Includes
+//=============================================================================
+
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "./external/stb_truetype.h"
 
@@ -8,7 +11,7 @@
 #include "./external/kb_text_shape.h"
 #pragma GCC diagnostic pop
 
-// Font Provider
+// ak: Font Provider
 //=============================================================================
 
 internal void _font_stb_kbts_allocator(void *data, kbts_allocator_op *op)
@@ -21,6 +24,12 @@ internal void _font_stb_kbts_allocator(void *data, kbts_allocator_op *op)
     // ak: FREE is a no-op for arena allocators
 }
 
+internal _Font_Provider_Font *_font_provider_font_from_handle(Font_Handle handle)
+{
+    _Font_Provider_Font *result = (_Font_Provider_Font *)handle.u64[0];
+    return result;
+}
+
 internal Font_Handle font_handle_zero(void)
 {
     return StructZeroType(Font_Handle);
@@ -31,19 +40,13 @@ internal bool font_handle_match(Font_Handle a, Font_Handle b)
     return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
 }
 
-internal _Font_Provider_Font *_font_provider_font_from_handle(Font_Handle handle)
-{
-    _Font_Provider_Font *result = (_Font_Provider_Font *)handle.u64[0];
-    return result;
-}
-
 internal Font_Handle font_handle_from_font(_Font_Provider_Font *font)
 {
     Font_Handle result = {(uint64_t)font};
     return result;
 }
 
-font_hook Font_Handle font_open(Str8 path)
+internal Font_Handle font_open(Str8 path)
 {
     Arena *arena = arena_alloc();
     Str8 file_data = os_path_read_str_full(path, arena);
@@ -75,7 +78,7 @@ font_hook Font_Handle font_open(Str8 path)
     return font_handle_from_font(font);
 }
 
-font_hook Font_Metrics font_provider_metrics_from_font(Font_Handle handle)
+internal Font_Metrics font_provider_metrics_from_font(Font_Handle handle)
 {
     _Font_Provider_Font *font = _font_provider_font_from_handle(handle);
     Font_Metrics result = STRUCT_ZERO;
@@ -103,10 +106,10 @@ font_hook Font_Metrics font_provider_metrics_from_font(Font_Handle handle)
 
 internal Font_Metrics font_provider_metrics_from_tag(Font_Tag tag)
 {
-    size_t slot_idx = tag.u64[1] % font_state->font_hash_table_size;
+    size_t slot_idx = tag.u64[1] % _font_state->font_hash_table_size;
     Font_Hash_Node *existing_node = 0;
     {
-        for (Font_Hash_Node *n = font_state->font_hash_table[slot_idx].first; n != 0 ; n = n->hash_next)
+        for (Font_Hash_Node *n = _font_state->font_hash_table[slot_idx].first; n != 0 ; n = n->hash_next)
         {
             if(MemMatchStruct(&tag, &n->tag))
             {
@@ -123,7 +126,7 @@ internal Font_Metrics font_provider_metrics_from_tag(Font_Tag tag)
     return result;
 }
 
-font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handle, float size, Str8 string)
+internal NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handle, float size, Str8 string)
 {
     _Font_Provider_Font *font = _font_provider_font_from_handle(handle);
     Font_Raster_Result result = STRUCT_ZERO;
@@ -131,24 +134,21 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
     {
         Arena_Temp scratch = arena_scratch_begin(&arena, 1);
         float scale = stbtt_ScaleForMappingEmToPixels(&font->info, (96.f/72.f) * size);
-
+        
         if(string.length == sizeof(uint32_t))
         {
             // ak: single glyph-ID rasterization path
             uint32_t glyph_id = *(uint32_t *)string.cstr;
-
             int advance_raw, lsb;
             stbtt_GetGlyphHMetrics(&font->info, glyph_id, &advance_raw, &lsb);
-
             int x0, y0, x1, y1;
             stbtt_GetGlyphBitmapBox(&font->info, glyph_id, scale, scale, &x0, &y0, &x1, &y1);
             int gw = x1 - x0;
             int gh = y1 - y0;
-
             Vec2_I16 dim = {(int16_t)Max(gw, 1), (int16_t)Max(gh, 1)};
             uint64_t atlas_size = (uint64_t)dim.x * (uint64_t)dim.y * 4;
             uint8_t *atlas = arena_push(arena, uint8_t, atlas_size);
-
+            
             if(gw > 0 && gh > 0)
             {
                 uint8_t *glyph_bmp = arena_push(scratch.arena, uint8_t, gw * gh);
@@ -165,7 +165,7 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
                     }
                 }
             }
-
+            
             result.atlas_dim = dim;
             result.advance   = (float)advance_raw * scale;
             result.atlas     = atlas;
@@ -177,19 +177,19 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
             stbtt_GetFontVMetrics(&font->info, &ascent, &descent, &line_gap);
             int32_t baseline = (int32_t)round_f32((float)ascent * scale);
             int32_t height   = (int32_t)round_f32((float)(ascent - descent + line_gap) * scale);
-
+            
             // ak: shape string
             kbts_shape_context *ctx = kbts_CreateShapeContext(_font_stb_kbts_allocator, scratch.arena);
             kbts_ShapePushFont(ctx, &font->kb_font);
             kbts_ShapeBegin(ctx, KBTS_DIRECTION_DONT_KNOW, KBTS_LANGUAGE_DONT_KNOW);
             kbts_ShapeUtf8(ctx, (const char *)string.cstr, (int)string.length, KBTS_USER_ID_GENERATION_MODE_CODEPOINT_INDEX);
             kbts_ShapeEnd(ctx);
-
+            
             // ak: collect shaped glyphs
             uint32_t glyph_count = 0;
             uint32_t glyph_cap   = 64;
             Font_Shaped_Glyph *glyphs = arena_push(scratch.arena, Font_Shaped_Glyph, glyph_cap);
-
+            
             kbts_run run;
             while(kbts_ShapeRun(ctx, &run))
             {
@@ -213,14 +213,14 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
                     glyph_count += 1;
                 }
             }
-
+            
             // ak: measure total width
             float total_width = 0.f;
             for(uint32_t i = 0; i < glyph_count; i += 1)
             {
                 total_width += glyphs[i].advance_x * scale;
             }
-
+            
             // ak: allocate atlas
             Vec2_I16 dim = {
                 (int16_t)Max((int32_t)round_f32(total_width) + 1, 1),
@@ -228,7 +228,7 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
             };
             size_t atlas_size = (uint64_t)dim.x * (uint64_t)dim.y * 4;
             uint8_t *atlas = arena_push(arena, uint8_t, atlas_size);
-
+            
             // ak: rasterize each glyph
             float cursor_x = 0.f;
             float cursor_y = 0.f;
@@ -237,7 +237,6 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
                 Font_Shaped_Glyph *g = &glyphs[i];
                 float glyph_x = cursor_x + g->offset_x * scale;
                 float glyph_y = cursor_y + (float)baseline - g->offset_y * scale;
-
                 int x0, y0, x1, y1;
                 stbtt_GetGlyphBitmapBox(&font->info, g->id, scale, scale, &x0, &y0, &x1, &y1);
                 int gw = x1 - x0;
@@ -246,7 +245,6 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
                 {
                     uint8_t *glyph_bmp = arena_push(scratch.arena, uint8_t, gw * gh);
                     stbtt_MakeGlyphBitmap(&font->info, glyph_bmp, gw, gh, gw, scale, scale, g->id);
-
                     int32_t start_x = (int32_t)round_f32(glyph_x) + x0;
                     int32_t start_y = (int32_t)round_f32(glyph_y) + y0;
                     for(int32_t row = 0; row < gh; row += 1)
@@ -272,7 +270,6 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
                 cursor_x += g->advance_x * scale;
                 cursor_y += g->advance_y * scale;
             }
-
             result.atlas_dim = dim;
             result.advance   = total_width;
             result.atlas     = atlas;
@@ -282,7 +279,32 @@ font_hook NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handl
     return result;
 }
 
-// Font Cache
+internal Font_Handle font_font_open_from_static_data_string(Str8 *data_ptr)
+{
+    Arena *arena = arena_alloc();
+    _Font_Provider_Font *font = arena_push(arena, _Font_Provider_Font, 1);
+    font->arena     = arena;
+    font->file_data = *data_ptr;
+    
+    int offset = stbtt_GetFontOffsetForIndex(data_ptr->cstr, 0);
+    if(offset < 0) { offset = 0; }
+    if(!stbtt_InitFont(&font->info, data_ptr->cstr, offset))
+    {
+        arena_free(arena);
+        return font_handle_zero();
+    }
+    
+    font->kb_font = kbts_FontFromMemory(data_ptr->cstr, data_ptr->size, 0, _font_stb_kbts_allocator, arena);
+    if(!kbts_FontIsValid(&font->kb_font))
+    {
+        arena_free(arena);
+        return font_handle_zero();
+    }
+    
+    return font_handle_from_font(font);
+}
+
+// ak: Font Cache
 //=============================================================================
 
 // ak: Basic Functions ========================================================
@@ -320,7 +342,7 @@ internal Vec2_I32 font_vertex_from_corner(Corner corner)
     return result;
 }
 
-// Font Tag ===================================================================
+// ak: Font Tag ===============================================================
 
 internal Font_Tag font_tag_zero(void)
 {
@@ -344,12 +366,12 @@ internal Font_Tag font_tag_from_path(Str8 path)
     }
     
     // ak: tag -> slot index
-    uint64_t slot_idx = result.u64[1] % font_state->font_hash_table_size;
+    uint64_t slot_idx = result.u64[1] % _font_state->font_hash_table_size;
     
     // ak: slot * tag -> existing node
     Font_Hash_Node *existing_node = 0;
     {
-        for(Font_Hash_Node *n = font_state->font_hash_table[slot_idx].first; n != 0 ; n = n->hash_next)
+        for(Font_Hash_Node *n = _font_state->font_hash_table[slot_idx].first; n != 0 ; n = n->hash_next)
         {
             if(MemMatchStruct(&result, &n->tag))
             {
@@ -363,12 +385,12 @@ internal Font_Tag font_tag_from_path(Str8 path)
     if (existing_node == 0)
     {
         Font_Handle handle = font_open(path);
-        Font_Hash_Slot *slot = &font_state->font_hash_table[slot_idx];
-        existing_node = arena_push(font_state->arena, Font_Hash_Node, 1);
+        Font_Hash_Slot *slot = &_font_state->font_hash_table[slot_idx];
+        existing_node = arena_push(_font_state->arena, Font_Hash_Node, 1);
         existing_node->tag = result;
         existing_node->handle = handle;
         existing_node->metrics = font_provider_metrics_from_font(existing_node->handle);
-        existing_node->path = str8_copy(font_state->arena, path);
+        existing_node->path = str8_copy(_font_state->arena, path);
         SLLQueuePush_N(slot->first, slot->last, existing_node, hash_next);
     }
     
@@ -377,7 +399,50 @@ internal Font_Tag font_tag_from_path(Str8 path)
     {
         MemSetZeroStruct(&result);
     }
+    
+    // ak: return
+    return result;
+}
 
+internal Font_Tag font_tag_from_static_data_string(Str8 *data_ptr)
+{
+    // ak: produce tag hash of ptr
+    Font_Tag result = STRUCT_ZERO;
+    {
+        U128 hash = font_hash_from_string(str8_init((uint8_t *)&data_ptr, sizeof(Str8 *)));
+        mem_copy(&result, &hash, sizeof(result));
+        result.u64[1] &= ~bit64;
+    }
+    
+    // ak: tag -> slot index
+    size_t slot_idx = result.u64[1] % _font_state->font_hash_table_size;
+    
+    // ak: slot * tag -> existing node
+    Font_Hash_Node *existing_node = 0;
+    {
+        for(Font_Hash_Node *n = _font_state->font_hash_table[slot_idx].first; n != 0 ; n = n->hash_next)
+        {
+            if(MemMatchStruct(&result, &n->tag))
+            {
+                existing_node = n;
+                break;
+            }
+        }
+    }
+    
+    // ak: allocate & push new node if we don't have an existing one
+    Font_Hash_Node *new_node = 0;
+    if(existing_node == 0)
+    {
+        Font_Hash_Slot *slot = &_font_state->font_hash_table[slot_idx];
+        new_node = arena_push(_font_state->arena, Font_Hash_Node, 1);
+        new_node->tag = result;
+        new_node->handle = font_font_open_from_static_data_string(data_ptr);
+        new_node->metrics = font_provider_metrics_from_font(new_node->handle);
+        new_node->path = str8("");
+        SLLQueuePush_N(slot->first, slot->last, new_node, hash_next);
+    }
+    
     // ak: return
     return result;
 }
@@ -398,7 +463,7 @@ internal Font_Metrics font_metrics_from_tag_size(Font_Tag tag, float size)
 }
 
 // ak: Atlas ==================================================================
-//
+
 internal Rng2_I16 font_atlas_region_alloc(Arena *arena, Font_Atlas *atlas, Vec2_I16 needed_size)
 {
     // ak: find node with best-fit size
@@ -424,10 +489,10 @@ internal Rng2_I16 font_atlas_region_alloc(Arena *arena, Font_Atlas *atlas, Vec2_
             {
                 region_sz = n_supported_size;
             }
-
+            
             // ak: calculate size of this node's children
             Vec2_I16 child_size = (Vec2_I16){ (int16_t)(n_supported_size.x/2), (int16_t)(n_supported_size.y/2) };
-
+            
             // ak: find best next child
             Font_Atlas_Region_Node *best_child = 0;
             if(child_size.x >= needed_size.x && child_size.y >= needed_size.y)
@@ -469,7 +534,7 @@ internal Rng2_I16 font_atlas_region_alloc(Arena *arena, Font_Atlas *atlas, Vec2_
             }
         }
     }
-
+    
     // ak: we're taking the subtree rooted by `node`. mark up all parents
     if(node != 0 && node_corner != Corner_Invalid)
     {
@@ -504,7 +569,7 @@ internal Rng2_I16 font_atlas_region_alloc(Arena *arena, Font_Atlas *atlas, Vec2_
             }
         }
     }
-
+    
     // ak: fill rectangular region & return
     Rng2_I16 result = STRUCT_ZERO;
     result.p0 = region_p0;
@@ -516,7 +581,7 @@ internal void font_atlas_region_release(Font_Atlas *atlas, Rng2_I16 region)
 {
     // ak: extract region size
     Vec2_I16 region_size = (Vec2_I16){ (int16_t)(region.x1 - region.x0), (int16_t)(region.y1 - region.y0) };
-
+    
     // ak: map region to associated node
     Vec2_I16 calc_region_size = STRUCT_ZERO;
     Font_Atlas_Region_Node *node = 0;
@@ -614,55 +679,7 @@ internal void font_atlas_region_release(Font_Atlas *atlas, Rng2_I16 region)
     }
 }
 
-// ak: Cache Usage ============================================================
-
-internal Font_Hash_To_Style_Raster_Cache_Node * font_hash_to_style_from_tag_size_flags(Font_Tag tag, float size, Font_Raster_Flags flags)
-{
-    // ak: tag * size -> style hash
-    uint64_t style_hash = STRUCT_ZERO;
-    {
-        double size_f64 = size;
-        uint64_t buffer[] =
-        {
-            tag.u64[0],
-            tag.u64[1],
-            *(uint64_t *)(&size_f64),
-            (uint64_t)flags,
-        };
-        style_hash = font_little_hash_from_string(5381, str8_init((uint8_t *)buffer, sizeof(buffer)));
-    }
-    
-    // ak: style hash -> style node
-    Font_Hash_To_Style_Raster_Cache_Node *hash2style_node = 0;
-    {
-        size_t slot_idx = style_hash%font_state->hash2style_slots_count;
-        Font_Hash_To_Style_Raster_Cache_Slot *slot = &font_state->hash2style_slots[slot_idx];
-        for(Font_Hash_To_Style_Raster_Cache_Node *n = slot->first;
-                n != 0;
-                n = n->hash_next)
-        {
-            if(n->style_hash == style_hash)
-            {
-                hash2style_node = n;
-                break;
-            }
-        }
-        if(Unlikely(hash2style_node == 0))
-        {
-            Font_Metrics metrics = font_metrics_from_tag_size(tag, size);
-            hash2style_node = arena_push(font_state->raster_arena, Font_Hash_To_Style_Raster_Cache_Node, 1);
-            DLLPushBack_NP(slot->first, slot->last, hash2style_node, hash_next, hash_prev);
-            hash2style_node->style_hash = style_hash;
-            hash2style_node->ascent   = metrics.ascent;
-            hash2style_node->descent  = metrics.descent;
-            hash2style_node->utf8_class1_direct_map = arena_push_nz(font_state->raster_arena, Font_Raster_Cache_Info, 256);
-            hash2style_node->hash2info_slots_count = 1024;
-            hash2style_node->hash2info_slots = arena_push(font_state->raster_arena, Font_Hash_To_Info_Raster_Cache_Slot, hash2style_node->hash2info_slots_count);
-        }
-    }
-    
-    return hash2style_node;
-}
+// ak: Piece Type Functions ===================================================
 
 internal Font_Piece_Array font_piece_array_from_chunk_list(Arena *arena, Font_Piece_Chunk_List *list)
 {
@@ -695,24 +712,76 @@ internal Font_Piece *font_piece_chunk_list_push_new(Arena *arena, Font_Piece_Chu
     return result;
 }
 
+// ak: Cache Usage ============================================================
+
+// ak: base cache lookups
+
+internal Font_Hash_To_Style_Raster_Cache_Node * font_hash_to_style_from_tag_size_flags(Font_Tag tag, float size, Font_Raster_Flags flags)
+{
+    // ak: tag * size -> style hash
+    uint64_t style_hash = STRUCT_ZERO;
+    {
+        double size_f64 = size;
+        uint64_t buffer[] =
+        {
+            tag.u64[0],
+            tag.u64[1],
+            *(uint64_t *)(&size_f64),
+            (uint64_t)flags,
+        };
+        style_hash = font_little_hash_from_string(5381, str8_init((uint8_t *)buffer, sizeof(buffer)));
+    }
+    
+    // ak: style hash -> style node
+    Font_Hash_To_Style_Raster_Cache_Node *hash2style_node = 0;
+    {
+        size_t slot_idx = style_hash%_font_state->hash2style_slots_count;
+        Font_Hash_To_Style_Raster_Cache_Slot *slot = &_font_state->hash2style_slots[slot_idx];
+        for(Font_Hash_To_Style_Raster_Cache_Node *n = slot->first;
+                n != 0;
+                n = n->hash_next)
+        {
+            if(n->style_hash == style_hash)
+            {
+                hash2style_node = n;
+                break;
+            }
+        }
+        if(Unlikely(hash2style_node == 0))
+        {
+            Font_Metrics metrics = font_metrics_from_tag_size(tag, size);
+            hash2style_node = arena_push(_font_state->raster_arena, Font_Hash_To_Style_Raster_Cache_Node, 1);
+            DLLPushBack_NP(slot->first, slot->last, hash2style_node, hash_next, hash_prev);
+            hash2style_node->style_hash = style_hash;
+            hash2style_node->ascent   = metrics.ascent;
+            hash2style_node->descent  = metrics.descent;
+            hash2style_node->utf8_class1_direct_map = arena_push_nz(_font_state->raster_arena, Font_Raster_Cache_Info, 256);
+            hash2style_node->hash2info_slots_count = 1024;
+            hash2style_node->hash2info_slots = arena_push(_font_state->raster_arena, Font_Hash_To_Info_Raster_Cache_Slot, hash2style_node->hash2info_slots_count);
+        }
+    }
+    
+    return hash2style_node;
+}
+
 internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_align_px, float tab_size_px, Font_Raster_Flags flags, Str8 string)
 {
     // ak: map tag/size to style node
     Font_Hash_To_Style_Raster_Cache_Node *hash2style_node = font_hash_to_style_from_tag_size_flags(tag, size, flags);
-
+    
     // ak: set up this style's run cache if needed
-    if(hash2style_node->run_slots_frame_index != font_state->frame_index)
+    if(hash2style_node->run_slots_frame_index != _font_state->frame_index)
     {
         hash2style_node->run_slots_count = 1024;
-        hash2style_node->run_slots = arena_push(font_state->frame_arena, Font_Run_Cache_Slot, hash2style_node->run_slots_count);
-        hash2style_node->run_slots_frame_index = font_state->frame_index;
+        hash2style_node->run_slots = arena_push(_font_state->frame_arena, Font_Run_Cache_Slot, hash2style_node->run_slots_count);
+        hash2style_node->run_slots_frame_index = _font_state->frame_index;
     }
-
+    
     // ak: unpack run params
     uint64_t run_hash = font_little_hash_from_string(5381, string);
     size_t run_slot_idx = run_hash%hash2style_node->run_slots_count;
     Font_Run_Cache_Slot *run_slot = &hash2style_node->run_slots[run_slot_idx];
-
+    
     // ak: find existing run node for this string
     Font_Run_Cache_Node *run_node = 0;
     {
@@ -725,7 +794,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
             }
         }
     }
-
+    
     // ak: no run node? -> cache miss - compute & build & fill node if possible
     bool run_is_cacheable = 1;
     Font_Run run = STRUCT_ZERO;
@@ -767,18 +836,18 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                     need_another_codepoint = 0;
                 } break;
             }
-
+            
             // ak: need another codepoint, or have no substring? -> continue
             if(need_another_codepoint || piece_substring_end_idx == piece_substring_start_idx)
             {
                 continue;
             }
-
+            
             // ak: do not need another codepoint? -> grab substring, bump piece start idx
             Str8 piece_substring = str8_substr(string, rng1(piece_substring_start_idx, piece_substring_end_idx));
             piece_substring_start_idx = idx;
             piece_substring_end_idx = idx;
-
+            
             // ak: determine if this piece is a tab - if so, use space info to draw
             bool is_tab = (piece_substring.length == 1 && piece_substring.cstr[0] == '\t');
             if (is_tab)
@@ -786,7 +855,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                 run_is_cacheable = 0;
                 piece_substring = str8(" ");
             }
-
+            
             // ak: piece substring -> raster cache info
             Font_Raster_Cache_Info *info = 0;
             uint64_t piece_hash = 0;
@@ -796,7 +865,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                 {
                     info = &hash2style_node->utf8_class1_direct_map[piece_substring.cstr[0]];
                 }
-
+                
                 // ak: more general, slower path for other glyphs
                 if (piece_substring.length > 1)
                 {
@@ -813,24 +882,24 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                     }
                 }
             }
-
+            
             // ak: no info found -> miss... fill this hash in the cache
             if (info == 0)
             {
                 Arena_Temp scratch = arena_scratch_begin(0, 0);
-
+                
                 // ak: grab font handle for this tag if we don't have one already
                 if(font_handle_mapped_on_miss == 0)
                 {
                     font_handle_mapped_on_miss = 1;
-
+                    
                     // ak: tag -> font slot index
-                    size_t font_slot_idx = tag.u64[1] % font_state->font_hash_table_size;
-
+                    size_t font_slot_idx = tag.u64[1] % _font_state->font_hash_table_size;
+                    
                     // ak: tag * slot -> existing node
                     Font_Hash_Node *existing_node = 0;
                     {
-                        for (Font_Hash_Node *n = font_state->font_hash_table[font_slot_idx].first; n != 0 ; n = n->hash_next)
+                        for (Font_Hash_Node *n = _font_state->font_hash_table[font_slot_idx].first; n != 0 ; n = n->hash_next)
                         {
                             if(MemMatchStruct(&n->tag, &tag))
                             {
@@ -839,21 +908,21 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                             }
                         }
                     }
-
+                    
                     // ak: existing node -> font handle
                     if(existing_node != 0)
                     {
                         font_handle = existing_node->handle;
                     }
                 }
-
+                
                 // ak: call into font provider to rasterize this substring
                 Font_Raster_Result raster = STRUCT_ZERO;
                 if(size > 0)
                 {
                     raster = font_raster(scratch.arena, font_handle, floor_f32(size), piece_substring);
                 }
-
+                
                 // ak: allocate portion of an atlas to upload the rasterization
                 int16_t chosen_atlas_num = 0;
                 Font_Atlas *chosen_atlas = 0;
@@ -861,27 +930,27 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                 if (raster.atlas_dim.x != 0 && raster.atlas_dim.y != 0)
                 {
                     size_t num_atlases = 0;
-                    for(Font_Atlas *atlas = font_state->first_atlas;; atlas = atlas->next, num_atlases += 1)
+                    for(Font_Atlas *atlas = _font_state->first_atlas;; atlas = atlas->next, num_atlases += 1)
                     {
                         // ak: create atlas if needed
                         if(atlas == 0 && num_atlases < 64)
                         {
-                            atlas = arena_push(font_state->raster_arena, Font_Atlas, 1);
-                            DLLPushBack(font_state->first_atlas, font_state->last_atlas, atlas);
+                            atlas = arena_push(_font_state->raster_arena, Font_Atlas, 1);
+                            DLLPushBack(_font_state->first_atlas, _font_state->last_atlas, atlas);
                             atlas->root_dim = (Vec2_I16){ 1024, 1024 };
-                            atlas->root = arena_push(font_state->raster_arena, Font_Atlas_Region_Node, 1);
+                            atlas->root = arena_push(_font_state->raster_arena, Font_Atlas_Region_Node, 1);
                             atlas->root->max_free_size[Corner_TopLeft]     =
                             atlas->root->max_free_size[Corner_BottomLeft]  =
                             atlas->root->max_free_size[Corner_TopRight]    =
                             atlas->root->max_free_size[Corner_BottomRight] = (Vec2_I16){ (int16_t)(atlas->root_dim.x/2), (int16_t)(atlas->root_dim.y/2) };
                             atlas->texture = render_tex2d_alloc(Render_Resource_Kind_Dynamic, Render_Tex_2D_Format_RGBA8, (Vec2_I32){ (int32_t)atlas->root_dim.x, (int32_t)atlas->root_dim.y }, 0);
                         }
-
+                        
                         // ak: allocate from atlas
                         if(atlas != 0)
                         {
                             Vec2_I16 needed_dimensions = (Vec2_I16){ (int16_t)(raster.atlas_dim.x + 2), (int16_t)(raster.atlas_dim.y + 2) };
-                            chosen_atlas_region = font_atlas_region_alloc(font_state->raster_arena, atlas, needed_dimensions);
+                            chosen_atlas_region = font_atlas_region_alloc(_font_state->raster_arena, atlas, needed_dimensions);
                             if(chosen_atlas_region.x1 != chosen_atlas_region.x0)
                             {
                                 chosen_atlas = atlas;
@@ -895,7 +964,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                         }
                     }
                 }
-
+                
                 // ak: upload rasterization to allocated region of atlas texture memory
                 if(chosen_atlas != 0)
                 {
@@ -908,7 +977,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                     };
                     render_fill_tex2d_region(chosen_atlas->texture, subregion, raster.atlas);
                 }
-
+                
                 // ak: allocate & fill & push node
                 {
                     if(piece_substring.length == 1)
@@ -920,7 +989,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                     {
                         size_t slot_idx = piece_hash%hash2style_node->hash2info_slots_count;
                         Font_Hash_To_Info_Raster_Cache_Slot *slot = &hash2style_node->hash2info_slots[slot_idx];
-                        Font_Hash_To_Info_Raster_Cache_Node *node = arena_push_nz(font_state->raster_arena, Font_Hash_To_Info_Raster_Cache_Node, 1);
+                        Font_Hash_To_Info_Raster_Cache_Node *node = arena_push_nz(_font_state->raster_arena, Font_Hash_To_Info_Raster_Cache_Node, 1);
                         DLLPushBack_NP(slot->first, slot->last, node, hash_next, hash_prev);
                         node->hash = piece_hash;
                         info = &node->info;
@@ -946,7 +1015,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                     if(info->subrect.x1 != 0 && info->subrect.y1 != 0)
                     {
                         int32_t num = 0;
-                        for(Font_Atlas *a = font_state->first_atlas; a != 0; a = a->next, num += 1)
+                        for(Font_Atlas *a = _font_state->first_atlas; a != 0; a = a->next, num += 1)
                         {
                             if(info->atlas_num == num)
                             {
@@ -966,7 +1035,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
                 
                 // ak: push piece
                 {
-                    Font_Piece *piece = font_piece_chunk_list_push_new(font_state->frame_arena, &piece_chunks, string.length);
+                    Font_Piece *piece = font_piece_chunk_list_push_new(_font_state->frame_arena, &piece_chunks, string.length);
                     {
                         piece->texture = atlas ? atlas->texture : render_handle_zero();
                         piece->subrect = rng2p(
@@ -995,7 +1064,7 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
             }
             else
             {
-                run.pieces = font_piece_array_from_chunk_list(font_state->frame_arena, &piece_chunks);
+                run.pieces = font_piece_array_from_chunk_list(_font_state->frame_arena, &piece_chunks);
             }
             run.dim = dim;
             run.ascent  = hash2style_node->ascent;
@@ -1006,14 +1075,16 @@ internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_alig
     // ak: build node for cacheable runs
     if(run_is_cacheable)
     {
-        run_node = arena_push(font_state->frame_arena, Font_Run_Cache_Node, 1);
+        run_node = arena_push(_font_state->frame_arena, Font_Run_Cache_Node, 1);
         SLLQueuePush(run_slot->first, run_slot->last, run_node);
-        run_node->string = str8_copy(font_state->frame_arena, string);
+        run_node->string = str8_copy(_font_state->frame_arena, string);
         run_node->run = run;
     }
     
     return run;
 }
+
+// ak: helpers
 
 internal Vec2_F32 font_dim_from_tag_size_string(Font_Tag tag, float size, float base_align_px, float tab_size_px, Str8 string)
 {
@@ -1027,32 +1098,32 @@ internal Vec2_F32 font_dim_from_tag_size_string(Font_Tag tag, float size, float 
 
 // ak: Main Calls =============================================================
 
-internal void font_reset(void)
-{
-    for(Font_Atlas *a = font_state->first_atlas; a != 0; a = a->next)
-    {
-        render_tex2d_free(a->texture);
-    }
-    font_state->first_atlas = font_state->last_atlas = 0;
-    arena_clear(font_state->raster_arena);
-    font_state->hash2style_slots_count = 1024;
-    font_state->hash2style_slots = arena_push(font_state->raster_arena, Font_Hash_To_Style_Raster_Cache_Slot, font_state->hash2style_slots_count);
-}
-
 internal void font_init(void)
 {
     Arena *arena = arena_alloc();
-    font_state = arena_push(arena, Font_State, 1);
-    font_state->arena = arena;
-    font_state->raster_arena = arena_alloc();
-    font_state->frame_arena = arena_alloc();
-    font_state->font_hash_table_size = 64;
-    font_state->font_hash_table = arena_push(font_state->arena, Font_Hash_Slot, font_state->font_hash_table_size);
+    _font_state = arena_push(arena, _Font_State, 1);
+    _font_state->arena = arena;
+    _font_state->raster_arena = arena_alloc();
+    _font_state->frame_arena = arena_alloc();
+    _font_state->font_hash_table_size = 64;
+    _font_state->font_hash_table = arena_push(_font_state->arena, Font_Hash_Slot, _font_state->font_hash_table_size);
     font_reset();
+}
+
+internal void font_reset(void)
+{
+    for(Font_Atlas *a = _font_state->first_atlas; a != 0; a = a->next)
+    {
+        render_tex2d_free(a->texture);
+    }
+    _font_state->first_atlas = _font_state->last_atlas = 0;
+    arena_clear(_font_state->raster_arena);
+    _font_state->hash2style_slots_count = 1024;
+    _font_state->hash2style_slots = arena_push(_font_state->raster_arena, Font_Hash_To_Style_Raster_Cache_Slot, _font_state->hash2style_slots_count);
 }
 
 internal void font_frame(void)
 {
-    font_state->frame_index += 1;
-    arena_clear(font_state->frame_arena);
+    _font_state->frame_index += 1;
+    arena_clear(_font_state->frame_arena);
 }

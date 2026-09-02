@@ -799,6 +799,7 @@ internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_p
     }
     Str8 result;
     result.length = join.pre.length + join.post.length + sep_count*join.sep.length + list->size;
+    result.size = result.length;
     uint8_t *ptr = result.cstr = arena_push(arena, uint8_t, result.length + 1);
     mem_copy(ptr, join.pre.cstr, join.pre.length);
     ptr += join.pre.length;

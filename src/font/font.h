@@ -1,13 +1,11 @@
-// TODO(ak): add unicode support
-// TODO(ak): store font as cpu image
 #ifndef FONT_H
 #define FONT_H
 
-// External Includes
+// ak: External Includes
 //=============================================================================
 
 #define STBTT_STATIC
-typedef uint8_t  stbtt_uint8;
+#define stbtt_uint8 uint8_t
 typedef int8_t   stbtt_int8;
 typedef uint16_t stbtt_uint16;
 typedef int16_t  stbtt_int16;
@@ -42,12 +40,10 @@ typedef int32_t  stbtt_int32;
 #define kbts_b32 int
 #include "./external/kb_text_shape.h"
 
-#define font_hook C_LINKAGE
-
-// Types
+// ak: Types
 //=============================================================================
 
-// Font Provider ==============================================================
+// ak: Font Provider ==========================================================
 
 typedef struct _Font_Provider_Font _Font_Provider_Font;
 struct _Font_Provider_Font
@@ -82,7 +78,7 @@ struct Font_Shaped_Glyph
     float advance_y;
 };
 
-// Font Cache =================================================================
+// ak: Font Cache =============================================================
 
 // ak: Handles & Tags
 
@@ -174,8 +170,8 @@ struct Font_Run
 typedef uint32_t Font_Raster_Flags;
 enum
 {
-  Font_Raster_Flag_Smooth  = (1<<0),
-  Font_Raster_Flag_Hinted  = (1<<1),
+    Font_Raster_Flag_Smooth  = (1<<0),
+    Font_Raster_Flag_Hinted  = (1<<1),
 };
 
 // ak: Rasterization Cache Types
@@ -212,16 +208,16 @@ struct Font_Hash_To_Info_Raster_Cache_Slot
 typedef struct Font_Run_Cache_Node Font_Run_Cache_Node;
 struct Font_Run_Cache_Node
 {
-  Font_Run_Cache_Node *next;
-  Str8 string;
-  Font_Run run;
+    Font_Run_Cache_Node *next;
+    Str8 string;
+    Font_Run run;
 };
 
 typedef struct Font_Run_Cache_Slot Font_Run_Cache_Slot;
 struct Font_Run_Cache_Slot
 {
-  Font_Run_Cache_Node *first;
-  Font_Run_Cache_Node *last;
+    Font_Run_Cache_Node *first;
+    Font_Run_Cache_Node *last;
 };
 
 // ak: style hash -> artifacts/metrics cache
@@ -247,8 +243,8 @@ struct Font_Hash_To_Style_Raster_Cache_Node
 typedef struct Font_Hash_To_Style_Raster_Cache_Slot Font_Hash_To_Style_Raster_Cache_Slot;
 struct Font_Hash_To_Style_Raster_Cache_Slot
 {
-  Font_Hash_To_Style_Raster_Cache_Node *first;
-  Font_Hash_To_Style_Raster_Cache_Node *last;
+    Font_Hash_To_Style_Raster_Cache_Node *first;
+    Font_Hash_To_Style_Raster_Cache_Node *last;
 };
 
 // ak: Atlas Types
@@ -281,8 +277,8 @@ struct Font_Atlas
 
 // ak: Main State Type
 
-typedef struct Font_State Font_State;
-struct Font_State
+typedef struct _Font_State _Font_State;
+struct _Font_State
 {
     Arena *arena;
     Arena *raster_arena;
@@ -302,6 +298,64 @@ struct Font_State
     Font_Atlas *last_atlas;
 };
 
-global Font_State *font_state = 0;
+// ak: Functions
+//=============================================================================
+
+// ak: Font Provider ==========================================================
+
+internal void _font_stb_kbts_allocator(void *data, kbts_allocator_op *op);
+internal _Font_Provider_Font *_font_provider_font_from_handle(Font_Handle handle);
+internal Font_Handle font_handle_zero(void);
+internal bool font_handle_match(Font_Handle a, Font_Handle b);
+internal Font_Handle font_handle_from_font(_Font_Provider_Font *font);
+internal Font_Handle font_open(Str8 path);
+internal Font_Metrics font_provider_metrics_from_font(Font_Handle handle);
+internal Font_Metrics font_provider_metrics_from_tag(Font_Tag tag);
+internal Font_Raster_Result font_raster(Arena *arena, Font_Handle handle, float size, Str8 string);
+internal Font_Handle font_font_open_from_static_data_string(Str8 *data_ptr);
+
+// ak: Font Cache =============================================================
+
+// ak: Basic Functions
+internal U128 font_hash_from_string(Str8 string);
+internal uint64_t font_little_hash_from_string(uint64_t seed, Str8 string);
+internal Vec2_I32 font_vertex_from_corner(Corner corner);
+
+// ak: Font Tag
+internal Font_Tag font_tag_zero(void);
+internal bool font_tag_match(Font_Tag a, Font_Tag b);
+internal Font_Tag font_tag_from_path(Str8 path);
+internal Font_Tag font_tag_from_static_data_string(Str8 *data_ptr);
+
+// ak: Metrics
+internal Font_Metrics font_metrics_from_tag_size(Font_Tag tag, float size);
+
+// ak: Atlas
+internal Rng2_I16 font_atlas_region_alloc(Arena *arena, Font_Atlas *atlas, Vec2_I16 needed_size);
+internal void font_atlas_region_release(Font_Atlas *atlas, Rng2_I16 region);
+
+// ak: Piece Type Functions
+internal Font_Piece_Array font_piece_array_from_chunk_list(Arena *arena, Font_Piece_Chunk_List *list);
+internal Font_Piece *font_piece_chunk_list_push_new(Arena *arena, Font_Piece_Chunk_List *list, uint64_t cap);
+
+// ak: Cache Usage
+
+// ak: base cache lookups
+internal Font_Hash_To_Style_Raster_Cache_Node * font_hash_to_style_from_tag_size_flags(Font_Tag tag, float size, Font_Raster_Flags flags);
+
+internal Font_Run font_run_from_string(Font_Tag tag, float size, float base_align_px, float tab_size_px, Font_Raster_Flags flags, Str8 string);
+
+// ak: helpers
+internal Vec2_F32 font_dim_from_tag_size_string(Font_Tag tag, float size, float base_align_px, float tab_size_px, Str8 string);
+
+// ak: Main Calls
+internal void font_init(void);
+internal void font_reset(void);
+internal void font_frame(void);
+
+// ak: Globals
+//=============================================================================
+
+global _Font_State *_font_state = 0;
 
 #endif // FONT_H
