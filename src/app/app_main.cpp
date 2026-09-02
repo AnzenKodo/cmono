@@ -8,7 +8,9 @@
 #include "../font/font.h"
 #include "../draw/draw_include.h"
 #include "./app.h"
+#include "./generated/app.meta.h"
 #include "../game/game.hpp"
+#include "../audio/audio.h"
 
 // ak: implementation
 #include "../base/base_include.c"
@@ -18,8 +20,41 @@
 #include "../font/font.c"
 #include "../draw/draw_include.c"
 #include "../game/game.cpp"
+#include "./app.c"
+#include "./generated/app.meta.c"
+#include "../audio/audio.c"
 
 internal void base_main(void)
+{
+    Str8 filepath = str8("assets/test.mp3");
+    if (!audio_init(48000, 2))
+    {
+        fmt_printf("sound init failed\n");
+        os_exit(1);
+    }
+    
+    Audio_Handle audio = audio_load_from_path(filepath, 0);
+    if(!audio_handle_is_valid(audio))
+    {
+        fmt_printf("failed to load: %s\n", filepath);
+        audio_cleanup();
+        os_exit(1);
+    }
+    
+    Audio_Play_Params params = audio_play_params_default();
+    params.volume = 0.8f;
+    params.bus    = 0;
+    Audio_Handle voice = audio_play(audio, params);
+    
+    fmt_printf("playing... press enter to stop\n");
+    while (true) {}
+    
+    // snd_voice_stop(voice);
+    audio_unload(audio);
+    audio_cleanup();
+}
+
+internal void base_main2(void)
 {
     // ak: Application Init ===================================================
     wl_init();
@@ -29,12 +64,7 @@ internal void base_main(void)
     font_init();
     Render_Handle window_equip = render_window_equip(window);
     game_init();
-    
-    Str8 font_path = str8("/usr/share/fonts/TTF/DejaVuSans.ttf");
-    Font_Tag tag = font_tag_from_path(font_path);
-    if(font_tag_match(tag, font_tag_zero()))
-    {
-    }
+    game_state->font = font_tag_from_static_data_string(&app_font_bytes);
     
     // ak: Application Loop ===================================================
     while (!wl_should_exit())
@@ -74,6 +104,14 @@ internal void base_main(void)
                     {
                         switch (event->key) {
                             default: break;
+                            case Wl_Key_Return:
+                            {
+                                if (game_state->game_over)
+                                {
+                                    game_state->game_over = false;
+                                    game_state->score.current = 0;
+                                }
+                            } break;
                             case Wl_Key_Up:
                             {
                                 if (game_state->event.direction != Game_Direction_Down)
@@ -107,8 +145,7 @@ internal void base_main(void)
                     break;
                 }
             }
-            game_loop();
-            draw_text(tag, 8.f, 0.f, 4.f, Font_Raster_Flag_Smooth, (Vec2_F32){ 20.f, 20.f }, (Vec4_F32){ 0.80f, 0.80f, 0.80f, 1.f }, str8("Hello World"));
+            game_loop(scratch.arena);
         }
         draw_submit_bucket(window, window_equip, bucket);
         render_window_end_frame(window, window_equip);
