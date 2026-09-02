@@ -447,7 +447,7 @@ internal double copysign_f64(double x, double y)
 
 // 2-Vector I16
 
-internal Vec2_I16 vec2_scale_i16(Vec2_I16 v, int16_t s)
+internal Vec2_I16 scale_vec2_i16(Vec2_I16 v, int16_t s)
 {
     Vec2_I16 c = {Cast(int16_t)(v.x * s), Cast(int16_t)(v.y * s)};
     return c;
@@ -460,7 +460,7 @@ internal Vec2_I16 add_vec2_i16(Vec2_I16 a, Vec2_I16 b)
 
 // 2-Vector I32
 
-internal Vec2_I32 vec2_scale_i32(Vec2_I32 v, int32_t s)
+internal Vec2_I32 scale_vec2_i32(Vec2_I32 v, int32_t s)
 {
     Vec2_I32 c = {v.x*s, v.y*s};
     return c;
@@ -473,7 +473,7 @@ internal Vec2_I32 add_vec2_i32(Vec2_I32 a, Vec2_I32 b)
 
 // 2-Vector I64
 
-internal Vec2_I64 vec2_scale_i64(Vec2_I64 v, int64_t s)
+internal Vec2_I64 scale_vec2_i64(Vec2_I64 v, int64_t s)
 {
     Vec2_I64 c = {v.x*s, v.y*s};
     return c;
@@ -486,7 +486,7 @@ internal Vec2_I64 add_vec2_i64(Vec2_I64 a, Vec2_I64 b)
 
 // 2-Vector F32
 
-internal Vec2_F32 vec2_scale_f32(Vec2_F32 v, float s)
+internal Vec2_F32 scale_vec2_f32(Vec2_F32 v, float s)
 {
     Vec2_F32 c = {v.x*s, v.y*s};
     return c;

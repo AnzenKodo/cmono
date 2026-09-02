@@ -546,37 +546,43 @@ internal double copysign_f64(double x, double y);
 // ak: 2-Vectors ==============================================================
 
 // 2-Vector I16
-internal Vec2_I16 vec2_scale_i16(Vec2_I16 v, int16_t s);
+internal Vec2_I16 scale_vec2_i16(Vec2_I16 v, int16_t s);
 internal Vec2_I16 add_vec2_i16(Vec2_I16 a, Vec2_I16 b);
 
 // 2-Vector I32
-internal Vec2_I32 vec2_scale_i32(Vec2_I32 v, int32_t s);
+internal Vec2_I32 scale_vec2_i32(Vec2_I32 v, int32_t s);
 internal Vec2_I32 add_vec2_i32(Vec2_I32 v, Vec2_I32 s);
 
 // 2-Vector I64
-internal Vec2_I64 vec2_scale_i64(Vec2_I64 v, int64_t s);
+internal Vec2_I64 scale_vec2_i64(Vec2_I64 v, int64_t s);
 internal Vec2_I64 add_vec2_i64(Vec2_I64 a, Vec2_I64 b);
 
 // 2-Vector F32
-internal Vec2_F32 vec2_scale_f32(Vec2_F32 v, float s);
+internal Vec2_F32 scale_vec2_f32(Vec2_F32 v, float s);
 internal Vec2_F32 add_vec2_f32(Vec2_F32 a, Vec2_F32 b);
 
 #if LANGUAGE_CPP
-    inline Vec2_I16 vec2_scale(Vec2_I16 v, int16_t s) { return vec2_scale_i16(v, s); }
-    inline Vec2_I32 vec2_scale(Vec2_I32 v, int32_t s) { return vec2_scale_i32(v, s); }
-    inline Vec2_I64 vec2_scale(Vec2_I64 v, int64_t s) { return vec2_scale_i64(v, s); }
-    inline Vec2_F32 vec2_scale(Vec2_F32 v, float s)   { return vec2_scale_f32(v, s); }
+    inline Vec2_I16 scale_vec2(Vec2_I16 v, int16_t s) { return scale_vec2_i16(v, s); }
+    inline Vec2_I32 scale_vec2(Vec2_I32 v, int32_t s) { return scale_vec2_i32(v, s); }
+    inline Vec2_I64 scale_vec2(Vec2_I64 v, int64_t s) { return scale_vec2_i64(v, s); }
+    inline Vec2_F32 scale_vec2(Vec2_F32 v, float s)   { return scale_vec2_f32(v, s); }
     
     inline Vec2_I16 add_vec2(Vec2_I16 a, Vec2_I16 b) { return add_vec2_i16(a, b); }
     inline Vec2_I32 add_vec2(Vec2_I32 a, Vec2_I32 b) { return add_vec2_i32(a, b); }
     inline Vec2_I64 add_vec2(Vec2_I64 a, Vec2_I64 b) { return add_vec2_i64(a, b); }
     inline Vec2_F32 add_vec2(Vec2_F32 a, Vec2_F32 b) { return add_vec2_f32(a, b); }
 #else
-    #define vec2_scale(min, max) _Generic((v), \
-        int16_t: vec2_scale_i16,  \
-        int32_t: vec2_scale_i32, \
-        int64_t: vec2_scale_i64, \
-        float:   vec2_scale_f32  \
+    #define scale_vec2(v, s) _Generic((v), \
+        Vec2_I16: scale_vec2_i16,  \
+        Vec2_I32: scale_vec2_i32, \
+        Vec2_I64: scale_vec2_i64, \
+        Vec2_F32: scale_vec2_f32  \
+    )(v, s)
+    #define add_vec2(v, s) _Generic((v), \
+        Vec2_I16: add_vec2_i16,  \
+        Vec2_I32: add_vec2_i32, \
+        Vec2_I64: add_vec2_i64, \
+        Vec2_F32: add_vec2_f32  \
     )(v, s)
 #endif
 
@@ -610,7 +616,7 @@ internal Rng1_U64 rng1_u64(uint64_t min, uint64_t max);
 internal uint64_t dim_rng1_u64(Rng1_U64 r);
 
 // ak: 1D Range I64
-internal Rng1_I64 rng1_s64(int64_t min, int64_t max);
+internal Rng1_I64 rng1_i64(int64_t min, int64_t max);
 internal int64_t dim_rng1_i64(Rng1_I64 r);
 
 // ak: 1D Range F32
@@ -625,7 +631,7 @@ internal float dim_rng1_f32(Rng1_F32 r);
     inline Rng1_U32 rng1(uint32_t min, uint32_t max) { return rng1_u32(min, max); }
     inline Rng1_U64 rng1(uint64_t min, uint64_t max) { return rng1_u64(min, max); }
     inline Rng1_I32 rng1(int32_t min, int32_t max)   { return rng1_i32(min, max); }
-    inline Rng1_I64 rng1(int64_t min, int64_t max)   { return rng1_s64(min, max); }
+    inline Rng1_I64 rng1(int64_t min, int64_t max)   { return rng1_i64(min, max); }
     inline Rng1_F32 rng1(float min, float max)       { return rng1_f32(min, max); }
 
     inline uint8_t  dim_rng1(Rng1_U8 r)  { return dim_rng1_u8(r); }
@@ -642,7 +648,7 @@ internal float dim_rng1_f32(Rng1_F32 r);
         uint32_t: rng1_u32, \
         uint64_t: rng1_u64, \
         int32_t:  rng1_i32, \
-        int64_t:  rng1_s64, \
+        int64_t:  rng1_i64, \
         float:    rng1_f32  \
     )(min, max)
     
