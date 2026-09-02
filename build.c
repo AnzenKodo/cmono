@@ -30,7 +30,6 @@ typedef enum Build_Type
 typedef struct Build_Info Build_Info;
 struct Build_Info
 {
-    Context_Os os;
     Str8 name;
     Str8 cmd_name;
     Str8 version;
@@ -72,7 +71,7 @@ internal char *build_type_to_str8(Build_Info *info);
 
 internal void build_cmd_append_output(Build_Info *info)
 {
-    if (info->os == Context_Os_Windows)
+    if (Context_Os_CURRENT == Context_Os_Windows)
     {
         build_cmd_append(info, "%s\\%s", info->dir.cstr, info->cmd_name.cstr);
     }
@@ -84,7 +83,7 @@ internal void build_cmd_append_output(Build_Info *info)
     {
         build_cmd_append(info, "_%s", build_type_to_str8(info));
     }
-    if (info->os == Context_Os_Windows)
+    if (Context_Os_CURRENT == Context_Os_Windows)
     {
         build_cmd_append(info, ".exe");
     }
@@ -149,26 +148,12 @@ internal void build_compile_msvc(Build_Info *info)
     }
 }
 
-internal void build_compile_gcc(Build_Info *info)
+internal void build_compile_gcc_style_flags(Build_Info *info)
 {
-    if (info->mingw)
-    {
-        build_cmd_append(info, "x86_64-w64-mingw32-gcc");
-    }
-    else if (info->is_cpp)
-    {
-        
-        build_cmd_append(info, "g++");
-    }
-    else
-    {
-        build_cmd_append(info, "gcc");
-    }
     // ak: dry run
     if (info->dry_run)
     {
         build_cmd_append(info, " -fsyntax-only");
-        // build_cmd_append(info, " -fmax-errors=50");
     }
     build_cmd_append(info, " %s", info->entry_point.cstr);
     // ak: output
@@ -193,9 +178,17 @@ internal void build_compile_gcc(Build_Info *info)
         build_cmd_append(info, " -O0");
     }
     // ak: debug
+    if (info->type == Build_Type_Debug)
+    {
+        build_cmd_append(info, " -ggdb -g3");
+    }
+    if (info->type == Build_Type_Dev || info->type == Build_Type_Release)
+    {
+        build_cmd_append(info, " -g0"); // no debug info
+    }
     if (info->type != Build_Type_Release)
     {
-        build_cmd_append(info, " -ggdb -g3 -DBUILD_DEBUG");
+        build_cmd_append(info, " -DBUILD_DEBUG");
     }
     // ak: warning
     if (info->type != Build_Type_Release)
@@ -216,16 +209,58 @@ internal void build_compile_gcc(Build_Info *info)
         build_cmd_append(info, " -fsanitize=address -fno-omit-frame-pointer");
         // build_cmd_append(info, " -fanalyzer");
     }
-    // ak: libs
-    if (info->mingw || info->os == Context_Os_Windows)
+    if (!info->dry_run)
     {
-        build_cmd_append(info, " -lopengl32 -luser32 -lgdi32");
+        // ak: libs
+        if (info->mingw || Context_Os_CURRENT == Context_Os_Windows)
+        {
+            build_cmd_append(info, " -lopengl32 -luser32 -lgdi32");
+        }
+        else
+        {
+            // TODO(ak): make build step for miniaudio
+            build_cmd_append(info, " build/libminiaudio.a");
+            build_cmd_append(info, " -lm -lpthread -ldl");
+            build_cmd_append(info, " -lxcb -lxcb-image -lxcb-sync -lxcb-keysyms -lxcb-cursor");
+            build_cmd_append(info, " -lEGL -lGL");
+        }
+        
+        // TODO(ak): check for linker installtion
+        build_cmd_append(info, " -fuse-ld=mold");
+    }
+}
+
+internal void build_compile_gcc(Build_Info *info)
+{
+    if (info->mingw)
+    {
+        build_cmd_append(info, "x86_64-w64-mingw32-gcc");
+    }
+    else if (info->is_cpp)
+    {
+        
+        build_cmd_append(info, "g++");
     }
     else
     {
-        build_cmd_append(info, " -lm -lxcb -lxcb-image -lxcb-sync -lxcb-keysyms -lxcb-cursor -lXau -lXdmcp  -lEGL -lGL");
+        build_cmd_append(info, "gcc");
     }
+    build_compile_gcc_style_flags(info);
 }
+
+internal void build_compile_clang(Build_Info *info)
+{
+    if (info->is_cpp)
+    {
+        build_cmd_append(info, "clang++");
+    }
+    else
+    {
+        build_cmd_append(info, "clang");
+    }
+    build_compile_gcc_style_flags(info);
+}
+
 
 // ak: Build types functions ==================================================
 
@@ -236,14 +271,17 @@ internal int build_compile(Build_Info *info)
         fmt_printf("Created `%s` directory.\n", info->dir.cstr);
     }
     fmt_println("# Compile ------------------------------------------------------------------- #");
-    if (info->os == Context_Os_Linux)
+    if (Context_Compiler_CURRENT == Context_Compiler_Gcc)
     {
         build_compile_gcc(info);
     }
-    else if (info->os == Context_Os_Windows)
+    else if (Context_Compiler_CURRENT == Context_Compiler_Clang)
+    {
+        build_compile_clang(info);
+    }
+    else if (Context_Compiler_CURRENT == Context_Compiler_Msvc)
     {
         build_compile_msvc(info);
-        // build_compile_gcc(info);
     }
     else
     {
@@ -261,7 +299,7 @@ internal int build_run(Build_Info *info)
     {
         build_cmd_append(info, "WINEARCH=win64 wine ");
     }
-    if (info->os == Context_Os_Windows)
+    if (Context_Os_CURRENT == Context_Os_Windows)
     {
         build_cmd_append(info, "setup_x64.bat & ");
     }
@@ -276,9 +314,8 @@ internal void base_main(void)
     info.name = APP_NAME;
     info.cmd_name = APP_CMD_NAME;
     info.is_cpp = true;
-    info.entry_point = str8("src/app/app_main.c");
+    info.entry_point = str8("src/app/app_main.cpp");
     info.dir = str8("build");
-    info.os = Context_Os_CURRENT;
     info.log_context = log_init();
     bool should_print_help = false;
     bool build_run_program = false;
@@ -372,6 +409,7 @@ internal void base_main(void)
             info.cmd_name = str8(MDA_CMD_NAME);
             info.entry_point = str8("src/metadesk/metadesk_app_main.c");
             info.args = str8("src");
+            info.dir = str8("build");
             build_run_program = true;
         }
         if (info.type != Build_Type_None)

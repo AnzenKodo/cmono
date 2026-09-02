@@ -8,7 +8,7 @@ if (vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1) then
     build_command = "setup_x64.bat && cl.exe build.c -nologo -Z7 -Fo:build\\ -Fe:"..build_dir.."\\build.exe"
     cc_command = build_dir.."\\build.exe "
 else
-    build_command = "cc -ggdb build.c"
+    build_command = "clang -ggdb build.c"
     cc_command = "./a.out "
 end
 
