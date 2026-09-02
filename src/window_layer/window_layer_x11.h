@@ -101,7 +101,7 @@ struct _Wl_X11_State
 // ak: Helper functions
 //=============================================================================
 
-internal _Wl_X11_Window *_wl_x11_window_from_xwindow();
+internal _Wl_X11_Window *_wl_x11_window_from_xwindow(xcb_window_t xwindow);
 
 // ak: Global Variables
 //=============================================================================

@@ -518,15 +518,18 @@ internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t w
     _Wl_X11_Window *window_os = (_Wl_X11_Window *)window.u64[0];
     
     WlX11LoadAtom(_wl_x11_state, _NET_WM_ICON);
-    size_t data[2 + width * height];
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    size_t data_size = 2 + width * height;
+    size_t *data = arena_push(scratch.arena, size_t, data_size);
     data[0] = width;
     data[1] = height;
     mem_copy(data + 2, icon_data, width * height * sizeof(size_t));
     xcb_change_property(
         _wl_x11_state->connection, XCB_PROP_MODE_REPLACE, window_os->xwindow,
         _NET_WM_ICON, XCB_ATOM_CARDINAL, 32,
-        2 + width * height, data
+        data_size, data
     );
+    arena_scratch_end(scratch);
 }
 
 internal void wl_window_border_set(Wl_Window window, bool enable)
