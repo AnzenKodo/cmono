@@ -1,4 +1,5 @@
 // ak: Arena
+#include <stdio.h>
 //=============================================================================
 
 internal Arena *_arena_alloc(ArenaParams *params)
@@ -14,6 +15,8 @@ internal Arena *_arena_alloc(ArenaParams *params)
         arena->commit_size = commit_size;
         arena->pos = ARENA_HEADER_SIZE;
         arena->commit_pos = commit_size;
+        arena->allocation_site_file = params->allocation_site_file;
+        arena->allocation_site_line = params->allocation_site_line;
         result = arena;
         AsanPoisonMemoryRegion(arena, commit_size);
         AsanUnpoisonMemoryRegion(arena, ARENA_HEADER_SIZE);
@@ -119,6 +122,7 @@ internal Arena *arena_scratch(Arena **conflicts, size_t length)
             if (result == NULL)
             {
                 result = arena_alloc();
+                *arena_ptr = result;
             }
             break;
         }

@@ -10,6 +10,8 @@ struct Arena {
     size_t commit_size;
     size_t commit_pos;
     size_t pos;
+    char *allocation_site_file;
+    int allocation_site_line;
 };
 
 typedef struct ArenaParams ArenaParams;
