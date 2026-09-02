@@ -73,11 +73,12 @@ internal Str8 mdg_c_array_literal_contents_from_string(Str8 string, Arena *arena
             uint8_t *chunk_bytes = string.cstr+off;
             Str8 chunk_text_string = STRUCT_ZERO;
             chunk_text_string.size = chunk_size*5;
-            chunk_text_string.cstr = arena_push(arena, uint8_t, chunk_text_string.size);
+            chunk_text_string.length = chunk_text_string.size;
+            chunk_text_string.cstr = arena_push(arena, uint8_t, chunk_text_string.length);
             for (size_t byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
             {
                 Str8 byte_str = str8f(scratch.arena, "0x%02x,", chunk_bytes[byte_idx]);
-                mem_copy(chunk_text_string.cstr+byte_idx*5, byte_str.cstr, byte_str.size);
+                mem_copy(chunk_text_string.cstr+byte_idx*5, byte_str.cstr, byte_str.length);
             }
             off += chunk_size;
             str8_list_push(arena, &strings, chunk_text_string);

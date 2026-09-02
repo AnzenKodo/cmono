@@ -458,12 +458,12 @@ void base_main(void)
                 Str8 string = os_path_read_str_full(md_node->first->string, arena);
                 Str8 embed_string = mdg_c_array_literal_contents_from_string(string, arena);
                 str8_list_pushf(arena, &layer->h_tables,
-                    "read_only global U8 %.*s__data[] =\n{\n", str8_varg(md_node->string));
+                    "read_only global uint8_t %.*s__data[] =\n{\n", str8_varg(md_node->string));
                 str8_list_push (arena, &layer->h_tables, embed_string);
                 str8_list_pushf(arena, &layer->h_tables, "};\n\n");
                 str8_list_pushf(arena, &layer->h_tables,
-                    "read_only global Str8 %.*s = {%.*s__data, sizeof(%.*s__data)};\n",
-                    str8_varg(md_node->string), str8_varg(md_node->string), str8_varg(md_node->string));
+                    "read_only global Str8 %.*s = {%.*s__data, sizeof(%.*s__data), sizeof(%.*s__data)};\n",
+                    str8_varg(md_node->string), str8_varg(md_node->string), str8_varg(md_node->string), str8_varg(md_node->string));
             }
         }
     }
@@ -608,8 +608,8 @@ void base_main(void)
     }
     
     //- ak: write out all messages to stderr ==================================
-    char *file_info_color = log_get_file_info_color(&log);
-    char *restart_color   = log_get_reset_color(&log);
+    const char *file_info_color = log_get_file_info_color(&log);
+    const char *restart_color   = log_get_reset_color(&log);
     for (MDG_Msg_Node *node = msgs.first; node != NULL; node = node->next)
     {
         MDG_Msg *msg = &node->v;
