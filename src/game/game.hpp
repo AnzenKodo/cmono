@@ -36,6 +36,7 @@ typedef struct Game_State Game_State;
 struct Game_State
 {
     Arena *arena;
+    Font_Tag font;
     
     size_t cell_size;
     Vec2_F32 cells;
@@ -58,7 +59,13 @@ struct Game_State
         Rng2_F32 playground;
     } rect;
     
+    struct {
+        size_t current;
+        size_t max;
+    } score;
+    
     Game_Entity entities[Game_Entity_Type_COUNT];
+    bool game_over;
 };
 
 // ak: Globals

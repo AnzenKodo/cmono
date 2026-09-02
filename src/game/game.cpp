@@ -21,15 +21,44 @@ internal void game_entity_pos_add(Game_Entity *entity, Vec2_F32 pos)
 
 internal Rng2_F32 game_calc_rect_from_pos(Vec2_F32 pos)
 {
-    Vec2_F32 cell_pos = vec2_scale(pos, game_state->cell_size);
+    Vec2_F32 cell_pos = scale_vec2(pos, game_state->cell_size);
     Vec2_F32 cell_dim = add_vec2(cell_pos, game_state->rect.playground.v[0]);
-    Vec2_F32 cell_size = add_vec2(cell_dim, (Vec2_F32){ (float)game_state->cell_size, (float)game_state->cell_size });
+    Vec2_F32 cell_size = add_vec2(cell_dim, ((Vec2_F32){ (float)game_state->cell_size, (float)game_state->cell_size }));
     Rng2_F32 rect = rng2(cell_dim, cell_size);
     return rect;
 }
 
+internal void game_draw_text(Str8 text, float size, Vec2_F32 position)
+{
+    draw_text(game_state->font, game_state->cell_size*size, 0.f, 4.f, Font_Raster_Flag_Smooth, position, game_state->color.foreground, text);
+}
+
+internal void game_draw_text_in_center(Str8 text, float size, float adjust_y)
+{
+    Vec2_F32 dim = font_dim_from_tag_size_string(game_state->font, size, 0.f, 4.f, text);
+    Vec2_F32 pos = STRUCT_ZERO;
+    pos.x = game_state->center.x - (dim.x / 2.f);
+    pos.y = game_state->center.y - ((dim.y - (game_state->cell_size * adjust_y)) / 2.f);
+    game_draw_text(text, size, pos);
+}
+
 // ak: Core
 //=============================================================================
+
+internal void game_snake_reset(void)
+{
+    Game_Entity *entity = &game_state->entities[Game_Entity_Type_Snake];
+    entity->pos_array.length = 0;
+    
+    Vec2_F32 center_cell = scale_vec2(game_state->cells, 0.5f);
+    game_entity_pos_add(entity, center_cell);
+    center_cell.y--;
+    game_entity_pos_add(entity, center_cell);
+    center_cell.y--;
+    game_entity_pos_add(entity, center_cell);
+    center_cell.y--;
+    game_entity_pos_add(entity, center_cell);
+}
 
 internal void game_init(void)
 {
@@ -68,7 +97,7 @@ internal void game_init(void)
                 entity->color              = linear_from_srgba(rgba_from_u32(0x88c070ff));
                 entity->pos_array.capacity = game_state->cells.x*game_state->cells.y;
                 entity->pos_array.v        = arena_push(arena, Vec2_F32, entity->pos_array.capacity);
-                Vec2_F32 center_cell       = vec2_scale(game_state->cells, 0.5f);
+                Vec2_F32 center_cell       = scale_vec2(game_state->cells, 0.5f);
                 game_entity_pos_add(entity, center_cell);
                 center_cell.y--;
                 game_entity_pos_add(entity, center_cell);
@@ -82,7 +111,7 @@ internal void game_init(void)
     }
 }
 
-internal void game_loop(void)
+internal void game_loop(Arena *arena)
 {
     if (game_state->event.window_resize)
     {
@@ -146,9 +175,22 @@ internal void game_loop(void)
         }
         
         // ak: update sanke body according to head
-        for (int i = snake_entity->pos_array.length - 1; i > 0; i--)
+        for (size_t i = snake_entity->pos_array.length - 1; i > 0; i--)
         {
             snake_entity->pos_array.v[i] = snake_entity->pos_array.v[i - 1];
+        }
+        
+        // ak: check for body collision
+        for (size_t i = 0; i < snake_entity->pos_array.length; i++)
+        {
+            if (snake_entity->pos_array.v[i].x == snake_head.x &&
+                snake_entity->pos_array.v[i].y == snake_head.y &&
+                game_state->score.current != 0)
+            {
+                game_snake_reset();
+                game_state->game_over = true;
+                snake_head = snake_entity->pos_array.v[0];
+            }
         }
         
         // ak: check if snake eaten has apple, if yes then get new pos for apple
@@ -156,6 +198,7 @@ internal void game_loop(void)
         {
             apple_entity->pos_array.v[0] = game_random_pos_get();
             game_entity_pos_add(snake_entity, snake_tail);
+            game_state->score.current++;
         }
         
         // ak: update snake head
@@ -165,21 +208,33 @@ internal void game_loop(void)
     // ak: Draw ===============================================================
     
     // ak: draw playground
+    draw_rect(game_state->rect.playground, game_state->color.playground, 0.f, 0.f, 0.f);
+    
+    Str8 score_text = str8f(arena, "Score: %zu / Max Score: %zu", game_state->score.current, game_state->score.max);
+    if (game_state->game_over)
     {
-        draw_rect(game_state->rect.playground, game_state->color.playground, 0.f, 0.f, 0.f);
+        game_draw_text_in_center(str8("Game Over"), 3.f, 0);
+        game_draw_text_in_center(score_text, 1.1f, 4.f);
+        game_draw_text_in_center(str8("Press 'Enter' to restart"), 1.3f, 15.f);
     }
-    
-    draw_grid(game_state->rect.playground, game_state->cell_size, 1, game_state->color.background);
-    
-    // ak: draw entities
-    for EachEnumVal(Game_Entity_Type, type)
+    else
     {
-        Game_Entity entity = game_state->entities[type];
-        for EachIndex(i, entity.pos_array.length)
+        draw_grid(game_state->rect.playground, game_state->cell_size, 1, game_state->color.background);
+        
+        // ak: draw entities
+        for EachEnumVal(Game_Entity_Type, type)
         {
-            Rng2_F32 rect = game_calc_rect_from_pos(entity.pos_array.v[i]);
-            draw_rect(rect, entity.color, 0.f, 0.f, 0.f);
+            Game_Entity entity = game_state->entities[type];
+            for EachIndex(i, entity.pos_array.length)
+            {
+                Rng2_F32 rect = game_calc_rect_from_pos(entity.pos_array.v[i]);
+                draw_rect(rect, entity.color, 0.f, 0.f, 0.f);
+            }
         }
+        
+        Vec2_F32 text_pos = STRUCT_ZERO;
+        text_pos.x = game_state->rect.playground.x0,
+        text_pos.y = game_state->rect.playground.y0-game_state->cell_size;
+        game_draw_text(score_text, 1, text_pos);
     }
-    
 }
