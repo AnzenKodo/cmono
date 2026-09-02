@@ -101,7 +101,10 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     {
         access_flags |= O_CREAT;
     }
-    Os_File file = open((char *)path.cstr, access_flags, 0666);
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    Str8 path_copy = str8_copy(scratch.arena, path);
+    Os_File file = open((char *)path_copy.cstr, access_flags, 0666);
+    arena_scratch_end(scratch);
     if (!(flags & Os_AccessFlag_Inherited))
     {
         fcntl(file, F_SETFD, FD_CLOEXEC);

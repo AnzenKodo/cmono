@@ -13,20 +13,19 @@ internal void * os_mem_alloc(size_t size)
 
 //- ak: File Read
 
-internal size_t os_file_read_full(Os_File file, void *out_data)
+internal size_t os_file_read_full(Os_File file, void **data, Arena *arena)
 {
-    size_t result;
-    Os_File_Properties prop = os_file_properties(file);
-    result = os_file_read(file, (Rng1_U64){0, prop.size}, out_data);
-    return result;
+    Str8 content = os_file_read_str_full(file, arena);
+    *data = content.cstr;
+    return content.size;
 }
 
 internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena)
 {
     size_t pre_pos = arena_pos(arena);
     Str8 result;
-    result.length = dim_rng1(range);
-    result.cstr = arena_push(arena, uint8_t, result.length);
+    result.size = dim_rng1(range);
+    result.cstr = arena_push(arena, uint8_t, result.size);
     size_t actual_read_size = os_file_read(file, range, result.cstr);
     if (actual_read_size < result.length)
     {
@@ -41,6 +40,24 @@ internal Str8 os_file_read_str_full(Os_File file, Arena *arena)
     Str8 result = STRUCT_ZERO;
     Os_File_Properties prop = os_file_properties(file);
     result = os_file_read_str(file, (Rng1_U64){0, prop.size}, arena);
+    return result;
+}
+
+internal size_t os_path_read(Str8 path, Rng1_U64 range, void *data)
+{
+    size_t result = 0;
+    Os_File file = os_file_open(path, Os_AccessFlag_Read|Os_AccessFlag_ShareRead);
+    result = os_file_read(file, range, data);
+    os_file_close(file);
+    return result;
+}
+
+internal size_t os_path_read_full(Str8 path, void **data, Arena *arena)
+{
+    size_t result = 0;
+    Os_File file = os_file_open(path, Os_AccessFlag_Read|Os_AccessFlag_ShareRead);
+    result = os_file_read_full(file, data, arena);
+    os_file_close(file);
     return result;
 }
 

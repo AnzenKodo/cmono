@@ -10,7 +10,7 @@
 //~ ak: Types
 //=============================================================================
 
-typedef uint64_t Os_File;
+// typedef uint64_t Os_File;
 
 //~ ak: Access Flags ==========================================================
 
@@ -96,10 +96,13 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags);
 internal void os_file_close(Os_File file);
 
 //- ak: File Read
-internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data);
-internal size_t os_file_read_full(Os_File file, void *out_data);
+internal size_t os_file_read(Os_File file, Rng1_U64 rng, void *data);
+internal size_t os_file_read_full(Os_File file, void **data, Arena *arena);
 internal Str8 os_file_read_str(Os_File file, Rng1_U64 range, Arena *arena);
 internal Str8 os_file_read_str_full(Os_File file, Arena *arena);
+
+internal size_t os_path_read(Str8 path, Rng1_U64 range, void *data);
+internal size_t os_path_read_full(Str8 path, void **data, Arena *arena);
 internal Str8 os_path_read_str(Str8 path, Rng1_U64 range, Arena *arena);
 internal Str8 os_path_read_str_full(Str8 path, Arena *arena);
 
