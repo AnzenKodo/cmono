@@ -8,8 +8,7 @@ A C monorepo for my personal projects
 
 - Required
     - C Compiler
-        - **GCC**: For Linux
-        - **MSVC**: For Windows
+        - Supported Compilers are: **Clang**, **GCC**, **MSVC** (Windows only)
     - **Linux only:** XCB libraries (for GUI/windowing)
 - Optional
     - **MinGW**: For cross-compiling Windows binaries on Linux
@@ -19,25 +18,25 @@ A C monorepo for my personal projects
 
 - Compile the build tool:
 ```sh
-cc build.c -o build
+clang build.c
 ```
 - Build the project:
 ```sh
-./build build     # For Linux
-./build.exe build # For Windows
+./a.out build # For Linux
+./a.exe build # For Windows
 ```
 - For more build system options/help:
 ```sh
-./build --help     # For Linux
-./build.exe --help # For Windows
+./a.out --help # For Linux
+./a.exe --help # For Windows
 ```
 
 ### Running
 
 - Building and Running the program:
 ```sh
-./build build-run      # For Linux
-./build.exe build-run  # For Windows
+./a.out build-run  # For Linux
+./a.exe build-run  # For Windows
 ```
 
 ## Reference

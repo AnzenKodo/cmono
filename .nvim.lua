@@ -5,8 +5,8 @@ local build_dir = "build"
 local build_command = ""
 local cc_command = ""
 if (vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1) then
-    build_command = "setup_x64.bat && cl.exe build.c -nologo -Z7 -Fo:build\\ -Fe:"..build_dir.."\\build.exe"
-    cc_command = build_dir.."\\build.exe "
+    build_command = "setup_x64.bat && cl.exe build.c -nologo -Z7 -Fo:build\\ -Fe:"..build_dir.."\\a.exe"
+    cc_command = "a.exe "
 else
     build_command = "clang -ggdb build.c"
     cc_command = "./a.out "
@@ -64,3 +64,5 @@ vim.api.nvim_create_autocmd("User", {
         vim.fn.TermDebugSendCommand('end')
     end,
 })
+
+vim.keymap.set("n", "<F5>", "<CMD>BuildRun<CR>", { desc = "Build Run" })
