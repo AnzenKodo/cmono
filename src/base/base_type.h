@@ -33,74 +33,74 @@ union U128
 typedef struct U8Array U8Array;
 struct U8Array
 {
+    uint8_t  *v;
     size_t length;
     size_t size;
-    uint8_t  *v;
 };
 typedef struct U16Array U16Array;
 struct U16Array
 {
+    uint16_t *v;
     size_t length;
     size_t size;
-    uint16_t *v;
 };
 typedef struct U32Array U32Array;
 struct U32Array
 {
+    uint32_t *v;
     size_t length;
     size_t size;
-    uint32_t *v;
 };
 typedef struct U64Array U64Array;
 struct U64Array
 {
+    uint64_t *v;
     size_t length;
     size_t size;
-    uint64_t *v;
 };
 
 typedef struct I8Array I8Array;
 struct I8Array
 {
+    int8_t  *v;
     size_t length;
     size_t size;
-    int8_t  *v;
 };
 typedef struct I16Array I16Array;
 struct I16Array
 {
+    int16_t *v;
     size_t length;
     size_t size;
-    int16_t *v;
 };
 typedef struct I32Array I32Array;
 struct I32Array
 {
+    int32_t *v;
     size_t length;
     size_t size;
-    int32_t *v;
 };
 typedef struct I64Array I64Array;
 struct I64Array
 {
+    int64_t *v;
     size_t length;
     size_t size;
-    int64_t *v;
 };
 
 typedef struct F32Array F32Array;
 struct F32Array
 {
+    float   *v;
     size_t length;
     size_t size;
-    float   *v;
 };
 typedef struct F64Array F64Array;
 struct F64Array
 {
+    double  *v;
     size_t length;
     size_t size;
-    double  *v;
 };
 
 // ak: Macros

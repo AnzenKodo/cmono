@@ -1,7 +1,7 @@
 #ifndef BASE_TIME_H
 #define BASE_TIME_H
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef enum WeekDay
@@ -57,9 +57,15 @@ struct DateTime
 
 typedef uint64_t DenseTime;
 
-// Time Functions
+// ak: Functions
 //=============================================================================
 
+// ak: Now Time ===============================================================
+
+internal uint32_t time_now_unix(void);
+internal uint64_t time_now_us(void);
+
+// ak: Dense Time =============================================================
 
 internal DenseTime dense_time_from_date_time(DateTime date_time);
 internal DateTime date_time_from_dense_time(DenseTime time);

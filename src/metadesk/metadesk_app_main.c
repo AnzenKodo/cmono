@@ -46,7 +46,7 @@ void base_main(void)
         bool version = false;
         option = flags_option_bool(str8("version"), &version, version, str8("Print version message"));
         flags_add_option_shortname(option, str8("v"));
-        Str8_Array *args = os_args_get();
+        Str8_Array *args = term_args_get();
         if (!flags_parse(args))
         {
             flags_print_error();
@@ -92,11 +92,11 @@ void base_main(void)
         Dir *last_dir = &start_dir;
         for (Dir *dir = first_dir; dir != NULL; dir = dir->next)
         {
-            Os_File_Walk *walk = os_file_walk_begin(arena, dir->src_path, 0);
-            for (Os_File_Info info = STRUCT_ZERO; os_file_walk_next(arena, walk, &info);)
+            Fs_Walk *walk = fs_walk_begin(arena, dir->src_path, 0);
+            for (Fs_Info info = STRUCT_ZERO; fs_walk_next(arena, walk, &info);)
             {
                 Str8 file_path = str8f(arena, "%.*s/%.*s", str8_varg(dir->src_path), str8_varg(info.name));
-                if (info.props.flags & Os_File_Property_Flag_IsFolder)
+                if (info.props.flags & Fs_Property_Flag_IsFolder)
                 {
                     Dir *next_dir = arena_push(arena, Dir, 1);
                     SLLQueuePush(first_dir, last_dir, next_dir);
@@ -107,7 +107,7 @@ void base_main(void)
                     str8_list_push(arena, &file_paths, file_path);
                 }
             }
-            os_file_walk_end(walk);
+            fs_walk_end(walk);
         }
     }
     fmt_fprintfln(log.file, " %zu directory found", file_paths.length);
@@ -122,7 +122,7 @@ void base_main(void)
             Str8 file_ext = str8_skip_last_dot(file_path);
             if (str8_match(file_ext, ext_name, 0))
             {
-                Str8 source = os_path_read_str_full(file_path, arena);
+                Str8 source = str8_from_u8array(fs_file_path_read_full(file_path, arena));
                 MD_Parse parse = md_parse_from_string(source, file_path, arena);
                 for (MD_Msg *m = parse.msgs.first; m != NULL; m = m->next)
                 {
@@ -455,14 +455,14 @@ void base_main(void)
             {
                 Str8 layer_key = mdg_layer_key_from_path(file->string, src_path, arena);
                 MDG_Layer *layer = mdg_layer_from_key(state, layer_key, arena);
-                Str8 string = os_path_read_str_full(md_node->first->string, arena);
+                Str8 string = str8_from_u8array(fs_file_path_read_full(md_node->first->string, arena));
                 Str8 embed_string = mdg_c_array_literal_contents_from_string(string, arena);
                 str8_list_pushf(arena, &layer->h_tables,
                     "read_only global uint8_t %.*s__data[] =\n{\n", str8_varg(md_node->string));
                 str8_list_push (arena, &layer->h_tables, embed_string);
                 str8_list_pushf(arena, &layer->h_tables, "};\n\n");
                 str8_list_pushf(arena, &layer->h_tables,
-                    "read_only global Str8 %.*s = {%.*s__data, sizeof(%.*s__data), sizeof(%.*s__data)};\n",
+                    "read_only global U8Array %.*s = {%.*s__data, sizeof(%.*s__data), sizeof(%.*s__data)};\n",
                     str8_varg(md_node->string), str8_varg(md_node->string), str8_varg(md_node->string), str8_varg(md_node->string));
             }
         }
@@ -487,7 +487,7 @@ void base_main(void)
                 Str8 gen_folder = defulat_gen_dirname;
                 layer_generated_folder = str8f(arena, "%.*s/%.*s/%.*s", str8_varg(src_path), str8_varg(layer->key), str8_varg(gen_folder));
             }
-            if (os_dir_ensure(layer_generated_folder))
+            if (fs_dir_ensure(layer_generated_folder))
             {
                 Str8_List layer_key_parts = str8_split_path(arena, layer->key);
                 Str_Join join = STRUCT_ZERO;
@@ -505,7 +505,7 @@ void base_main(void)
                     c_path = str8f(arena, "%.*s/%.*s", str8_varg(layer_generated_folder), str8_varg(str8_skip_last_slash(layer->c_name_override)));
                 }
                 {
-                    Os_File h_file = os_file_open(h_path, Os_AccessFlag_Write);
+                    Fs_File h_file = fs_file_open(h_path, Fs_File_Access_Flag_Write);
                     if (layer->h_header.first == NULL)
                     {
                         fmt_fprintfln(h_file, "//- GENERATED CODE\n");
@@ -514,23 +514,23 @@ void base_main(void)
                     }
                     else for (Str8_Node *n = layer->h_header.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(h_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
                     for (Str8_Node *n = layer->enums.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(h_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
                     for (Str8_Node *n = layer->structs.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(h_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
                     for (Str8_Node *n = layer->h_catchall.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(h_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
                     for (Str8_Node *n = layer->h_functions.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(h_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
                     if (layer->h_tables.first != NULL)
                     {
@@ -540,7 +540,7 @@ void base_main(void)
                         }
                         for (Str8_Node *n = layer->h_tables.first; n != NULL; n = n->next)
                         {
-                            os_file_write_append(h_file, n->str.cstr, n->str.size);
+                            fs_file_write_append(h_file, n->str.cstr, n->str.size);
                         }
                         fmt_fprintf(h_file, "\n");
                         if (!layer->is_library)
@@ -554,23 +554,23 @@ void base_main(void)
                     }
                     else for (Str8_Node *n = layer->h_footer.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(h_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(h_file, n->str.cstr, n->str.size);
                     }
-                    os_file_close(h_file);
+                    fs_file_close(h_file);
                 }
                 {
-                    Os_File c_file = os_file_open(c_path, Os_AccessFlag_Write);
+                    Fs_File c_file = fs_file_open(c_path, Fs_File_Access_Flag_Write);
                     if (layer->c_header.first == NULL)
                     {
                         fmt_fprintfln(c_file, "//- GENERATED CODE\n");
                     }
                     else for (Str8_Node *n = layer->c_header.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(c_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(c_file, n->str.cstr, n->str.size);
                     }
                     for (Str8_Node *n = layer->c_catchall.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(c_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(c_file, n->str.cstr, n->str.size);
                     }
                     if (layer->c_tables.first != NULL)
                     {
@@ -580,7 +580,7 @@ void base_main(void)
                         }
                         for (Str8_Node *n = layer->c_tables.first; n != NULL; n = n->next)
                         {
-                            os_file_write_append(c_file, n->str.cstr, n->str.size);
+                            fs_file_write_append(c_file, n->str.cstr, n->str.size);
                         }
                         if (!layer->is_library)
                         {
@@ -589,16 +589,16 @@ void base_main(void)
                     }
                     for (Str8_Node *n = layer->c_functions.first; n != NULL; n = n->next)
                     {
-                        os_file_write_append(c_file, n->str.cstr, n->str.size);
+                        fs_file_write_append(c_file, n->str.cstr, n->str.size);
                     }
                     if (layer->c_footer.first != NULL)
                     {
                         for (Str8_Node *n = layer->c_footer.first; n != NULL; n = n->next)
                         {
-                            os_file_write_append(c_file, n->str.cstr, n->str.size);
+                            fs_file_write_append(c_file, n->str.cstr, n->str.size);
                         }
                     }
-                    os_file_close(c_file);
+                    fs_file_close(c_file);
                 }
                 log_infofln(&log, "    %.*s", str8_varg(layer->src_path));
                 log_infofln(&log, "        ├─ %.*s", str8_varg(c_path));

@@ -49,7 +49,7 @@ internal Font_Handle font_handle_from_font(_Font_Provider_Font *font)
 internal Font_Handle font_open(Str8 path)
 {
     Arena *arena = arena_alloc();
-    Str8 file_data = os_path_read_str_full(path, arena);
+    U8Array file_data = fs_file_path_read_full(path, arena);
     if(file_data.length == 0)
     {
         arena_free(arena);
@@ -60,15 +60,15 @@ internal Font_Handle font_open(Str8 path)
     font->arena     = arena;
     font->file_data = file_data;
     
-    int offset = stbtt_GetFontOffsetForIndex(file_data.cstr, 0);
+    int offset = stbtt_GetFontOffsetForIndex(file_data.v, 0);
     if(offset < 0) { offset = 0; }
-    if(!stbtt_InitFont(&font->info, file_data.cstr, offset))
+    if(!stbtt_InitFont(&font->info, file_data.v, offset))
     {
         arena_free(arena);
         return font_handle_zero();
     }
     
-    font->kb_font = kbts_FontFromMemory(file_data.cstr, file_data.length, 0, _font_stb_kbts_allocator, arena);
+    font->kb_font = kbts_FontFromMemory(file_data.v, file_data.length, 0, _font_stb_kbts_allocator, arena);
     if(!kbts_FontIsValid(&font->kb_font))
     {
         arena_free(arena);
@@ -279,22 +279,22 @@ internal NO_ASAN Font_Raster_Result font_raster(Arena *arena, Font_Handle handle
     return result;
 }
 
-internal Font_Handle font_font_open_from_static_data_string(Str8 *data_ptr)
+internal Font_Handle font_font_open_from_static_data(U8Array *data_ptr)
 {
     Arena *arena = arena_alloc();
     _Font_Provider_Font *font = arena_push(arena, _Font_Provider_Font, 1);
     font->arena     = arena;
     font->file_data = *data_ptr;
     
-    int offset = stbtt_GetFontOffsetForIndex(data_ptr->cstr, 0);
+    int offset = stbtt_GetFontOffsetForIndex(data_ptr->v, 0);
     if(offset < 0) { offset = 0; }
-    if(!stbtt_InitFont(&font->info, data_ptr->cstr, offset))
+    if(!stbtt_InitFont(&font->info, data_ptr->v, offset))
     {
         arena_free(arena);
         return font_handle_zero();
     }
     
-    font->kb_font = kbts_FontFromMemory(data_ptr->cstr, data_ptr->size, 0, _font_stb_kbts_allocator, arena);
+    font->kb_font = kbts_FontFromMemory(data_ptr->v, data_ptr->length, 0, _font_stb_kbts_allocator, arena);
     if(!kbts_FontIsValid(&font->kb_font))
     {
         arena_free(arena);
@@ -404,7 +404,7 @@ internal Font_Tag font_tag_from_path(Str8 path)
     return result;
 }
 
-internal Font_Tag font_tag_from_static_data_string(Str8 *data_ptr)
+internal Font_Tag font_tag_from_static_data(U8Array *data_ptr)
 {
     // ak: produce tag hash of ptr
     Font_Tag result = STRUCT_ZERO;
@@ -437,7 +437,7 @@ internal Font_Tag font_tag_from_static_data_string(Str8 *data_ptr)
         Font_Hash_Slot *slot = &_font_state->font_hash_table[slot_idx];
         new_node = arena_push(_font_state->arena, Font_Hash_Node, 1);
         new_node->tag = result;
-        new_node->handle = font_font_open_from_static_data_string(data_ptr);
+        new_node->handle = font_font_open_from_static_data(data_ptr);
         new_node->metrics = font_provider_metrics_from_font(new_node->handle);
         new_node->path = str8("");
         SLLQueuePush_N(slot->first, slot->last, new_node, hash_next);

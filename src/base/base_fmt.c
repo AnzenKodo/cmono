@@ -7,20 +7,20 @@
 // ak: FPrint
 //=============================================================================
 
-internal uint64_t fmt_fprint(Os_File file, const char *string)
+internal uint64_t fmt_fprint(Fs_File file, const char *string)
 {
     uint64_t length = cstr8_length((uint8_t *)string);
-    os_file_write_append(file, (char *)string, length);
+    fs_file_write_append(file, (char *)string, length);
     return length;
 }
-internal uint64_t fmt_fprintln(Os_File file, const char *string)
+internal uint64_t fmt_fprintln(Fs_File file, const char *string)
 {
     uint64_t length = cstr8_length((uint8_t *)string);
     fmt_fprint(file, string);
     fmt_fprint(file, "\n");
     return length;
 }
-internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args)
+internal uint64_t fmt_vfprintf(Fs_File file, const char *format, va_list args)
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     uint64_t written = 0;
@@ -39,7 +39,7 @@ internal uint64_t fmt_vfprintf(Os_File file, const char *format, va_list args)
     arena_scratch_end(scratch);
     return written;
 }
-internal uint64_t fmt_fprintf(Os_File file, const char *format, ...)
+internal uint64_t fmt_fprintf(Fs_File file, const char *format, ...)
 {
     uint64_t written = 0;
     va_list args;
@@ -48,7 +48,7 @@ internal uint64_t fmt_fprintf(Os_File file, const char *format, ...)
     va_end(args);
     return written;
 }
-internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args)
+internal uint64_t fmt_vfprintfln(Fs_File file, const char *format, va_list args)
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     uint64_t written = 0;
@@ -69,7 +69,7 @@ internal uint64_t fmt_vfprintfln(Os_File file, const char *format, va_list args)
     arena_scratch_end(scratch);
     return written;
 }
-internal uint64_t fmt_fprintfln(Os_File file, const char *format, ...)
+internal uint64_t fmt_fprintfln(Fs_File file, const char *format, ...)
 {
     uint64_t written = 0;
     va_list args;

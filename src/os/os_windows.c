@@ -12,9 +12,9 @@ internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time)
     return unix_time32;
 }
 
-internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes)
+internal Fs_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes)
 {
-    Os_File_Property_Flags flags = 0;
+    Fs_File_Property_Flags flags = 0;
     if (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
         flags |= Os_File_Property_Flag_IsFolder;
@@ -46,13 +46,13 @@ internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in)
 //~ ak: Memory Allocation
 //=============================================================================
 
-internal void *os_mem_reserve(size_t size)
+internal void *mem_reserve(size_t size)
 {
     void *result = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
     return result;
 }
 
-internal bool os_mem_commit(void *ptr, size_t size)
+internal bool mem_commit(void *ptr, size_t size)
 {
     LPVOID result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
     return result != NULL;
@@ -63,7 +63,7 @@ internal bool os_mem_decommit(void *ptr, size_t size)
     return VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
-internal bool os_mem_release(void *ptr, size_t size)
+internal bool mem_release(void *ptr, size_t size)
 {
     return VirtualFree(ptr, size, MEM_RELEASE);
 }
@@ -78,7 +78,7 @@ internal size_t os_pagesize_get(void)
 //~ ak: File System
 //=============================================================================
 
-internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
+internal Fs_File fs_file_open(Str8 path, Fs_File_Access_Flags flags)
 {
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str16 path16 = str16_from_8(scratch.arena, path);
@@ -86,35 +86,35 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
     DWORD share_mode = 0;
     DWORD creation_disposition = OPEN_EXISTING;
     SECURITY_ATTRIBUTES security_attributes = {sizeof(security_attributes), 0, 0};
-    if (flags & Os_AccessFlag_Read)
+    if (flags & Fs_File_Access_Flag_Read)
     {
         access_flags |= GENERIC_READ;
     }
-    if (flags & Os_AccessFlag_Write)
+    if (flags & Fs_File_Access_Flag_Write)
     {
         access_flags |= GENERIC_WRITE;
     }
-    if (flags & Os_AccessFlag_Execute)
+    if (flags & Fs_File_Access_Flag_Execute)
     {
         access_flags |= GENERIC_EXECUTE;
     }
-    if (flags & Os_AccessFlag_ShareRead)
+    if (flags & Fs_File_Access_Flag_ShareRead)
     {
         share_mode |= FILE_SHARE_READ;
     }
-    if (flags & Os_AccessFlag_ShareWrite)
+    if (flags & Fs_File_Access_Flag_ShareWrite)
     {
         share_mode |= FILE_SHARE_WRITE|FILE_SHARE_DELETE;
     }
-    if (flags & Os_AccessFlag_Write)
+    if (flags & Fs_File_Access_Flag_Write)
     {
         creation_disposition = CREATE_ALWAYS;
     }
-    if (flags & Os_AccessFlag_Append)
+    if (flags & Fs_File_Access_Flag_Append)
     {
         creation_disposition = OPEN_ALWAYS; access_flags |= FILE_APPEND_DATA;
     }
-    if (flags & Os_AccessFlag_Inherited)
+    if (flags & Fs_File_Access_Flag_Inherited)
     {
         security_attributes.bInheritHandle = 1;
     }
@@ -123,15 +123,15 @@ internal Os_File os_file_open(Str8 path, Os_AccessFlags flags)
         creation_disposition, FILE_ATTRIBUTE_NORMAL, 0
     );
     arena_scratch_end(scratch);
-    return (Os_File)handle;
+    return (Fs_File)handle;
 }
 
-internal void os_file_close(Os_File file)
+internal void fs_file_close(Fs_File file)
 {
     CloseHandle((HANDLE)file);
 }
 
-internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
+internal uint64_t os_file_read(Fs_File file, Rng1_U64 rng, void *out_data)
 {
     size_t size = 0;
     GetFileSizeEx((HANDLE)file, (LARGE_INTEGER *)&size);
@@ -161,7 +161,7 @@ internal uint64_t os_file_read(Os_File file, Rng1_U64 rng, void *out_data)
 }
 
 
-internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
+internal size_t os_file_write(Fs_File file, void *data, Rng1_U64 rng)
 {
     uint64_t src_off = 0;
     uint64_t dst_off = rng.min;
@@ -190,16 +190,16 @@ internal size_t os_file_write(Os_File file, void *data, Rng1_U64 rng)
     return src_off;
 }
 
-internal size_t os_file_write_append(Os_File file, void *data, size_t size)
+internal size_t fs_file_write_append(Fs_File file, void *data, size_t size)
 {
     DWORD total_num_bytes_written;
     WriteFile((HANDLE)file, data, (DWORD)size, &total_num_bytes_written, NULL);
     return total_num_bytes_written;
 }
 
-internal Os_File_Properties os_file_properties(Os_File file)
+internal Fs_File_Properties fs_file_properties(Fs_File file)
 {
-    Os_File_Properties props = STRUCT_ZERO;
+    Fs_File_Properties props = STRUCT_ZERO;
     BY_HANDLE_FILE_INFORMATION info;
     BOOL info_good = GetFileInformationByHandle((HANDLE)file, &info);
     if (info_good)
@@ -216,7 +216,7 @@ internal Os_File_Properties os_file_properties(Os_File file)
 
 //- ak: Directory Operations
 
-internal bool os_is_dir_exist(Str8 path)
+internal bool fs_is_dir_exist(Str8 path)
 {
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str16 path16 = str16_from_8(scratch.arena, path);
@@ -225,7 +225,7 @@ internal bool os_is_dir_exist(Str8 path)
     return (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-internal bool os_dir_make(Str8 path)
+internal bool fs_dir_make(Str8 path)
 {
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str16 path16 = str16_from_8(scratch.arena, path);
@@ -408,7 +408,7 @@ internal void os_sleep_millisec(uint32_t millisec)
 //~ ak: Command-Line Operations
 //=============================================================================
 
-internal bool os_is_term_mode(Os_File file)
+internal bool os_is_term_mode(Fs_File file)
 {
     bool result = false;
     DWORD dmode;

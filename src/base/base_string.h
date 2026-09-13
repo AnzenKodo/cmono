@@ -153,7 +153,7 @@ internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2);
 
 // ak: String Conversions =====================================================
 
-// ak: string -> integer
+// ak: string <-> integer
 internal bool     str8_is_integer(Str8 str, size_t radix);
 internal bool     str8_is_integer_unsigned(Str8 str, size_t radix);
 internal int64_t  sign_from_str8(Str8 str, Str8 *string_tail);
@@ -164,14 +164,18 @@ internal int32_t  i32_from_str8(Str8 str, size_t radix);
 internal bool     try_u64_from_str8_c_rules(Str8 string, uint64_t *x);
 internal bool     try_s64_from_str8_c_rules(Str8 string, int64_t  *x);
 
-// ak: string -> float
+// ak: string <-> float
 internal bool     str8_is_float(Str8 str);
 internal double   f64_from_str8(Str8 str);
 
-// ak: string -> bool
+// ak: string <-> bool
 internal bool     str8_is_bool(Str8 str);
 internal bool     bool_from_str8(Str8 str);
 internal Str8     str8_from_bool(bool value);
+
+// ak: string <-> array
+internal Str8 str8_from_u8array(U8Array array);
+internal U8Array u8array_from_str8(Str8 string);
 
 // ak: String List Construction Functions =====================================
 

@@ -21,8 +21,8 @@ extern char **environ;
 //~ ak: File System ===========================================================
 
 //- ak: directory walking
-typedef struct _Os_Linux_File_Walk _Os_Linux_File_Walk;
-struct _Os_Linux_File_Walk
+typedef struct _Os_Linux_Walk _Os_Linux_Walk;
+struct _Os_Linux_Walk
 {
   DIR *dir;
   struct dirent *dp;
@@ -43,6 +43,6 @@ struct _Os_Linux_File_Walk
 
 internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec);
 internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in);
-internal Os_File_Properties _os_linux_file_properties_from_stat(struct stat *s);
+internal Fs_Properties _os_linux_properties_from_stat(struct stat *s);
 
 #endif // OS_LINUX_H

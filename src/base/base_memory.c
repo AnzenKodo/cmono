@@ -1,3 +1,16 @@
+// ak: Memory Allocation
+//=============================================================================
+
+internal void * os_mem_alloc(size_t size)
+{
+    void *result = mem_reserve(size);
+    mem_commit(result, size);
+    return result;
+}
+
+// ak: Memory Operations
+//=============================================================================
+
 internal inline void *mem_copy(void *dest, void const *source, size_t n)
 {
     if (dest == NULL)

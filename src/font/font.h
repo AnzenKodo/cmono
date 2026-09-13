@@ -49,7 +49,7 @@ typedef struct _Font_Provider_Font _Font_Provider_Font;
 struct _Font_Provider_Font
 {
     Arena          *arena;
-    Str8           file_data;
+    U8Array        file_data;
     stbtt_fontinfo info;
     kbts_font      kb_font;
 };
@@ -325,7 +325,7 @@ internal Vec2_I32 font_vertex_from_corner(Corner corner);
 internal Font_Tag font_tag_zero(void);
 internal bool font_tag_match(Font_Tag a, Font_Tag b);
 internal Font_Tag font_tag_from_path(Str8 path);
-internal Font_Tag font_tag_from_static_data_string(Str8 *data_ptr);
+internal Font_Tag font_tag_from_static_data(U8Array *data_ptr);
 
 // ak: Metrics
 internal Font_Metrics font_metrics_from_tag_size(Font_Tag tag, float size);

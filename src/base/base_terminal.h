@@ -1,10 +1,10 @@
 #ifndef BASE_TERM_H
 #define BASE_TERM_H
 
-//~ ak: Defines
+// ak: Defines
 //=============================================================================
 
-//~ ak: ASNI Codes ============================================================
+// ak: ASNI Codes ============================================================
 
 //- ak: Style
 #define TERM_RESET             "\x1B[0m"
@@ -73,33 +73,38 @@
 #define TERM_CLEAR_TO_END      "\x1B[0J"
 #define TERM_CLEAR_TO_START    "\x1B[1J"
 
-//~ ak: Macros
+// ak: Macros
 //=============================================================================
 
-//~ ak: Handle Cursor positions ===============================================
+// ak: Handle Cursor positions ===============================================
 #define TermCursorUp(n)      "\x1B[" #n "A"
 #define TermCursorDown(n)    "\x1B[" #n "B"
 #define TermCursorRight(n)   "\x1B[" #n "C"
 #define TermCursorLeft(n)    "\x1B[" #n "D"
 #define TermCursorPos(r,c)   "\x1B[" #r ";" #c "H"
 
-//~ ak: Set terminal title ====================================================
+// ak: Set terminal title ====================================================
 #define TermSetTitle(title)  "\x1B]0;" title "\x07"
 
-// Types
+// ak: Types
 //=============================================================================
 
 typedef struct _Term_State _Term_State;
 struct _Term_State
 {
-    Os_File file;
+    Fs_File file;
 };
 
-// Functions
-// ============================================================================
+// ak: Functions
+//=============================================================================
+
+internal Str8_Array *term_args_get(void);
+internal bool term_is_terminal(Fs_File file);
+
+// ak: Terminal Style =========================================================
 
 internal bool term_is_color_allowed(void);
-internal void term_style_start(Os_File file, const char *style);
+internal void term_style_start(Fs_File file, const char *style);
 internal void term_style_end(void);
 internal char *term_style_get(const char *style);
 

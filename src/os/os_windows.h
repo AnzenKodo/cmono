@@ -64,9 +64,9 @@ global w32_GetSystemMetricsForDpi_Type *w32_GetSystemMetricsForDpi_func = 0;
 // ak: Defines
 //=============================================================================
 
-#define OS_STDIN  (Os_File)GetStdHandle(STD_INPUT_HANDLE)
-#define OS_STDOUT (Os_File)GetStdHandle(STD_OUTPUT_HANDLE)
-#define OS_STDERR (Os_File)GetStdHandle(STD_ERROR_HANDLE)
+#define OS_STDIN  (Fs_File)GetStdHandle(STD_INPUT_HANDLE)
+#define OS_STDOUT (Fs_File)GetStdHandle(STD_OUTPUT_HANDLE)
+#define OS_STDERR (Fs_File)GetStdHandle(STD_ERROR_HANDLE)
 
 // ak: Functions
 //=============================================================================
@@ -74,7 +74,7 @@ global w32_GetSystemMetricsForDpi_Type *w32_GetSystemMetricsForDpi_func = 0;
 // Helpers functions ==========================================================
 
 internal uint32_t _os_win32_unix_time_from_file_time(FILETIME file_time);
-internal Os_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes);
+internal Fs_File_Property_Flags _os_win32_file_property_flags_from_dwFileAttributes(DWORD dwFileAttributes);
 internal void _os_win32_dense_time_from_file_time(DenseTime *out, FILETIME *in);
 internal void _os_win32_date_time_from_system_time(DateTime *out, SYSTEMTIME *in);
 

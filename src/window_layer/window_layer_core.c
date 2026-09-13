@@ -17,7 +17,7 @@ internal Wl_Event *wl_event_list_push_new(Arena *arena, Wl_Event_List *evts, Wl_
     Wl_Event *evt = arena_push(arena, Wl_Event, 1);
     DLLPushBack(evts->first, evts->last, evt);
     evts->length += 1;
-    evt->timestamp_us = os_now_us();
+    evt->timestamp_us = time_now_us();
     evt->kind = kind;
     return evt;
 }

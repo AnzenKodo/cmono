@@ -8,8 +8,8 @@ internal Arena *_arena_alloc(ArenaParams *params)
     size_t pagesize = os_pagesize_get();
     size_t reserve_size = AlignPow2(params->reserve_size, pagesize);
     size_t commit_size = AlignPow2(params->commit_size, pagesize);
-    Arena* arena = (Arena *)os_mem_reserve(reserve_size);
-    if (os_mem_commit(arena, commit_size))
+    Arena* arena = (Arena *)mem_reserve(reserve_size);
+    if (mem_commit(arena, commit_size))
     {
         arena->reserve_size = reserve_size;
         arena->commit_size = commit_size;
@@ -26,7 +26,7 @@ internal Arena *_arena_alloc(ArenaParams *params)
 internal void arena_free(Arena* arena)
 {
     AsanUnpoisonMemoryRegion(arena, arena->reserve_size);
-    os_mem_release(arena, arena->reserve_size);
+    mem_release(arena, arena->reserve_size);
 }
 
 internal size_t arena_pos(Arena *arena)
@@ -49,7 +49,7 @@ internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_ze
             commit_pos_new =  Min(commit_pos_new, arena->reserve_size);
             char* mem = (char*)arena + arena->commit_pos;
             size_t commit_size = commit_pos_new - arena->commit_pos;
-            if (os_mem_commit(mem, commit_size))
+            if (mem_commit(mem, commit_size))
             {
                 arena->commit_pos = commit_pos_new;
                 AsanPoisonMemoryRegion(mem, commit_size);

@@ -1,6 +1,19 @@
 #ifndef BASE_MEM_H
 #define BASE_MEM_H
 
+// ak: Functions
+//=============================================================================
+
+// ak: Memory Allocation =====================================================
+
+internal void *mem_alloc(size_t size);
+internal void *mem_reserve(size_t size);
+internal bool mem_release(void *ptr, size_t size);
+internal bool mem_commit(void *ptr, size_t size);
+internal bool mem_decommit(void *ptr, size_t size);
+
+// ak: Memory Operations ======================================================
+
 // NOTE(ak): references taken from:
 //  - [Ginger Bill](https://www.gingerbill.org): [gb.h](https://github.com/gingerBill/gb/blob/master/gb.h)
 

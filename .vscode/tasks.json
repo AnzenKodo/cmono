@@ -24,7 +24,7 @@
         {
             "label": "Build Program Windows",
             "type": "shell",
-            "command": "cc build.c && a.exe build-debugger",
+            "command": "clang build.c && a.exe build-debugger",
             "options": {
                 "shell": {
                     "executable": "cmd.exe",
@@ -53,7 +53,7 @@
         {
             "label": "Build Build",
             "type": "shell",
-            "command": "cc -ggdb -DBUILD_DEBUG build.c",
+            "command": "clang -ggdb -DBUILD_DEBUG build.c",
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": [

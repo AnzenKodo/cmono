@@ -15,7 +15,7 @@ typedef enum Log_Level {
 typedef struct Log_Context Log_Context;
 struct Log_Context {
     Log_Level level;
-    Os_File file;
+    Fs_File file;
     bool print_level_prefix;
     bool enable_color_log;
 };
