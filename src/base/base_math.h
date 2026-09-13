@@ -1,10 +1,14 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Ginger Bill: https://github.com/gingerBill/gb/blob/ba442e2a100ba35ca9efaeef5231b6043148e7af/gb_math.h
+// - By Ben Visness: https://github.com/HandmadeMath/HandmadeMath
+// - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_math.h
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_math.c
+//-----------------------------------------------------------------------------
+
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
-
-// NOTE(ak): the code reference taken from:
-// - https://github.com/gingerBill/gb/blob/master/gb_math.h
-// - https://github.com/HandmadeMath/HandmadeMath
-// - https://github.com/EpicGamesExt/raddebugger
 
 // ak: Base
 //=============================================================================

@@ -1,4 +1,9 @@
-// TODO(aman.v): Add better window error handling.
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/aea4a4ff9d6ed823b432d94b84fe88054f69265b/src/os/gfx
+// - By Riley Mabb: https://github.com/ColleagueRiley/RGFW/blob/d7eb57316a7cfe835f957187351ab3cd1b47e4ee/RGFW.h
+// - By CJ & Casey Muratori: https://github.com/cj1128/handmade-hero/
+//-----------------------------------------------------------------------------
 
 #ifndef WINDOW_LAYER_CORE_H
 #define WINDOW_LAYER_CORE_H

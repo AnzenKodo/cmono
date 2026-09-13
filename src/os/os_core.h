@@ -1,3 +1,8 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/aea4a4ff9d6ed823b432d94b84fe88054f69265b/src/os/core
+//-----------------------------------------------------------------------------
+
 #ifndef OS_CORE_H
 #define OS_CORE_H
 

@@ -1,3 +1,8 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/render/opengl/win32
+//-----------------------------------------------------------------------------
+
 #ifndef RENDER_WGL_H
 #define RENDER_WGL_H
 

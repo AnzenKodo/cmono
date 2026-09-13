@@ -1,6 +1,8 @@
-// NOTE(ak): the lib inspiration taken from:
-//  - [Ryan Fleury](https://www.dgtlgrove.com)
-//      - [metagen](https://github.com/EpicGamesExt/raddebugger/tree/master/src/metagen)
+//-----------------------------------------------------------------------------
+// Reference:
+//  - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/metagen
+//-----------------------------------------------------------------------------
 
 #ifndef METADESK_GEN_H
 #define METADESK_GEN_H

@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/font_cache
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/font_provider
+//-----------------------------------------------------------------------------
+
 #ifndef FONT_H
 #define FONT_H
 

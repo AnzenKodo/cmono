@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_memory.h
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_memory.c
+//  - By Ginger Bill: https://github.com/gingerBill/gb/blob/41838203cd93366b1f6ceed4cea7994737408e73/gb.h
+//-----------------------------------------------------------------------------
+
 #ifndef BASE_MEM_H
 #define BASE_MEM_H
 

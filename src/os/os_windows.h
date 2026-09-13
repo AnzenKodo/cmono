@@ -1,3 +1,9 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/win32/base
+// - By Allen Webster: https://github.com/4coder-archive/4coder/tree/master/platform_win32
+//-----------------------------------------------------------------------------
+
 #ifndef OS_WINDOWS_H
 #define OS_WINDOWS_H
 

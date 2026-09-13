@@ -1,8 +1,11 @@
-// NOTE(ak): the lib inspiration taken from:
-//  - [Ryan Fleury](https://www.dgtlgrove.com)
+//-----------------------------------------------------------------------------
+// Reference:
+//  - By Ryan Fleury:
 //      - [Table-Driven Code Generation](https://www.dgtlgrove.com/p/table-driven-code-generation)
 //      - [Metadesk](https://github.com/ryanfleury/metadesk)
-//      - [RadDebugger Metadesk](https://github.com/EpicGamesExt/raddebugger/tree/master/src/mdesk)
+//  - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/mdesk
+//-----------------------------------------------------------------------------
 
 #ifndef METADESK_H
 #define METADESK_H

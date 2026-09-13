@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/render/opengl
+// - By Dylan Falconer: https://www.bytesbeneath.com/p/the-arena-custom-memory-allocators
+// - By Allen Webster: https://github.com/4coder-archive/4coder/tree/master/opengl
+// Reference for OpenGL function: https://docs.gl
+//-----------------------------------------------------------------------------
+
 #ifndef RENDER_OPENGL_H
 #define RENDER_OPENGL_H
 

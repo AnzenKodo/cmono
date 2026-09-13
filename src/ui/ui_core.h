@@ -1,8 +1,12 @@
-// NOTE(ak): This UI module code is reference from:
-// - https://www.dgtlgrove.com/p/ui-part-2-build-it-every-frame-immediate
-// - https://www.dgtlgrove.com/p/ui-part-3-the-widget-building-language
-// - https://github.com/EpicGamesExt/raddebugger/blob/master/src/ui/ui_core.h
-// - https://github.com/EpicGamesExt/raddebugger/blob/master/src/ui/ui_core.c
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Ryan Fleury:
+//      - https://www.dgtlgrove.com/p/ui-part-2-build-it-every-frame-immediate
+//      - https://www.dgtlgrove.com/p/ui-part-3-the-widget-building-language
+// - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGamesExt/raddebugger/blob/master/src/ui/ui_core.h
+//      - https://github.com/EpicGamesExt/raddebugger/blob/master/src/ui/ui_core.c
+//-----------------------------------------------------------------------------
 
 #ifndef UI_CORE_H
 #define UI_CORE_H

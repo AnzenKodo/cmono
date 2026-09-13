@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_arena.h
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_arena.c
+// - By Alexey Kutepov: https://github.com/tsoding/arena
+//-----------------------------------------------------------------------------
+
 #ifndef BASE_ALLOC_H
 #define BASE_ALLOC_H
 

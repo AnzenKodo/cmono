@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_files.h
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_files.c
+//-----------------------------------------------------------------------------
+
 #ifndef BASE_FILE_H
 #define BASE_FILE_H
 

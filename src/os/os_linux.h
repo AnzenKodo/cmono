@@ -1,3 +1,9 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/linux/base
+// - By Allen Webster: https://github.com/4coder-archive/4coder/tree/master/platform_linux
+//-----------------------------------------------------------------------------
+
 #ifndef OS_LINUX_H
 #define OS_LINUX_H
 

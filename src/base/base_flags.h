@@ -1,3 +1,9 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Krzysztof Gabis: http://github.com/kgabis/kgflags
+// - By Go Authors: https://pkg.go.dev/flag
+//-----------------------------------------------------------------------------
+
 #ifndef BASE_FLAGS_H
 #define BASE_FLAGS_H
 

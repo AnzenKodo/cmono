@@ -1,7 +1,13 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_context_cracking.c
+// Pre-defined Macros List: https://github.com/cpredef/predef
+//-----------------------------------------------------------------------------
 #ifndef BASE_CONTEXT_H
 #define BASE_CONTEXT_H
 
-// Language Cracking
+// ak: Language Cracking
 //=============================================================================
 
 #if defined(__cplusplus)
@@ -10,10 +16,10 @@
 #   define LANGUAGE_C 1
 #endif
 
-// Compiler OS/Arch Chacking
+// ak: Compiler OS/Arch Chacking
 //=============================================================================
 
-// Clang ======================================================================
+// ak: Clang ==================================================================
 
 #if defined(__clang__)
 
@@ -41,7 +47,7 @@
 #       error Architecture not supported.
 #   endif
 
-// MSVC OS/Arch Cracking ======================================================
+// ak: MSVC OS/Arch Cracking ==================================================
 
 #elif defined(_MSC_VER)
 
@@ -85,7 +91,7 @@
 #       error Architecture not supported.
 #   endif
 
-// GCC OS/Arch Cracking =======================================================
+// ak: GCC OS/Arch Cracking ===================================================
 
 #elif defined(__GNUC__) || defined(__GNUG__)
 
@@ -111,7 +117,7 @@
 #       error Architecture not supported.
 #   endif
 
-// TCC OS/Arch Checking =======================================================
+// ak: TCC OS/Arch Checking ===================================================
 
 #elif defined(__TINYC__)
 
@@ -137,13 +143,13 @@
 #       error Architecture not supported by TCC.
 #   endif
 
-// Not supported compiler =====================================================
+// ak: Not supported compiler =================================================
 
 #else
 #   error Compiler not supported.
 #endif
 
-// Arch Checking
+// ak: Arch Checking
 //=============================================================================
 
 #if defined(ARCH_X64)
@@ -158,7 +164,7 @@
 #   error Endianness of this architecture not understood by context cracker.
 #endif
 
-// MinGW Checking
+// ak: MinGW Checking
 //=============================================================================
 
 #ifdef __MINGW32__
@@ -191,7 +197,7 @@
 #   error ASAN is not defined for this compiler
 #endif
 
-// Toolchain/Environment Enums
+// ak: Toolchain/Environment Enums
 //=============================================================================
 
 typedef enum Context_Os

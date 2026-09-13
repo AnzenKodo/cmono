@@ -1,3 +1,8 @@
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/win32/window_manager
+//-----------------------------------------------------------------------------
+
 #ifndef WINDOW_LAYER_W32_H
 #define WINDOW_LAYER_W32_H
 
