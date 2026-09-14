@@ -269,7 +269,7 @@ internal Audio_Sound audio_load_from_memory(U8Array data, Audio_Load_Flags flags
     // ak: fill sound data
     _sound->in_use = true;
     _sound->data   = data;
-    _sound->path   = str8_zero();
+    _sound->path   = STRUCT_ZERO;
     _sound->flags  = flags;
     
     // ak: bundle & return
@@ -335,7 +335,7 @@ internal void audio_unload(Audio_Sound sound)
         
         _sound->in_use = false;
         _sound->data = STRUCT_ZERO;
-        _sound->path = str8_zero();
+        _sound->path = STRUCT_ZERO;
         _sound->flags = 0;
         SLLStackPush(_audio_state->free_sound, _sound);
         ma_mutex_unlock(&_audio_state->mutex);
