@@ -387,8 +387,7 @@ internal void base_main(void)
     
     Build_Info info = STRUCT_ZERO;
     info.name = APP_CMD_NAME;
-    info.flags |= Build_Flag_Cpp;
-    info.entry_point = str8("src/app/app_main.cpp");
+    info.entry_point = str8("src/app/app_main.c");
     info.arena = arena;
     
     bool should_print_help = false;

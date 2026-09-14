@@ -269,7 +269,7 @@ internal Audio_Sound audio_load_from_memory(U8Array data, Audio_Load_Flags flags
     // ak: fill sound data
     _sound->in_use = true;
     _sound->data   = data;
-    _sound->path   = STRUCT_ZERO;
+    _sound->path   = StructZeroType(Str8);
     _sound->flags  = flags;
     
     // ak: bundle & return
@@ -295,7 +295,7 @@ internal Audio_Sound audio_load_from_path(Arena *arena, Str8 path, Audio_Load_Fl
         }
         
         _sound->in_use = true;
-        _sound->data   = STRUCT_ZERO;
+        _sound->data   = StructZeroType(U8Array);
         _sound->path   = str8_copy(_audio_state->arena, path);
         _sound->flags  = flags;
         
@@ -334,8 +334,8 @@ internal void audio_unload(Audio_Sound sound)
         }
         
         _sound->in_use = false;
-        _sound->data = STRUCT_ZERO;
-        _sound->path = STRUCT_ZERO;
+        _sound->data = StructZeroType(U8Array);
+        _sound->path = StructZeroType(Str8);
         _sound->flags = 0;
         SLLStackPush(_audio_state->free_sound, _sound);
         ma_mutex_unlock(&_audio_state->mutex);
@@ -803,7 +803,7 @@ internal void audio_voice_set_play_params(Audio_Voice voice, Audio_Play_Params p
 internal Audio_Play_Params audio_voice_get_play_params(Audio_Voice voice)
 {
     _Audio_Voice *_voice = _audio_voice_from_handle(voice);
-    if (_voice == 0) { return STRUCT_ZERO; }
+    if (_voice == 0) { return StructZeroType(Audio_Play_Params); }
     
     ma_mutex_lock(&_audio_state->mutex);
     Audio_Play_Params params = STRUCT_ZERO;
