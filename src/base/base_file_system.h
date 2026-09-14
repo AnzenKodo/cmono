@@ -71,6 +71,7 @@ internal Fs_File fs_file_open(Str8 path, Fs_File_Access_Flags flags);
 internal void fs_file_close(Fs_File file);
 
 // ak: File Read
+internal size_t fs_file_read_raw(Fs_File file, Rng1_U64 range, void *out_data);
 internal U8Array fs_file_read(Fs_File file, Rng1_U64 range, Arena *arena);
 internal U8Array fs_file_read_full(Fs_File file, Arena *arena);
 internal U8Array fs_file_path_read(Str8 path, Rng1_U64 range, Arena *arena);
@@ -92,8 +93,10 @@ internal void fs_walk_end(Fs_Walk *walk);
 // ak: Directory Operations
 internal bool fs_is_dir_exist(Str8 path);
 internal bool fs_dir_make(Str8 path);
+internal bool fs_dir_ensure(Str8 path);
 
 // ak: Exists
 internal bool fs_dir_path_exists(Str8 path);
+internal bool fs_file_path_exists(Str8 path);
 
 #endif // BASE_FILE_H

@@ -1,4 +1,12 @@
-//~ ak: Command-Line Operations
+// ak: File
+//=============================================================================
+
+internal Str8 os_get_data_home_path(void)
+{
+    return _os_core_state.data_home;
+}
+
+// ak: Command-Line Operations
 //=============================================================================
 
 internal Str8 *os_program_path_get(void)
@@ -6,7 +14,8 @@ internal Str8 *os_program_path_get(void)
     return &_os_core_state.args.v[0];
 }
 
-//~ ak: OS Entry Points =======================================================
+// ak: OS Entry Points
+//=============================================================================
 
 internal void os_main(void)
 {

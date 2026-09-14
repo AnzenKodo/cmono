@@ -8,7 +8,7 @@ internal U8Array fs_file_read(Fs_File file, Rng1_U64 range, Arena *arena)
     result.size = dim_rng1(range);
     result.length = result.size;
     result.v = arena_push(arena, uint8_t, result.size);
-    size_t actual_read_size = os_file_read(file, range, result.v);
+    size_t actual_read_size = fs_file_read_raw(file, range, result.v);
     if (actual_read_size < result.length)
     {
         arena_pop_to(arena, pre_pos + actual_read_size);

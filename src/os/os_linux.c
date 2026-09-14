@@ -52,32 +52,6 @@ internal size_t os_pagesize_get(void)
     return result;
 }
 
-// ak: File ===================================================================
-
-internal size_t os_file_read(Fs_File file, Rng1_U64 rng, void *out_data)
-{
-    size_t total_num_bytes_to_read = dim_rng1(rng);
-    size_t total_num_bytes_read = 0;
-    size_t total_num_bytes_left_to_read = total_num_bytes_to_read;
-    while (total_num_bytes_left_to_read > 0)
-    {
-        int read_result = pread(
-            file, (uint8_t *)out_data + total_num_bytes_read,
-            total_num_bytes_left_to_read, rng.min + total_num_bytes_read
-        );
-        if (read_result >= 0)
-        {
-            total_num_bytes_read += read_result;
-            total_num_bytes_left_to_read -= read_result;
-        }
-        else if (errno != EINTR)
-        {
-            break;
-        }
-    }
-    return total_num_bytes_read;
-}
-
 // ak: Exit ===================================================================
 
 internal void os_exit(int32_t exit_code)
@@ -103,7 +77,7 @@ internal void os_sleep_ms(uint32_t millisec)
 // ak: Environment Variable
 //=============================================================================
 
-internal bool os_env_is_set(Str8 name)
+internal bool os_is_env_exists(Str8 name)
 {
     bool result = false;
     for (char **e = environ; *e != NULL; e++)
@@ -114,6 +88,7 @@ internal bool os_env_is_set(Str8 name)
         if (str8_match(env_name, name, Str_Match_Flag_None))
         {
             result = true;
+            break;
         }
     }
     return result;
@@ -126,9 +101,11 @@ internal Str8 os_env_get(Str8 name)
     {
         Str8 env = str8_from_cstr(*e);
         uint64_t equal_pos = str8_find_substr(env, 0, str8("="), Str_Match_Flag_None);
-        if (os_env_is_set(name))
+        Str8 env_name = str8_prefix(env, equal_pos);
+        if (str8_match(env_name, name, Str_Match_Flag_None))
         {
             result = str8_skip(env, equal_pos+1);
+            break;
         }
     }
     return result;
@@ -140,13 +117,39 @@ internal Str8 os_env_get(Str8 name)
 int main(int argc, char *argv[])
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
-    _os_core_state.args = array_alloc(scratch.arena, Str8_Array, (size_t)argc);
-    for (int i = 0; i < argc; i++)
+    
+    // ak: make array of args
     {
-        Str8 str = str8_from_cstr(argv[i]);
-        array_append(&_os_core_state.args, str);
+        _os_core_state.args = array_alloc(scratch.arena, Str8_Array, (size_t)argc);
+        for (int i = 0; i < argc; i++)
+        {
+            Str8 str = str8_from_cstr(argv[i]);
+            array_append(&_os_core_state.args, str);
+        }
     }
+    
+    // ak: get os data home path
+    {
+        if (os_is_env_exists(str8("XDG_DATA_HOME")))
+        {
+            _os_core_state.data_home = os_env_get(str8("XDG_DATA_HOME"));
+        }
+        if (_os_core_state.data_home.length == 0)
+        {
+            if (os_is_env_exists(str8("HOME")))
+            {
+                Str8 home = os_env_get(str8("HOME"));
+                if (home.length != 0)
+                {
+                    _os_core_state.data_home = str8f(scratch.arena, "%s8/.local/share", home);
+                }
+            }
+        }
+    }
+    
+    // ak: os entry point
     os_main();
+    
     arena_scratch_end(scratch);
 }
 
@@ -240,6 +243,32 @@ internal Fs_File fs_file_open(Str8 path, Fs_File_Access_Flags flags)
 internal void fs_file_close(Fs_File file)
 {
     close(file);
+}
+
+// ak: File Read
+
+internal size_t fs_file_read_raw(Fs_File file, Rng1_U64 rng, void *out_data)
+{
+    size_t total_num_bytes_to_read = dim_rng1(rng);
+    size_t total_num_bytes_read = 0;
+    size_t total_num_bytes_left_to_read = total_num_bytes_to_read;
+    while (total_num_bytes_left_to_read > 0)
+    {
+        int read_result = pread(
+            file, (uint8_t *)out_data + total_num_bytes_read,
+            total_num_bytes_left_to_read, rng.min + total_num_bytes_read
+        );
+        if (read_result >= 0)
+        {
+            total_num_bytes_read += read_result;
+            total_num_bytes_left_to_read -= read_result;
+        }
+        else if (errno != EINTR)
+        {
+            break;
+        }
+    }
+    return total_num_bytes_read;
 }
 
 // ak: File Write

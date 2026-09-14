@@ -22,6 +22,7 @@ struct _Os_Core_State
 {
     Str8_Array args;
     Log_Context log_context;
+    Str8 data_home;
 };
 
 // ak: Functions
@@ -30,10 +31,6 @@ struct _Os_Core_State
 // ak: Memory =================================================================
 
 internal size_t os_pagesize_get(void);
-
-// ak: File ===================================================================
-
-internal size_t os_file_read(Fs_File file, Rng1_U64 rng, void *out_data);
 
 // ak: Exit ===================================================================
 
@@ -50,7 +47,7 @@ internal Str8 *os_program_path_get(void);
 
 // ak: Environment Variable ===================================================
 
-internal bool os_env_is_set(Str8 name);
+internal bool os_is_env_exists(Str8 name);
 internal Str8 os_env_get(Str8 name);
 
 // ak: OS Entry Points ========================================================

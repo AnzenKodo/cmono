@@ -65,7 +65,7 @@ global const char *help_message = "DESCRIPTION:\n"
 "   build                Build project\n"
 "   run                  Run project\n"
 "   build-run            Build and Run project\n"
-"   build-dry            Build producing any output files\n"
+"   build-dry            Build without producing any output files\n"
 "   build-debugger       Build for Debugger\n"
 "   gen-meta             Generate code from Metaprogram\n"
 "   --help -h            Print help\n";

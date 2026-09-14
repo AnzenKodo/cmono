@@ -363,13 +363,13 @@ internal void render_init(void)
                 GL_VERTEX_SHADER,
                 _render_opengl_shader_kind_vert_src_table[k],
                 0,
-                str8_zero()
+                StructZeroType(Str8)
             },
             {
                 GL_FRAGMENT_SHADER,
                 _render_opengl_shader_kind_frag_src_table[k],
                 0,
-                str8_zero()
+                StructZeroType(Str8)
             },
         };
         for EachElement(idx, stages)
