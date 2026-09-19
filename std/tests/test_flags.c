@@ -34,6 +34,7 @@ internal void base_main(void)
     option = flags_option_bool(str8("version"), &version, version, str8("Print version message"));
     flags_add_option_shortname(option, str8("v"));
 
+    // ak: Testing String Array Args
     Str8_Array str_arr = STRUCT_ZERO;
     flags_arg_str_arr(&str_arr, &str_arr);
     // NOTE(ak): more options and args can't be assigned after arg array
@@ -48,11 +49,6 @@ internal void base_main(void)
         os_exit(1);
     }
     
-    fmt_println("Printing String:");
-    for (int i = 0; i < str_arr.length; i++)
-    {
-        fmt_printfln("- %s8", str_arr.v[i]);
-    }
     if (help)
     {
         print_help_message();

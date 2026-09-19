@@ -164,10 +164,19 @@ internal bool flags_parse(Str8_Array *args)
                 {
                     arg_next = args->v[index+1];
                 }
+                
                 bool is_arg_next_option = _flags_is_arg_option(arg_next);
                 if (is_arg_next_option && option->kind != _Flags_Option_Kind_Bool)
                 {
                     _flags_add_option_error(_Flags_Error_Kind_MissingValue, option_name);
+                }
+
+                // ak: skip option if boolean option is in the end
+                if (arg_next.length == 0 && option->kind == _Flags_Option_Kind_Bool)
+                {
+                    *option->result_value.bool_value = true;
+                    option->assigned = true;
+                    option = NULL;
                 }
             }
         }

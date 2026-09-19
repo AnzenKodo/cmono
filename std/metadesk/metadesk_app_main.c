@@ -19,57 +19,84 @@ internal void print_help_message(void)
     fmt_println("DESCRIPTION:");
     fmt_println("    "MDA_NAME" - "MDA_DESCRIPTION);
     fmt_println("USAGE:");
-    fmt_printfln("   "MDA_CMD_NAME" [PATH] [OPTIONS]");
+    fmt_printfln("   "MDA_CMD_NAME" [OPTIONS] [PATHS...]");
     fmt_println("OPTIONS:");
     flags_print_help();
     fmt_println("VERSION:");
     fmt_println("    "MDA_VERSION);
 }
 
+internal Str8 src_path_from_file_path(Str8 file_path, Str8_Array src_paths)
+{
+    Str8 result = str8("");
+    for (size_t i = 0; i < src_paths.length; i += 1)
+    {
+        Str8 root = src_paths.v[i];
+        if (file_path.length >= root.length && root.length > result.length)
+        {
+            Str8 prefix = str8_prefix(file_path, root.length);
+            if (str8_match(prefix, root, 0))
+            {
+                if (file_path.length == root.length ||
+                        file_path.cstr[root.length] == '/' ||
+                        file_path.cstr[root.length] == '\\')
+                {
+                    result = root;
+                }
+            }
+        }
+    }
+    return result;
+}
+
 void base_main(void)
 {
     Arena *arena = arena_alloc();
-    Str8 src_path = str8("./src");
+    Str8_Array src_paths = STRUCT_ZERO;
     Str8 defulat_gen_dirname = str8("generated");
     
     //- ak: Command Line ======================================================
-    FlagsScope()
+    flags_init();
+     
+    Flags_Option *option = NULL;
+    option = flags_option_str(str8("gen-dir"), &defulat_gen_dirname, defulat_gen_dirname, str8("Set generated directory name"));
+    bool help = false;
+    option = flags_option_bool(str8("help"), &help, help, str8("Print help message"));
+    flags_add_option_shortname(option, str8("h"));
+    bool version = false;
+    option = flags_option_bool(str8("version"), &version, version, str8("Print version message"));
+    flags_add_option_shortname(option, str8("v"));
+    
+    Flags_Arg *arg = flags_arg_str_arr(&src_paths, &src_paths);
+    flags_make_arg_required(arg);
+    
+    Str8_Array *args = term_args_get();
+    if (!flags_parse(args))
     {
-        Flags_Option *option = NULL;
-        Flags_Arg *arg = flags_arg_str(&src_path, src_path);
-        flags_make_arg_required(arg);
-        option = flags_option_str(str8("gen-dir"), &defulat_gen_dirname, defulat_gen_dirname, str8("Set generated directory name"));
-        bool help = false;
-        option = flags_option_bool(str8("help"), &help, help, str8("Print help message"));
-        flags_add_option_shortname(option, str8("h"));
-        bool version = false;
-        option = flags_option_bool(str8("version"), &version, version, str8("Print version message"));
-        flags_add_option_shortname(option, str8("v"));
-        Str8_Array *args = term_args_get();
-        if (!flags_parse(args))
-        {
-            flags_print_error();
-            fmt_print("\n");
-            print_help_message();
-            os_exit(1);
-        }
-        if (help)
-        {
-            print_help_message();
-            os_exit(0);
-        }
-        if (version)
-        {
-            fmt_print("v"MDA_VERSION);
-            os_exit(0);
-        }
+        flags_print_error();
+        fmt_print("\n");
+        print_help_message();
+        os_exit(1);
+    }
+    if (help)
+    {
+        print_help_message();
+        os_exit(0);
+    }
+    if (version)
+    {
+        fmt_print("v"MDA_VERSION);
+        os_exit(0);
     }
     
     //- ak: initialization ====================================================
-    if (str8_ends_with(src_path, str8("/")) ||
-        str8_ends_with(src_path, str8("\\")))
+    for (size_t i = 0; i < src_paths.length; i += 1)
     {
-        src_path = str8_chop_last_slash(src_path);
+        if (str8_ends_with(src_paths.v[i], str8("/")) ||
+                str8_ends_with(src_paths.v[i], str8("\\")))
+        {
+            src_paths.v[i] = str8_chop_last_slash(src_paths.v[i]);
+        }
     }
     Str8 ext_name = str8("mdesk");
     MDG_Msg_List msgs = STRUCT_ZERO;
@@ -78,7 +105,12 @@ void base_main(void)
     
     //- ak: collect file paths ================================================
     Str8_List file_paths = STRUCT_ZERO;
-    log_infof(&log, "Searching %s8...", src_path);
+    log_infof(&log, "Searching ");
+    for (size_t i = 0; i < src_paths.length; i += 1)
+    {
+        fmt_printf("'%s8' ", src_paths.v[i]);
+    }
+    fmt_print("...");
     {
         typedef struct Dir Dir;
         struct Dir
@@ -86,9 +118,14 @@ void base_main(void)
             Dir *next;
             Str8 src_path;
         };
-        Dir start_dir = {0, src_path};
-        Dir *first_dir = &start_dir;
-        Dir *last_dir = &start_dir;
+        Dir *first_dir = NULL;
+        Dir *last_dir = NULL;
+        for (size_t i = 0; i < src_paths.length; i += 1)
+        {
+            Dir *next_dir = arena_push(arena, Dir, 1);
+            next_dir->src_path = src_paths.v[i];
+            SLLQueuePush(first_dir, last_dir, next_dir);
+        }
         for (Dir *dir = first_dir; dir != NULL; dir = dir->next)
         {
             Fs_Walk *walk = fs_walk_begin(arena, dir->src_path, 0);
@@ -178,6 +215,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         Str8 layer_key = mdg_layer_key_from_path(file->string, src_path, arena);
         MDG_Layer *layer = mdg_layer_from_key(state, layer_key, arena);
         layer->src_path = file->string;
@@ -245,6 +283,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             MD_Node *tag = md_tag_from_string(md_node, str8("enum"), 0);
@@ -289,6 +328,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             MD_Node *tag = md_tag_from_string(md_node, str8("xlist"), 0);
@@ -311,6 +351,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             if (md_node_has_tag(md_node, str8("struct"), 0))
@@ -334,6 +375,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             MD_Node *tag = md_tag_from_string(md_node, str8("data"), 0);
@@ -363,6 +405,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             MD_Node *tag = md_tag_from_string(md_node, str8("enum2string_switch"), 0);
@@ -395,6 +438,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             MD_Node *tag = md_tag_from_string(md_node, str8("gen"), 0);
@@ -438,6 +482,7 @@ void base_main(void)
     for (MDG_ParsedFile_Node *node = parses.first; node != NULL; node = node->next)
     {
         MD_Node *file = node->v.root;
+        Str8 src_path = src_path_from_file_path(file->string, src_paths);
         for (MD_Node *md_node = file->first; !md_node_is_nil(md_node); md_node = md_node->next)
         {
             if (md_node_has_tag(md_node, str8("embed_string"), 0))
@@ -475,16 +520,17 @@ void base_main(void)
         for (MDG_Layer_Node *mdg_layer_node = slot->first; mdg_layer_node != NULL; mdg_layer_node = mdg_layer_node->next)
         {
             MDG_Layer *layer = &mdg_layer_node->v;
+            Str8 root_src_path = src_path_from_file_path(layer->src_path, src_paths);
             Str8 layer_generated_folder = STRUCT_ZERO;
             if (layer->gen_folder_name.size != 0)
             {
                 Str8 gen_folder = layer->gen_folder_name;
-                layer_generated_folder = str8f(arena, "%.*s/%.*s", str8_varg(src_path), str8_varg(gen_folder));
+                layer_generated_folder = str8f(arena, "%.*s/%.*s", str8_varg(root_src_path), str8_varg(gen_folder));
             }
             else
             {
                 Str8 gen_folder = defulat_gen_dirname;
-                layer_generated_folder = str8f(arena, "%.*s/%.*s/%.*s", str8_varg(src_path), str8_varg(layer->key), str8_varg(gen_folder));
+                layer_generated_folder = str8f(arena, "%.*s/%.*s/%.*s", str8_varg(root_src_path), str8_varg(layer->key), str8_varg(gen_folder));
             }
             if (fs_dir_ensure(layer_generated_folder))
             {

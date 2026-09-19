@@ -36,7 +36,7 @@
             "program": "${workspaceFolder}/build/flags_debug",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
-            "args": [ "-h", "-int", "1", "src", "std"],
+            "args": [ "-h"],
             "arguments": "src",
             "preLaunchTask": "Build Test"
         },
