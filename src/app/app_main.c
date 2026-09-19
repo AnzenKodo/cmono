@@ -1,22 +1,22 @@
 // ak: headers
-#include "../base/base_include.h"
-#include "../os/os_include.h"
-#include "../window_layer/window_layer_include.h"
-#include "../render/render_include.h"
-#include "../font/font.h"
-#include "../draw/draw_include.h"
-#include "../audio/audio.h"
+#include "std/base/base_include.h"
+#include "std/os/os_include.h"
+#include "std/window_layer/window_layer_include.h"
+#include "std/render/render_include.h"
+#include "std/font/font.h"
+#include "std/draw/draw_include.h"
+#include "std/audio/audio.h"
 #include "./app.h"
 #include "./generated/app.meta.h"
 
 // ak: implementation
-#include "../base/base_include.c"
-#include "../os/os_include.c"
-#include "../window_layer/window_layer_include.c"
-#include "../render/render_include.c"
-#include "../font/font.c"
-#include "../draw/draw_include.c"
-#include "../audio/audio.c"
+#include "std/base/base_include.c"
+#include "std/os/os_include.c"
+#include "std/window_layer/window_layer_include.c"
+#include "std/render/render_include.c"
+#include "std/font/font.c"
+#include "std/draw/draw_include.c"
+#include "std/audio/audio.c"
 #include "./app.c"
 #include "./generated/app.meta.c"
 
@@ -25,7 +25,6 @@ internal void base_main(void)
     // ak: Application Init ===================================================
     wl_init();
     Wl_Window window = wl_window_open(APP_NAME);
-    // wl_window_border_set(window, false);
     render_init();
     font_init();
     audio_init(48000, 2);

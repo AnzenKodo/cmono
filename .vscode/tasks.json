@@ -89,6 +89,26 @@
                     "message": 5
                 }
             }
-        }
+        },
+        {
+            "label": "Build Test",
+            "type": "shell",
+            "command": "clang build.c && ./a.out test flags",
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
     ]
 }

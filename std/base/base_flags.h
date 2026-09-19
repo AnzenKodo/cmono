@@ -29,6 +29,7 @@ typedef enum _Flags_Error_Kind
     _Flags_Error_Kind_InvalidIntArg,
     _Flags_Error_Kind_UIntMinusArg,
     _Flags_Error_Kind_InvalidFloatArg,
+    _Flags_Error_Kind_OptionAfterArg,
 } _Flags_Error_Kind;
 
 typedef enum _Flags_Option_Kind
@@ -50,6 +51,10 @@ typedef enum _Flags_Arg_Kind
     _Flags_Arg_Kind_Int,
     _Flags_Arg_Kind_UInt,
     _Flags_Arg_Kind_Float,
+    _Flags_Arg_Kind_StrArr,
+    _Flags_Arg_Kind_IntArr,
+    _Flags_Arg_Kind_UIntArr,
+    _Flags_Arg_Kind_FloatArr,
 } _Flags_Arg_Kind;
 
 typedef struct _Flags_Error _Flags_Error;
@@ -112,6 +117,10 @@ struct Flags_Arg
         int64_t int_value;
         uint64_t uint_value;
         double float_value;
+        Str8_Array *str_value_arr;
+        I64Array *int_value_arr;
+        U64Array *uint_value_arr;
+        F64Array *float_value_arr;
     } default_value;
     union
     {
@@ -120,6 +129,10 @@ struct Flags_Arg
         int64_t *int_value;
         uint64_t *uint_value;
         double *float_value;
+        Str8_Array *str_value_arr;
+        I64Array *int_value_arr;
+        U64Array *uint_value_arr;
+        F64Array *float_value_arr;
     } result_value;
     bool assigned;
     bool required;
@@ -137,7 +150,7 @@ struct _Flags_State
     Flags_Arg *last_arg;
     size_t index_arg;
     bool has_error;
-    bool has_program_name;
+    bool is_arg_array_assigned;
     Log_Context log_context;
 };
 
@@ -155,13 +168,12 @@ internal void _flags_add_option_error_value(_Flags_Error_Kind kind, Str8 name, S
 internal void _flags_add_error_arg(_Flags_Error_Kind kind, size_t index, Str8 value);
 internal bool _flags_is_arg_option(Str8 arg);
 internal Str8 _flags_get_options_from_arg(Str8 arg);
-internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index);
+internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index, bool is_arr_arg);
 
 // ak: Flags core functions ===================================================
 
-internal void flags_begin(void);
-internal void flags_end(void);
-#define FlagsScope(arena) DeferLoop(flags_begin(arena), flags_end())
+internal void flags_init(void);
+internal void flags_clean(void);
 internal bool flags_parse(Str8_Array *args);
 internal void flags_print_error(void);
 internal void flags_print_help(void);
@@ -194,6 +206,11 @@ internal Flags_Arg *flags_arg_int(int64_t *result_value, int64_t default_value);
 internal Flags_Arg *flags_arg_uint(uint64_t *result_value, uint64_t default_value);
 internal Flags_Arg *flags_arg_float(double *result_value, double default_value);
 
+internal Flags_Arg *flags_arg_str_arr(Str8_Array *result_value, Str8_Array *default_value);
+internal Flags_Arg *flags_arg_int_arr(I64Array *result_value, I64Array *default_value);
+internal Flags_Arg *flags_arg_uint_arr(U64Array *result_value, U64Array *default_value);
+internal Flags_Arg *flags_arg_float_arr(F64Array *result_value, F64Array *default_value);
+
 // ak: Generic Macros =========================================================
 
 #if LANGUAGE_CPP
@@ -211,6 +228,10 @@ internal Flags_Arg *flags_arg_float(double *result_value, double default_value);
     inline Flags_Arg *flags_arg(int64_t* val, int64_t def) { return flags_arg_int(val, def); }
     inline Flags_Arg *flags_arg(uint64_t* val, uint64_t def) { return flags_arg_uint(val, def); }
     inline Flags_Arg *flags_arg(double* val, double def) { return flags_arg_float(val, def); }
+    inline Flags_Option *flags_arg(Str8_Array* val, Str8_Array* def) { return flags_arg_str_arr(val, def); }
+    inline Flags_Option *flags_arg(I64Array* val, I64Array* def) { return flags_arg_int_arr(val, def); }
+    inline Flags_Option *flags_arg(U64Array* val, U64Array* def) { return flags_arg_uint_arr(val, def); }
+    inline Flags_Option *flags_arg(F64Array* val, F64Array* def) { return flags_arg_float_arr(val, def); }
 #else
     #define flags_option(name, result_value, default_value, description) _Generic((result_value), \
         Str8*:        flags_option_str,       \
@@ -225,10 +246,14 @@ internal Flags_Arg *flags_arg_float(double *result_value, double default_value);
     )(name, result_value, default_value, description)
     
     #define flags_arg(result_value, default_value) _Generic((result_value), \
-        Str8*:        flags_arg_str,     \
-        int64_t*:     flags_arg_int,     \
-        uint64_t*:    flags_arg_uint,    \
-        double*:      flags_arg_float    \
+        Str8*:        flags_arg_str,      \
+        int64_t*:     flags_arg_int,      \
+        uint64_t*:    flags_arg_uint,     \
+        double*:      flags_arg_float     \
+        Str8_Array*:  flags_arg_str_arr,  \
+        I64Array*:    flags_arg_int_arr,  \
+        U64Array*:    flags_arg_uint_arr, \
+        F64Array*:    flags_arg_float_arr \
     )(result_value, default_value)
 #endif
 

@@ -264,11 +264,11 @@ global const uint64_t bit64 = (1ull<<63);
 #   error Unknown trap intrinsic for this compiler.
 #endif
 
-#define AssertAlways(x) ((void)(!(x) ? (Break(), 0) : 0))
+#define AssertAlways(x, ...) ((void)(!(x) ? (Break(), 0) : 0))
 #if BUILD_DEBUG
-#   define Assert(x) AssertAlways(x)
+#   define Assert(x, ...) AssertAlways(x)
 #else
-#   define Assert(x) (void)(x)
+#   define Assert(x, ...) (void)(x)
 #endif
 #define UNREACHABLE(msg) Assert(!"" msg)
 #define TODO(msg)        Assert(!msg)

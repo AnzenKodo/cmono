@@ -20,15 +20,25 @@
             "arguments": "build-run",
             "preLaunchTask": "Build Build"
         },
-                {
+        {
             "name": "Debug Meta",
             "request": "launch",
             "program": "${workspaceFolder}/build/mdg_debug",
             "cwd": "${workspaceFolder}",
             "type": "cppdbg",
-            "args": [ "src" ],
+            "args": [ "std", "src" ],
             "arguments": "src",
             "preLaunchTask": "Build Meta"
+        },
+        {
+            "name": "Debug Test",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/flags_debug",
+            "cwd": "${workspaceFolder}",
+            "type": "cppdbg",
+            "args": [ "-h", "-int", "1", "src", "std"],
+            "arguments": "src",
+            "preLaunchTask": "Build Test"
         },
         {
             "name": "Debug Program Windows",

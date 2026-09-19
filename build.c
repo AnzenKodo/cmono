@@ -7,19 +7,18 @@
 //=============================================================================
 
 // ak: headers
-#include "src/base/base_include.h"
-#include "src/os/os_include.h"
-#include "src/metadesk/metadesk_app.h"
+#include "std/base/base_include.h"
+#include "std/os/os_include.h"
+#include "std/metadesk/metadesk_app.h"
+#include "./src/app/app.h"
 
 // ak: implementation
-#include "src/base/base_include.c"
-#include "src/os/os_include.c"
-#include "src/app/app.h"
+#include "std/base/base_include.c"
+#include "std/os/os_include.c"
 
 // ak: Defines
 //=============================================================================
 
-#define BUILD_CMD_SIZE 1024
 #define BUILD_DIR     "build"
 
 // ak: Types
@@ -73,7 +72,7 @@ global const char *help_message = "DESCRIPTION:\n"
 // ak: Functions
 //=============================================================================
 
-internal int build_run(Str8 cmd);
+internal int32_t build_run(Str8 cmd);
 internal Str8 build_path(Build_Info *info);
 
 // ak: Compilers functions ====================================================
@@ -266,7 +265,7 @@ internal void build_compile(Build_Info *info)
 
 // ak: Build run functions ====================================================
 
-internal int build_run_program(Build_Info *info)
+internal int32_t build_run_program(Build_Info *info)
 {
     fmt_println("# Running ------------------------------------------------------------------- #");
     Str8_List list = STRUCT_ZERO;
@@ -286,9 +285,9 @@ internal int build_run_program(Build_Info *info)
 
 // ak: Program Specific Compile Functions ======================================
 
-internal int build_compile_miniaudio(Build_Info *info)
+internal int32_t build_compile_miniaudio(Build_Info *info)
 {
-    int result = 0;
+    int32_t result = 0;
     
     // ak: create build
     Str8 path = build_path(info);
@@ -322,16 +321,16 @@ internal int build_compile_miniaudio(Build_Info *info)
     return result;
 }
 
-internal int build_compile_run_metadesk(void)
+internal int32_t build_compile_run_metadesk(void)
 {
-    int result = 0;
+    int32_t result = 0;
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     
     Build_Info info = STRUCT_ZERO;
     info.type = Build_Type_Debug;
     info.name = str8(MDA_CMD_NAME);
-    info.entry_point = str8("src/metadesk/metadesk_app_main.c");
-    info.args = str8("src");
+    info.entry_point = str8("std/metadesk/metadesk_app_main.c");
+    info.args = str8("std src");
     info.arena = scratch.arena;
     
     fmt_println("# Compiling MetaDesk ------------------------------------------------------- #");
@@ -347,10 +346,35 @@ internal int build_compile_run_metadesk(void)
     return result;
 }
 
-internal int build_compile_program(Build_Info *info, Build_Info *ma_info)
+internal int32_t build_compile_run_test(Str8 filename)
+{
+    int32_t result = 0;
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    
+    Build_Info info = STRUCT_ZERO;
+    info.type = Build_Type_Debug;
+    info.name = filename;
+    info.entry_point = str8f(scratch.arena, "std/tests/test_%s8.c", filename);
+    info.args = str8("-h");
+    info.arena = scratch.arena;
+    
+    fmt_println("# Compiling Test ------------------------------------------------------- #");
+    build_compile(&info);
+    Str8 cmd = str8_list_join(info.arena, &info.cmd, NULL);
+    result = build_run(cmd);
+    if (result == 0)
+    {
+        result = build_run_program(&info);
+    }
+    
+    arena_scratch_end(scratch);
+    return result;
+}
+
+internal int32_t build_compile_program(Build_Info *info, Build_Info *ma_info)
 {
     fmt_println("# Compiling Program --------------------------------------------------------- #");
-    int result = 0;
+    int32_t result = 0;
     build_compile(info);
     if (!(info->flags & Build_Flag_DryRun))
     {
@@ -394,7 +418,8 @@ internal void base_main(void)
     bool run_program = false;
     bool only_run_program = false;
     bool gen_meta_program = false;
-    int exit_code = 0;
+    Str8 test_name = STRUCT_ZERO;
+    int32_t exit_code = 0;
     Str8_Array *args = term_args_get();
     
     if (args->length >= 2)
@@ -457,6 +482,10 @@ internal void base_main(void)
             }
             only_run_program = true;
         }
+        else if (str8_match(arg1, str8("test"), 0))
+        {
+            test_name = arg2;
+        }
         else
         {
             fmt_eprintf("Error: wrong option provided `%s`.\n\n", arg1.cstr);
@@ -487,6 +516,10 @@ internal void base_main(void)
     {
         build_run(build_path(&info));
     }
+    else if (test_name.length > 0)
+    {
+        exit_code = build_compile_run_test(test_name);
+    }
     else
     {
         fmt_println("# Build Output ============================================================== #");
@@ -500,7 +533,7 @@ internal void base_main(void)
         // ak: build miniaudio lib
         Build_Info ma_info = STRUCT_ZERO;
         ma_info.name = str8("libminiaudio");
-        ma_info.entry_point = str8("src/audio/external/miniaudio.h");
+        ma_info.entry_point = str8("std/audio/external/miniaudio.h");
         ma_info.type = info.type;
         ma_info.flags = info.type == Build_Type_Release ? Build_Flag_Static_Lib : Build_Flag_Dynamic_Lib;
         ma_info.arena = arena;
@@ -531,15 +564,15 @@ internal void base_main(void)
 
 // ak: Build functions ========================================================
 
-internal int build_run(Str8 cmd)
+internal int32_t build_run(Str8 cmd)
 {
     fmt_printf("Command: %s8\n", cmd);
-    int status = system((const char *)cmd.cstr);
+    int32_t status = system((const char *)cmd.cstr);
     if (status == -1)
     {
         fmt_eprintf("\nError: %s\n", strerror(errno));
     }
-    int exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+    int32_t exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
     return exit_code;
 }
 

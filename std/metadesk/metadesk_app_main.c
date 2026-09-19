@@ -13,7 +13,6 @@
 #include "../os/os_include.c"
 #include "./metadesk.c"
 #include "./metadesk_gen.c"
-#include <stdio.h>
 
 internal void print_help_message(void)
 {

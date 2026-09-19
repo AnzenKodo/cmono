@@ -19,8 +19,8 @@ internal Flags_Option *_flags_get_option(Str8 name)
 }
 internal void _flags_add_option(Flags_Option *option)
 {
-    // ak: Error on finding dublicate flags
-    Assert(_flags_get_option(option->name) == NULL);
+    Assert(_flags_get_option(option->name) == NULL, "duplicate option name");
+    Assert(!_flags_state->is_arg_array_assigned, "options can't be assigned after arg array is defined");
     SLLQueuePush(_flags_state->first_option, _flags_state->last_option, option);
 }
 
@@ -38,7 +38,8 @@ internal Flags_Arg *_flags_get_arg(size_t index)
 }
 internal void _flags_add_arg(Flags_Arg *farg)
 {
-    Assert(_flags_get_arg(farg->index) == NULL);
+    Assert(_flags_get_arg(farg->index) == NULL, "argument index is already assigned");
+    Assert(!_flags_state->is_arg_array_assigned, "more args can't be assigned after arg array is defined");
     SLLQueuePush(_flags_state->first_arg, _flags_state->last_arg, farg);
     farg->index = _flags_state->index_arg++;
 }
@@ -94,13 +95,23 @@ internal Str8 _flags_get_options_from_arg(Str8 arg)
     return result;
 }
 
-internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index)
+internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index, bool is_arg_arr)
 {
     uint64_t count = 0;
     for (uint64_t i = index; i < args->length; i++)
     {
         Str8 arg = args->v[i];
-        if (_flags_is_arg_option(arg)) break;
+        if (_flags_is_arg_option(arg))
+        {
+            if (is_arg_arr)
+            {
+                _flags_add_error_arg(_Flags_Error_Kind_OptionAfterArg, index, arg);
+            }
+            else
+            {
+                break;
+            }
+        }
         count++;
     }
     return count;
@@ -108,34 +119,32 @@ internal uint64_t _flags_get_values_count(Str8_Array *args, uint64_t index)
 
 // ak: Flags core functions ===================================================
 
-internal void flags_begin(void)
+internal void flags_init(void)
 {
     Arena *arena = arena_alloc();
     _flags_state = arena_push(arena, _Flags_State, 1);
     _flags_state->arena = arena;
-    _flags_state->has_program_name = true;
     _flags_state->log_context = log_init();
 }
 
-internal void flags_end(void)
+internal void flags_clean(void)
 {
     arena_free(_flags_state->arena);
 }
 
 internal bool flags_parse(Str8_Array *args)
 {
-    bool has_passthrough_option = false;
     Flags_Option *option = NULL;
-    for (uint32_t index = _flags_state->has_program_name ? 1 : 0; index < args->length; index++)
+    size_t arg_index = 0;
+    for (uint32_t index = 1; index < args->length; index++)
     {
         Str8 arg = args->v[index];
         Base base = Base_10;
         if (str8_match(arg, str8("--"), Str_Match_Flag_None))
         {
-            has_passthrough_option = 1;
-            Unused(has_passthrough_option);
             break;
         }
+        
         if (_flags_is_arg_option(arg))
         {
             Str8 option_name = _flags_get_options_from_arg(arg);
@@ -153,14 +162,9 @@ internal bool flags_parse(Str8_Array *args)
                 Str8 arg_next = STRUCT_ZERO;
                 if (args->length < index+1)
                 {
-                    arg_next = array_get(args, index+1);
+                    arg_next = args->v[index+1];
                 }
                 bool is_arg_next_option = _flags_is_arg_option(arg_next);
-                if ((is_arg_next_option || arg_next.length == 0) && option->kind == _Flags_Option_Kind_Bool)
-                {
-                    *option->result_value.bool_value = true;
-                    option->assigned = true;
-                }
                 if (is_arg_next_option && option->kind != _Flags_Option_Kind_Bool)
                 {
                     _flags_add_option_error(_Flags_Error_Kind_MissingValue, option_name);
@@ -169,16 +173,13 @@ internal bool flags_parse(Str8_Array *args)
         }
         else if (option != NULL)
         {
-            if (option->assigned)
-            {
-                _flags_add_option_error(_Flags_Error_Kind_SingleValue, option->name);
-            }
             option->assigned = true;
             switch (option->kind)
             {
                 case _Flags_Option_Kind_Str:
                 {
-                        *option->result_value.str_value = arg;
+                    *option->result_value.str_value = arg;
+                    option = NULL; // ak: make option null. so it don't consider other arg value.
                 }
                 break;
                 case _Flags_Option_Kind_Int:
@@ -191,6 +192,7 @@ internal bool flags_parse(Str8_Array *args)
                     {
                         _flags_add_option_error_value(_Flags_Error_Kind_InvalidIntOption, option->name, arg);
                     }
+                    option = NULL; // ak: make option null. so it don't consider other arg value.
                 }
                 break;
                 case _Flags_Option_Kind_UInt:
@@ -205,6 +207,7 @@ internal bool flags_parse(Str8_Array *args)
                         {
                             _flags_add_option_error_value(_Flags_Error_Kind_UIntMinusOption, option->name, arg);
                         }
+                        option = NULL; // ak: make option null. so it don't consider other arg value.
                     }
                     else
                     {
@@ -222,6 +225,7 @@ internal bool flags_parse(Str8_Array *args)
                     {
                         _flags_add_option_error_value(_Flags_Error_Kind_InvalidFloatOption, option->name, arg);
                     }
+                    option = NULL; // ak: make option null. so it don't consider other arg value.
                 }
                 break;
                 case _Flags_Option_Kind_Bool:
@@ -232,14 +236,15 @@ internal bool flags_parse(Str8_Array *args)
                     }
                     else
                     {
-                        _flags_add_option_error_value(_Flags_Error_Kind_InvalidBool, option->name, arg);
+                        *option->result_value.bool_value = true;
                     }
+                    option = NULL; // ak: make option null. so it don't consider other arg value.
                 }
                 break;
                 case _Flags_Option_Kind_StrArr:
                 {
                     Str8_Array array = STRUCT_ZERO;
-                    uint64_t items_count = _flags_get_values_count(args, index);
+                    uint64_t items_count = _flags_get_values_count(args, index, false);
                     array.v = arena_push(_flags_state->arena, Str8, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
@@ -254,7 +259,7 @@ internal bool flags_parse(Str8_Array *args)
                 case _Flags_Option_Kind_IntArr:
                 {
                     I64Array array = STRUCT_ZERO;
-                    uint64_t items_count = _flags_get_values_count(args, index);
+                    uint64_t items_count = _flags_get_values_count(args, index, false);
                     array.v = arena_push(_flags_state->arena, int64_t, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
@@ -276,7 +281,7 @@ internal bool flags_parse(Str8_Array *args)
                 case _Flags_Option_Kind_UIntArr:
                 {
                     U64Array array = STRUCT_ZERO;
-                    uint64_t items_count = _flags_get_values_count(args, index);
+                    uint64_t items_count = _flags_get_values_count(args, index, false);
                     array.v = arena_push(_flags_state->arena, uint64_t, index);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
@@ -305,7 +310,7 @@ internal bool flags_parse(Str8_Array *args)
                 case _Flags_Option_Kind_FloatArr:
                 {
                     F64Array array = STRUCT_ZERO;
-                    uint64_t items_count = _flags_get_values_count(args, index);
+                    uint64_t items_count = _flags_get_values_count(args, index, false);
                     array.v = arena_push(_flags_state->arena, double, items_count);
                     for (uint64_t i = 0; i < items_count; i++)
                     {
@@ -328,7 +333,8 @@ internal bool flags_parse(Str8_Array *args)
         }
         else
         {
-            Flags_Arg *farg = _flags_get_arg(index - (_flags_state->has_program_name ? 1: 0));
+            Flags_Arg *farg = _flags_get_arg(arg_index);
+            arg_index++;
             if (farg != NULL)
             {
                 farg->assigned = true;
@@ -380,6 +386,94 @@ internal bool flags_parse(Str8_Array *args)
                         {
                             _flags_add_error_arg(_Flags_Error_Kind_InvalidFloatArg, index, arg);
                         }
+                    }
+                    break;
+                    case _Flags_Arg_Kind_StrArr:
+                    {
+                        Str8_Array array = STRUCT_ZERO;
+                        uint64_t items_count = _flags_get_values_count(args, index, true);
+                        array.v = arena_push(_flags_state->arena, Str8, items_count);
+                        for (uint64_t i = 0; i < items_count; i++)
+                        {
+                            Str8 array_arg = args->v[index];
+                            array.v[array.length++] = array_arg;
+                            index++;
+                        }
+                        index--;
+                        *farg->result_value.str_value_arr = array;
+                    }
+                    break;
+                    case _Flags_Arg_Kind_IntArr:
+                    {
+                        I64Array array = STRUCT_ZERO;
+                        uint64_t items_count = _flags_get_values_count(args, index, true);
+                        array.v = arena_push(_flags_state->arena, int64_t, items_count);
+                        for (uint64_t i = 0; i < items_count; i++)
+                        {
+                            Str8 array_arg = args->v[index];
+                            if (str8_is_integer(array_arg, base))
+                            {
+                                array.v[array.length++] = i64_from_str8(array_arg, base);
+                            }
+                            else
+                            {
+                                _flags_add_error_arg(_Flags_Error_Kind_InvalidIntArg, index, arg);
+                            }
+                            index++;
+                        }
+                        index--;
+                        *farg->result_value.int_value_arr = array;
+                    }
+                    break;
+                    case _Flags_Arg_Kind_UIntArr:
+                    {
+                        U64Array array = STRUCT_ZERO;
+                        uint64_t items_count = _flags_get_values_count(args, index, true);
+                        array.v = arena_push(_flags_state->arena, uint64_t, index);
+                        for (uint64_t i = 0; i < items_count; i++)
+                        {
+                            Str8 array_arg = args->v[index];
+                            if (str8_is_integer(array_arg, base))
+                            {
+                                if (str8_is_integer_unsigned(array_arg, base))
+                                {
+                                    array.v[array.length++] = u64_from_str8(array_arg, base);
+                                }
+                                else
+                                {
+                                    _flags_add_error_arg(_Flags_Error_Kind_UIntMinusArg, index, arg);
+                                }
+                            }
+                            else
+                            {
+                                _flags_add_error_arg(_Flags_Error_Kind_InvalidIntArg, index, arg);
+                            }
+                            index++;
+                        }
+                        index--;
+                        *farg->result_value.uint_value_arr = array;
+                    }
+                    break;
+                    case _Flags_Arg_Kind_FloatArr:
+                    {
+                        F64Array array = STRUCT_ZERO;
+                        uint64_t items_count = _flags_get_values_count(args, index, true);
+                        array.v = arena_push(_flags_state->arena, double, items_count);
+                        for (uint64_t i = 0; i < items_count; i++)
+                        {
+                            Str8 array_arg = args->v[index];
+                            if (str8_is_float(array_arg))
+                            {
+                                array.v[array.length++] = f64_from_str8(array_arg);
+                            }
+                            else
+                            {
+                                _flags_add_error_arg(_Flags_Error_Kind_InvalidFloatArg, index, arg);
+                            }
+                            index++;
+                        }
+                        index--;
+                        *farg->result_value.float_value_arr = array;
                     }
                     break;
                 }
@@ -479,6 +573,22 @@ internal bool flags_parse(Str8_Array *args)
                     case _Flags_Arg_Kind_Float:
                     {
                         *farg->result_value.float_value = farg->default_value.float_value;
+                    } break;
+                    case _Flags_Arg_Kind_StrArr:
+                    {
+                        farg->result_value.str_value_arr = farg->default_value.str_value_arr;
+                    } break;
+                    case _Flags_Arg_Kind_IntArr:
+                    {
+                        farg->result_value.int_value_arr = farg->default_value.int_value_arr;
+                    } break;
+                    case _Flags_Arg_Kind_UIntArr:
+                    {
+                        farg->result_value.uint_value_arr = farg->default_value.uint_value_arr;
+                    } break;
+                    case _Flags_Arg_Kind_FloatArr:
+                    {
+                        farg->result_value.float_value_arr = farg->default_value.float_value_arr;
                     } break;
                 }
             }
@@ -600,6 +710,12 @@ internal void flags_print_error(void)
                     error->arg_index + 1, str8_varg(error->value));
             }
             break;
+            case _Flags_Error_Kind_OptionAfterArg:
+            {
+                log_errorfln(&_flags_state->log_context,
+                    "%zu argument, which is '%.*s', is an option but an argument was expected.",
+                    error->arg_index + 1, str8_varg(error->value));
+            }
         }
     }
 }
@@ -745,11 +861,6 @@ internal void flags_print_help(void)
 
 // ak: Flags config functions
 //=============================================================================
-
-internal void flags_has_program_name(bool has_name)
-{
-    _flags_state->has_program_name = has_name;
-}
 
 internal void flags_add_option_shortname(Flags_Option *option, Str8 shortname)
 {
@@ -911,3 +1022,43 @@ internal Flags_Arg *flags_arg_float(double *result_value, double default_value)
     return farg;
 }
 
+internal Flags_Arg *flags_arg_str_arr(Str8_Array *result_value, Str8_Array *default_value)
+{
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
+    farg->kind = _Flags_Arg_Kind_StrArr;
+    farg->result_value.str_value_arr = result_value;
+    farg->default_value.str_value_arr = default_value;
+    _flags_add_arg(farg);
+    _flags_state->is_arg_array_assigned = true;
+    return farg;
+}
+internal Flags_Arg *flags_arg_int_arr(I64Array *result_value, I64Array *default_value)
+{
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
+    farg->kind = _Flags_Arg_Kind_IntArr;
+    farg->result_value.int_value_arr = result_value;
+    farg->default_value.int_value_arr = default_value;
+    _flags_add_arg(farg);
+    _flags_state->is_arg_array_assigned = true;
+    return farg;
+}
+internal Flags_Arg *flags_arg_uint_arr(U64Array *result_value, U64Array *default_value)
+{
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
+    farg->kind = _Flags_Arg_Kind_UIntArr;
+    farg->result_value.uint_value_arr = result_value;
+    farg->default_value.uint_value_arr = default_value;
+    _flags_add_arg(farg);
+    _flags_state->is_arg_array_assigned = true;
+    return farg;
+}
+internal Flags_Arg *flags_arg_float_arr(F64Array *result_value, F64Array *default_value)
+{
+    Flags_Arg *farg = arena_push(_flags_state->arena, Flags_Arg, 1);
+    farg->kind = _Flags_Arg_Kind_FloatArr;
+    farg->result_value.float_value_arr = result_value;
+    farg->default_value.float_value_arr = default_value;
+    _flags_add_arg(farg);
+    _flags_state->is_arg_array_assigned = true;
+    return farg;
+}
