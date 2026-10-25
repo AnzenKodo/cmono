@@ -1,10 +1,10 @@
-// ak: External Include
+// ak: Vendor Include
 //=============================================================================
 
-#if !defined(XXH_IMPLEMENTATION)
-#   define XXH_IMPLEMENTATION
-#   include "./external/xxhash.h"
-#endif
+#define XXH_IMPLEMENTATION
+#define XXH_INLINE_ALL
+#define XXH_STATIC_LINKING_ONLY
+#include "./vendor/xxhash.h"
 
 // ak: Character Classification & Conversion Functions
 //=============================================================================
@@ -747,7 +747,7 @@ internal Str8 str8_skip_last_dot(Str8 string)
 
 internal Str8_List str8_split_path(Arena *arena, Str8 string)
 {
-    Str8_List result = str8_split(arena, string, (uint8_t*)"/\\", 2, Str_Split_Flag_None);
+    Str8_List result = str8_split_n(arena, string, (uint8_t*)"/\\", 2, Str_Split_Flag_None);
     return result;
 }
 
@@ -755,7 +755,7 @@ internal Str8_List str8_split_path(Arena *arena, Str8 string)
 // ak: String Split and Join
 //=============================================================================
 
-internal Str8_List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags)
+internal Str8_List str8_split_n(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags)
 {
     Str8_List list = STRUCT_ZERO;
     bool keep_empties = (flags & Str_Split_Flag_KeepEmpties);
@@ -844,7 +844,7 @@ internal Str8 str8fv(Arena *arena, const char *format, va_list args)
     Str8 result = STRUCT_ZERO;
     va_list args_copy;
     va_copy(args_copy, args);
-        uint32_t needed = fmt_vsnprintf(0, 0, format, args) + 1;
+        size_t needed = fmt_vsnprintf(0, 0, format, args) + 1;
         result.cstr = arena_push_nz(arena, uint8_t, needed);
         result.length = fmt_vsnprintf((char*)result.cstr, needed, format, args_copy);
         result.size = result.length;
@@ -859,6 +859,16 @@ internal Str8 str8f(Arena *arena, const char *format, ...)
     va_start(args, format);
     Str8 result = str8fv(arena, format, args);
     va_end(args);
+    return result;
+}
+
+internal Str8 cstr_push(Str8 str, Arena *arena)
+{
+    size_t buffer_size = str.length + 1;
+    uint8_t *buffer = arena_push_nz(arena, uint8_t, buffer_size);
+    mem_copy(buffer, str.cstr, str.length);
+    buffer[str.length] = 0;
+    Str8 result = str8_init(buffer, buffer_size);
     return result;
 }
 

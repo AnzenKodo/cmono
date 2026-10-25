@@ -12,19 +12,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-// ak: Types
-//=============================================================================
-
-// ak: Private OS State ======================================================
-
-typedef struct _Os_Core_State _Os_Core_State;
-struct _Os_Core_State
-{
-    Str8_Array args;
-    Log_Context log_context;
-    Str8 data_home;
-};
-
 // ak: Functions
 //=============================================================================
 
@@ -43,7 +30,7 @@ internal void os_sleep_ms(uint32_t millisec);
 
 // ak: Command-Line Operations ================================================
 
-internal Str8 *os_program_path_get(void);
+internal Str8 os_program_path_get(void);
 
 // ak: Environment Variable ===================================================
 
@@ -52,11 +39,6 @@ internal Str8 os_env_get(Str8 name);
 
 // ak: OS Entry Points ========================================================
 
-internal void os_main(void);
-
-// ak: Global Variables
-//=============================================================================
-
-global _Os_Core_State _os_core_state = STRUCT_ZERO;
+internal int32_t os_main(void);
 
 #endif // OS_CORE_H

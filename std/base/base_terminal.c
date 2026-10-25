@@ -1,11 +1,3 @@
-// ak: Arguments
-//=============================================================================
-
-internal Str8_Array *term_args_get(void)
-{
-    return &_os_core_state.args;
-}
-
 // ak: Terminal
 //=============================================================================
 
@@ -20,7 +12,7 @@ internal bool term_is_color_allowed(void)
     return result;
 }
 
-internal void term_style_start(Fs_File file, const char *style)
+internal void term_style_start(Fs_File file, Str8 style)
 {
     _term_state.file = file;
     if (term_is_color_allowed())
@@ -31,16 +23,16 @@ internal void term_style_start(Fs_File file, const char *style)
 
 internal void term_style_end(void)
 {
-    fmt_fprint(_term_state.file, TERM_RESET);
+    fmt_fprint(_term_state.file, str8(TERM_RESET));
     _term_state.file = 0;
 }
 
-internal char *term_style_get(const char *style)
+internal Str8 term_style_get(Str8 style)
 {
-    char *result = NULL;
+    Str8 result = STRUCT_ZERO;
     if (term_is_color_allowed())
     {
-        result = (char *)style;
+        result = style;
     }
     return result;
 }

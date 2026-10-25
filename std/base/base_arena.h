@@ -13,8 +13,7 @@
 //=============================================================================
 
 typedef struct Arena Arena;
-struct Arena
-{
+struct Arena {
     size_t reserve_size;
     size_t commit_size;
     size_t commit_pos;
@@ -56,7 +55,7 @@ internal Arena *_arena_alloc(ArenaParams *params);
     }
     #define arena_alloc(...) arena_alloc_cpp(__VA_ARGS__)
 #else
-    #define arena_alloc(...) _arena_alloc(&(ArenaParams){.reserve_size = ARENA_DEFAULT_RESERVE_SIZE, .commit_size = ARENA_DEFAULT_COMMIT_SIZE, .allocation_site_file = FILE_NAME, .allocation_site_line = LINE_NUMBER, __VA_ARGS__})
+    #define arena_alloc(...) _arena_alloc(&(ArenaParams){.reserve_size = ARENA_DEFAULT_RESERVE_SIZE, .commit_size = ARENA_DEFAULT_COMMIT_SIZE, .allocation_site_file = FILE_PATH, .allocation_site_line = LINE_NUMBER, __VA_ARGS__})
 #endif
 internal void arena_free(Arena *arena);
 
@@ -64,6 +63,7 @@ internal void *_arena_push(Arena *arena, size_t size, size_t align, bool fill_ze
 #define ARENA_HEADER_SIZE (sizeof(Arena))
 #define arena_push(a, T, n) ((T *)(_arena_push(a, sizeof(T)*(n), AlignOf(T), true)))
 #define arena_push_nz(a, T, n) ((T *)(_arena_push(a, sizeof(T)*(n), AlignOf(T), false)))
+internal size_t arena_pos(Arena *arena);
 internal void arena_pop(Arena *arena, size_t size);
 internal void arena_pop_to(Arena *arena, size_t pos);
 internal void arena_clear(Arena *arena);

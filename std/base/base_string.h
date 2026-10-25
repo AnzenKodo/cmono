@@ -8,13 +8,6 @@
 #ifndef BASE_STRING_H
 #define BASE_STRING_H
 
-// ak: External Include
-//=============================================================================
-
-#define XXH_INLINE_ALL
-#define XXH_STATIC_LINKING_ONLY
-#include "./external/xxhash.h"
-
 // ak: Types
 //=============================================================================
 
@@ -154,7 +147,7 @@ internal Str8 str8_substr(Str8 str, Rng1_U64 range);
 internal Str8 str8_postfix(Str8 str, size_t length);
 internal Str8 str8_prefix(Str8 str, size_t length);
 internal Str8 str8_skip(Str8 str, size_t amount);
-internal Str8 str8_chop(Str8 str, uint64_t amount);
+internal Str8 str8_chop(Str8 str, size_t amount);
 internal Str8 str8_skip_chop_whitespace(Str8 string);
 internal Str8 str8_cat(Arena *arena, Str8 s1, Str8 s2);
 
@@ -203,7 +196,8 @@ internal Str8_List str8_split_path(Arena *arena, Str8 string);
 
 // ak: String Split and Join ==================================================
 
-internal Str8_List str8_split(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags);
+internal Str8_List str8_split_n(Arena *arena, Str8 str, uint8_t *split_chars, size_t split_char_count, Str_Split_Flags flags);
+#define StrSplit(arena, string, split_chars, flags) str8_split_n((arena), (string), (uint8_t[])split_chars, ArrayLength(((uint8_t[])split_chars)), (flags))
 internal Str8 str8_list_join(Arena *arena, Str8_List *list, Str_Join *optional_params);
 
 // ak: String Formatting & Copying ============================================

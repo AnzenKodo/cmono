@@ -19,59 +19,59 @@
 #define TERM_STRIKETHROUGH     "\x1B[9m"
 
 //- ak: Foreground
-#define TERM_FG_BLACK          "\x1B[30m"
-#define TERM_FG_RED            "\x1B[31m"
-#define TERM_FG_GREEN          "\x1B[32m"
-#define TERM_FG_YELLOW         "\x1B[33m"
-#define TERM_FG_BLUE           "\x1B[34m"
-#define TERM_FG_MAGENTA        "\x1B[35m"
-#define TERM_FG_CYAN           "\x1B[36m"
-#define TERM_FG_WHITE          "\x1B[37m"
-#define TERM_FG_DEFAULT        "\x1B[39m"
+#define TERM_FG_BLACK           "\x1B[30m"
+#define TERM_FG_RED             "\x1B[31m"
+#define TERM_FG_GREEN           "\x1B[32m"
+#define TERM_FG_YELLOW          "\x1B[33m"
+#define TERM_FG_BLUE            "\x1B[34m"
+#define TERM_FG_MAGENTA         "\x1B[35m"
+#define TERM_FG_CYAN            "\x1B[36m"
+#define TERM_FG_WHITE           "\x1B[37m"
+#define TERM_FG_DEFAULT         "\x1B[39m"
 
 //- ak: Bright Foreground
-#define TERM_FG_BRIGHT_BLACK   "\x1B[90m"
-#define TERM_FG_BRIGHT_RED     "\x1B[91m"
-#define TERM_FG_BRIGHT_GREEN   "\x1B[92m"
-#define TERM_FG_BRIGHT_YELLOW  "\x1B[93m"
-#define TERM_FG_BRIGHT_BLUE    "\x1B[94m"
-#define TERM_FG_BRIGHT_MAGENTA "\x1B[95m"
-#define TERM_FG_BRIGHT_CYAN    "\x1B[96m"
-#define TERM_FG_BRIGHT_WHITE   "\x1B[97m"
+#define TERM_FG_BRIGHT_BLACK    "\x1B[90m"
+#define TERM_FG_BRIGHT_RED      "\x1B[91m"
+#define TERM_FG_BRIGHT_GREEN    "\x1B[92m"
+#define TERM_FG_BRIGHT_YELLOW   "\x1B[93m"
+#define TERM_FG_BRIGHT_BLUE     "\x1B[94m"
+#define TERM_FG_BRIGHT_MAGENTA  "\x1B[95m"
+#define TERM_FG_BRIGHT_CYAN     "\x1B[96m"
+#define TERM_FG_BRIGHT_WHITE    "\x1B[97m"
 
 //- ak: Background
-#define TERM_BG_BLACK          "\x1B[40m"
-#define TERM_BG_RED            "\x1B[41m"
-#define TERM_BG_GREEN          "\x1B[42m"
-#define TERM_BG_YELLOW         "\x1B[43m"
-#define TERM_BG_BLUE           "\x1B[44m"
-#define TERM_BG_MAGENTA        "\x1B[45m"
-#define TERM_BG_CYAN           "\x1B[46m"
-#define TERM_BG_WHITE          "\x1B[47m"
-#define TERM_BG_DEFAULT        "\x1B[49m"
+#define TERM_BG_BLACK           "\x1B[40m"
+#define TERM_BG_RED             "\x1B[41m"
+#define TERM_BG_GREEN           "\x1B[42m"
+#define TERM_BG_YELLOW          "\x1B[43m"
+#define TERM_BG_BLUE            "\x1B[44m"
+#define TERM_BG_MAGENTA         "\x1B[45m"
+#define TERM_BG_CYAN            "\x1B[46m"
+#define TERM_BG_WHITE           "\x1B[47m"
+#define TERM_BG_DEFAULT         "\x1B[49m"
 
 //- ak: Bright Background
-#define TERM_BG_BRIGHT_BLACK   "\x1B[100m"
-#define TERM_BG_BRIGHT_RED     "\x1B[101m"
-#define TERM_BG_BRIGHT_GREEN   "\x1B[102m"
-#define TERM_BG_BRIGHT_YELLOW  "\x1B[103m"
-#define TERM_BG_BRIGHT_BLUE    "\x1B[104m"
-#define TERM_BG_BRIGHT_MAGENTA "\x1B[105m"
-#define TERM_BG_BRIGHT_CYAN    "\x1B[106m"
-#define TERM_BG_BRIGHT_WHITE   "\x1B[107m"
+#define TERM_BG_BRIGHT_BLACK    "\x1B[100m"
+#define TERM_BG_BRIGHT_RED      "\x1B[101m"
+#define TERM_BG_BRIGHT_GREEN    "\x1B[102m"
+#define TERM_BG_BRIGHT_YELLOW   "\x1B[103m"
+#define TERM_BG_BRIGHT_BLUE     "\x1B[104m"
+#define TERM_BG_BRIGHT_MAGENTA  "\x1B[105m"
+#define TERM_BG_BRIGHT_CYAN     "\x1B[106m"
+#define TERM_BG_BRIGHT_WHITE    "\x1B[107m"
 
 //- ak: Cursor
-#define TERM_CURSOR_HOME       "\x1B[H"
-#define TERM_CURSOR_SAVE       "\x1B[s"
-#define TERM_CURSOR_RESTORE    "\x1B[u"
-#define TERM_CURSOR_HIDE       "\x1B[?25l"
-#define TERM_CURSOR_SHOW       "\x1B[?25h"
+#define TERM_CURSOR_HOME        "\x1B[H"
+#define TERM_CURSOR_SAVE        "\x1B[s"
+#define TERM_CURSOR_RESTORE     "\x1B[u"
+#define TERM_CURSOR_HIDE        "\x1B[?25l"
+#define TERM_CURSOR_SHOW        "\x1B[?25h"
 
 //- ak: Screen
-#define TERM_CLEAR_SCREEN      "\x1B[2J"
-#define TERM_CLEAR_LINE        "\x1B[2K"
-#define TERM_CLEAR_TO_END      "\x1B[0J"
-#define TERM_CLEAR_TO_START    "\x1B[1J"
+#define TERM_CLEAR_SCREEN       "\x1B[2J"
+#define TERM_CLEAR_LINE         "\x1B[2K"
+#define TERM_CLEAR_TO_END       "\x1B[0J"
+#define TERM_CLEAR_TO_START     "\x1B[1J"
 
 // ak: Macros
 //=============================================================================
@@ -104,9 +104,9 @@ internal bool term_is_terminal(Fs_File file);
 // ak: Terminal Style =========================================================
 
 internal bool term_is_color_allowed(void);
-internal void term_style_start(Fs_File file, const char *style);
+internal void term_style_start(Fs_File file, Str8 style);
 internal void term_style_end(void);
-internal char *term_style_get(const char *style);
+internal Str8 term_style_get(Str8 style);
 
 // Global Variables
 //=============================================================================

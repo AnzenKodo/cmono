@@ -1,250 +1,115 @@
-//~ ak: Helper Functions
-//=============================================================================
+// ak: Helper =================================================================
 
-internal const char *log_get_reset_color(Log_Context *log)
+internal Str8 log_level_string_get(Log_Level level)
 {
-    const char *reset_color = "";
-    if (log->enable_color_log && term_is_color_allowed())
-    {
-        reset_color = TERM_RESET;
-    }
-    return reset_color;
-}
-
-internal const char *log_get_level_color(Log_Level level)
-{
-    const char *level_color = "";
+    Str8 level_string = STRUCT_ZERO;
     switch (level)
     {
-        case Log_Level_None:
+        case Log_Level_Trace:
         {
+            level_string = str8("[TRACE]");
         } break;
         case Log_Level_Info:
         {
-            level_color = TERM_FG_BLUE;
+            level_string = str8("[INFO]");
         } break;
         case Log_Level_Debug:
         {
-            level_color = TERM_FG_MAGENTA;
+            level_string = str8("[DEBUG]");
         } break;
         case Log_Level_Warn:
         {
-            level_color = TERM_FG_YELLOW;
+            level_string = str8("[WARN]");
         } break;
         case Log_Level_Error:
         {
-            level_color = TERM_FG_RED;
+            level_string = str8("[ERROR]");
         } break;
+        case Log_Level_COUNT: {} break;
     }
-    return level_color;
-}
-internal const char *log_get_level_string(Log_Level level)
-{
-    const char *level_string = "";
-    switch (level)
-    {
-        case Log_Level_None:
-        {
-            level_string = "";
-        } break;
-        case Log_Level_Info:
-        {
-            level_string = "[INFO]";
-        } break;
-        case Log_Level_Debug:
-        {
-            level_string = "[DEBUG]";
-        } break;
-        case Log_Level_Warn:
-        {
-            level_string = "[WARN]";
-        } break;
-        case Log_Level_Error:
-        {
-            level_string = "[ERROR]";
-        } break;
-    }
+    level_string.length = 7;
     return level_string;
 }
 
-internal const char *log_get_file_info_color(Log_Context *log)
+internal Fs_File std_type_from_log_level(Log_Level level)
 {
-    const char *line_info_color = "";
-    if (log->enable_color_log && term_is_color_allowed())
-    {
-        line_info_color = TERM_FG_CYAN;
-    }
-    return line_info_color;
+    Fs_File file = OS_STDOUT;
+    if (level >= Log_Level_Warn) { file = OS_STDERR; }
+    return file;
 }
 
-internal void log_print_color_level(Log_Context *log, Log_Level level)
-{
-    if (log->print_level_prefix)
-    {
-        const char *level_string = log_get_level_string(level);
-        const char *level_color = "";
-        if (log->enable_color_log && term_is_color_allowed())
-        {
-            level_color = log_get_level_color(level);
-        }
-        fmt_fprintf(log->file, "%s%s%s ", level_color, level_string, log_get_reset_color(log));
-    }
-}
+// ak: Log Creation ===========================================================
 
-//~ ak: Initialization Functions
-//=============================================================================
-
-internal Log_Context log_init(void)
+internal Log *log_alloc(void)
 {
-    Log_Context log = STRUCT_ZERO;
-    log.level = Log_Level_Info;
-    log.file = OS_STDOUT;
-    log.print_level_prefix = true;
-    log.enable_color_log = true;
+    Arena *arena = arena_alloc();
+    Log *log = arena_push(arena, Log, 1);
+    log->arena = arena;
     return log;
 }
 
-//~ ak: Log Level Print Functions
-//=============================================================================
-
-//- ak: print normal
-
-internal void log_print(Log_Context *log, Log_Level level, const char *string)
+internal void log_free(Log *log)
 {
-    if (level >= log->level)
+    arena_free(log->arena);
+}
+
+// ak: Log Builder ============================================================
+
+internal void log_push(Log *log, Log_Level level, const char *file_name, size_t line_number, Str8 string)
+{
+    if(log != NULL)
     {
-        log_print_color_level(log, level);
-        fmt_fprint(log->file, string);
+        Log_Node *node = arena_push(log->arena, Log_Node, 1);
+        node->str = str8_copy(log->arena, string);
+        node->file_name = str8_from_cstr((char *)file_name);
+        node->line_number = line_number;
+        Log_List *list = &log->list[level];
+        SLLQueuePush(list->first, list->last, node);
     }
 }
 
-internal void log_info(Log_Context *log, const char *string)
+internal void log_pushf(Log *log, Log_Level level, const char *file_name, size_t line_number, const char *format, ...)
 {
-    log_print(log, Log_Level_Info, string);
-}
-internal void log_debug(Log_Context *log, const char *string)
-{
-    log_print(log, Log_Level_Debug, string);
-}
-internal void log_warn(Log_Context *log, const char *string)
-{
-    log_print(log, Log_Level_Warn, string);
-}
-internal void log_error(Log_Context *log, const char *string)
-{
-    log_print(log, Log_Level_Error, string);
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    va_list args;
+    va_start(args, format);
+    Str8 string = str8fv(scratch.arena, format, args);
+    log_push(log, level, file_name, line_number, string);
+    va_end(args);
+    arena_scratch_end(scratch);
 }
 
-//- ak: print with newline
+// ak: Log Trace ==============================================================
 
-internal void log_println(Log_Context *log, Log_Level level, const char *string)
+internal void log_trace_level_set(Log *log, Log_Level level)
 {
-    if (level >= log->level)
+    log->trace_level = level;
+}
+
+internal void log_trace(Log *log, Log_Level level, const char *file_name, size_t line_number, Str8 string)
+{
+    log_push(log, level, file_name, line_number, string);
+    if (level >= log->trace_level)
     {
-        log_print_color_level(log, level);
-        fmt_fprintln(log->file, string);
+        Fs_File file = std_type_from_log_level(level);
+        Str8 level_string = log_level_string_get(level);
+        fmt_fprintf(file, "%-*s ", str8_varg(level_string));
+        if (level >= Log_Level_Warn)
+        {
+            fmt_fprintf(file, "%s:%zu ", file_name, line_number);
+        }
+        fmt_fprintln(file, string);
     }
 }
 
-internal void log_infoln(Log_Context *log, const char *string)
+internal void log_tracef(Log *log, Log_Level level, const char *file_name, size_t line_number, const char *format, ...)
 {
-    log_println(log, Log_Level_Info, string);
-}
-internal void log_debugln(Log_Context *log, const char *string)
-{
-    log_println(log, Log_Level_Debug, string);
-}
-internal void log_warnln(Log_Context *log, const char *string)
-{
-    log_println(log, Log_Level_Warn, string);
-}
-internal void log_errorln(Log_Context *log, const char *string)
-{
-    log_println(log, Log_Level_Error, string);
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    va_list args;
+    va_start(args, format);
+    Str8 string = str8fv(scratch.arena, format, args);
+    log_trace(log, level, file_name, line_number, string);
+    va_end(args);
+    arena_scratch_end(scratch);
 }
 
-//- ak: print with format
-
-internal void log_vprintf(Log_Context *log, Log_Level level, const char *format, va_list args)
-{
-    if (level >= log->level)
-    {
-        log_print_color_level(log, level);
-        va_list args_copy;
-        va_copy(args_copy, args);
-            fmt_vfprintf(log->file, format, args_copy);
-        va_end(args_copy);
-    }
-}
-
-internal void log_infof(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintf(log, Log_Level_Info, format, args);
-    va_end(args);
-}
-internal void log_debugf(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintf(log, Log_Level_Debug, format, args);
-    va_end(args);
-}
-internal void log_warnf(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintf(log, Log_Level_Warn, format, args);
-    va_end(args);
-}
-internal void log_errorf(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintf(log, Log_Level_Error, format, args);
-    va_end(args);
-}
-
-//- ak: print with format and newline
-
-internal void log_vprintfln(Log_Context *log, Log_Level level, const char *format, va_list args)
-{
-    if (level >= log->level)
-    {
-        log_print_color_level(log, level);
-        va_list args_copy;
-        va_copy(args_copy, args);
-            fmt_vfprintfln(log->file, format, args_copy);
-        va_end(args_copy);
-    }
-}
-
-internal void log_infofln(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintfln(log, Log_Level_Info, format, args);
-    va_end(args);
-}
-internal void log_debugfln(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintfln(log, Log_Level_Debug, format, args);
-    va_end(args);
-}
-internal void log_warnfln(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintfln(log, Log_Level_Warn, format, args);
-    va_end(args);
-}
-internal void log_errorfln(Log_Context *log, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-        log_vprintfln(log, Log_Level_Error, format, args);
-    va_end(args);
-}

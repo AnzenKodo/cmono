@@ -1,95 +1,91 @@
 //-----------------------------------------------------------------------------
 // Reference:
-// - By Go Authors: https://pkg.go.dev/log
+// - By Go Authors:
+//      - https://pkg.go.dev/log@go1.27.2
+//      - https://pkg.go.dev/slog@go1.27.2
+// - By Epic Games Tools & Ryan Fleury:
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_log.h
+//      - https://github.com/EpicGames/raddebugger/blob/e28a543573277315ffd32a3e983c8171570bb946/src/base/base_log.c
+// - By Ramon Santamaria:
+//      - https://github.com/raysan5/raylib/blob/5dc3674c009278c9b6bf86e39b1705d55d0fe5f4/src/rcore.c
+//      - https://github.com/raysan5/raylib/blob/28789122cec21e4c7a1689ab60f7a273f44dff31/src/raylib.h
 //-----------------------------------------------------------------------------
 
 #ifndef BASE_LOG_H
 #define BASE_LOG_H
 
-//~ ak: Types
+// ak: Types
 //=============================================================================
 
-typedef enum Log_Level {
-    Log_Level_None,
+typedef enum Log_Level
+{
+    Log_Level_Trace,
     Log_Level_Info,
     Log_Level_Debug,
     Log_Level_Warn,
     Log_Level_Error,
+    Log_Level_COUNT
 } Log_Level;
 
-typedef struct Log_Context Log_Context;
-struct Log_Context {
-    Log_Level level;
-    Fs_File file;
-    bool print_level_prefix;
-    bool enable_color_log;
+typedef struct Log_Node Log_Node;
+struct Log_Node
+{
+    Log_Node *next;
+    Str8 str;
+    Str8 file_name;
+    size_t line_number;
 };
 
-//~ ak: Functions
+typedef struct Log_List Log_List;
+struct Log_List
+{
+    Log_Node *first;
+    Log_Node *last;
+    size_t length;
+};
+
+typedef struct Log Log;
+struct Log
+{
+    Arena *arena;
+    Log_List list[Log_Level_COUNT];
+    Log_Node *last_printed[Log_Level_COUNT];
+    Log_Level trace_level;
+};
+
+// ak: Functions
 //=============================================================================
 
-//~ ak: Helper Functions ======================================================
+// ak: Helper =================================================================
 
-internal const char *log_get_reset_color(Log_Context *log);
-internal const char *log_get_level_color(Log_Level level);
-internal const char *log_get_level_string(Log_Level level);
-internal const char *log_get_file_info_color(Log_Context *log);
-internal void log_print_color_level(Log_Context *log, Log_Level level);
+internal Str8 log_level_string_get(Log_Level level);
+internal Fs_File std_type_from_log_level(Log_Level level);
 
-//~ ak: Initialization Functions ==============================================
+// ak: Log Creation ===========================================================
 
-internal Log_Context log_init(void);
+internal Log *log_alloc(void);
+internal void log_free(Log *log);
 
-//~ ak: Log Level Print Functions =============================================
+// ak: Log Builder ============================================================
 
-//- ak: print normal
-internal void log_print(Log_Context *log, Log_Level level, const char *format);
-internal void log_info(Log_Context *log, const char *format);
-internal void log_debug(Log_Context *log, const char *format);
-internal void log_warn(Log_Context *log, const char *format);
-internal void log_error(Log_Context *log, const char *format);
+internal void log_push(Log *log, Log_Level level, const char *file_name, size_t line_number, Str8 string);
+internal void log_pushf(Log *log, Log_Level level, const char *file_name, size_t line_number, const char *format, ...);
 
-//- ak: print with newline
-internal void log_println(Log_Context *log, Log_Level level, const char *format);
-internal void log_infoln(Log_Context *log, const char *format);
-internal void log_debugln(Log_Context *log, const char *format);
-internal void log_warnln(Log_Context *log, const char *format);
-internal void log_errorln(Log_Context *log, const char *format);
+// ak: Log Trace ==============================================================
 
-//- ak: print with format
-internal void log_vprintf(Log_Context *log, Log_Level level, const char *format, va_list args);
-internal void log_infof(Log_Context *log, const char *format, ...);
-internal void log_debugf(Log_Context *log, const char *format, ...);
-internal void log_warnf(Log_Context *log, const char *format, ...);
-internal void log_errorf(Log_Context *log, const char *format, ...);
+internal void log_trace_level_set(Log *log, Log_Level level);
+internal void log_trace(Log *log, Log_Level level, const char *file_name, size_t line_number, Str8 string);
+internal void log_tracef(Log *log, Log_Level level, const char *file_name, size_t line_number, const char *format, ...);
 
-//- ak: print with format and newline
-internal void log_vprintfln(Log_Context *log, Log_Level level, const char *format, va_list args);
-internal void log_infofln(Log_Context *log, const char *format, ...);
-internal void log_debugfln(Log_Context *log, const char *format, ...);
-internal void log_warnfln(Log_Context *log, const char *format, ...);
-internal void log_errorfln(Log_Context *log, const char *format, ...);
-
-//~ ak: Macros
+// ak: Macros
 //=============================================================================
 
-#define LogPrintfLine(log, level, format, ...) do { \
-    const char *line_info_color = log_get_file_info_color(log); \
-    fmt_fprintf((log)->file, "%s%s:%d%s ", line_info_color, FILE_NAME, LINE_NUMBER, log_get_reset_color(log)); \
-    log_print_color_level((log), level); \
-    fmt_fprintfln((log)->file, format, ##__VA_ARGS__); \
-} while(0)
-#define LogInfoLine(log, format, ...) do { \
-    LogPrintfLine(log, Log_Level_Info, format, ##__VA_ARGS__); \
-} while(0)
-#define LogDebugLine(log, format, ...) do { \
-    LogPrintfLine(log, Log_Level_Debug, format, ##__VA_ARGS__); \
-} while(0)
-#define LogWarnLine(log, format, ...) do { \
-    LogPrintfLine(log, Log_Level_Warn, format, ##__VA_ARGS__); \
-} while(0)
-#define LogErrorLine(log, format, ...) do { \
-    LogPrintfLine(log, Log_Level_Error, format, ##__VA_ARGS__); \
-} while(0)
+#define LogTrace(level, s)    log_trace(log_trace_g,  Log_Level_##level, FILE_PATH, LINE_NUMBER, (s))
+#define LogTraceF(level, ...)   log_tracef(log_trace_g, Log_Level_##level, FILE_PATH, LINE_NUMBER, __VA_ARGS__)
+
+// ak: Global
+//=============================================================================
+
+global Log *log_trace_g = NULL;
 
 #endif // BASE_LOG_H

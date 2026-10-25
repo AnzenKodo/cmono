@@ -9,24 +9,34 @@
 #ifndef BASE_CORE_H
 #define BASE_CORE_H
 
-#if !defined(BUILD_DEBUG)
-#   define BUILD_DEBUG 0
-#endif
-
 // ak: External Includes
 //=============================================================================
 
 #include <stdarg.h>
 
+//~ ak: Build
+//=============================================================================
+
+#if !defined(BUILD_DEBUG)
+#   define BUILD_DEBUG 0
+#endif
+
+#if !defined(BUILD_VERSION)
+// NOTE(ak): __TIME__ is "hh:mm:ss", and the printed build command contains it.
+// Neovim's errorformat reads "hh:mm:ss" as file:line:col, so the quickfix list
+// gets a bogus entry. Using '-' instead of ':' avoids that.
+static const char BUILD_VERSION[] = {
+    __DATE__[4], __DATE__[5], '_', __DATE__[0], __DATE__[1], __DATE__[2], '_',
+    __DATE__[7], __DATE__[8], __DATE__[9], __DATE__[10], '-',
+    __TIME__[0], __TIME__[1], '_', __TIME__[3], __TIME__[4], '_', __TIME__[6], __TIME__[7],
+    0 };
+#endif
+
 // ak: Code Keywords
 //=============================================================================
 
-#if COMPILER_CLANG || COMPILER_GCC
-#   define FILE_NAME __FILE_NAME__
-#else
-#   define FILE_NAME __FILE__
-#endif
 #define LINE_NUMBER __LINE__
+#define FILE_PATH   __FILE__
 
 #if COMPILER_MSVC
 #   define thread_static __declspec(thread)
@@ -377,6 +387,6 @@ Axis_3d;
 // ak: Functions
 //=============================================================================
 
-internal int32_t base_main(void);
+internal uint64_t base_main(void);
 
 #endif // BASE_CORE_H
