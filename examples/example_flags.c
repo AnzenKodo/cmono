@@ -23,7 +23,7 @@ internal void print_help_message()
     fmt_println("   v1.3");
 }
 
-internal void base_main(void)
+internal int32_t base_main(void)
 {
     flags_init();
     Flags_Option *option = NULL;
@@ -45,20 +45,20 @@ internal void base_main(void)
     {
         flags_print_error();
         print_help_message();
-        flags_clean();
+        flags_unint();
         os_exit(1);
     }
     
     if (help)
     {
         print_help_message();
-        flags_clean();
+        flags_unint();
         os_exit(0);
     }
     if (version)
     {
         fmt_print("v1.3");
-        flags_clean();
+        flags_unint();
         os_exit(0);
     }
 }

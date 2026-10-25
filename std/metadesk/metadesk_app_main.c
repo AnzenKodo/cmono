@@ -22,8 +22,6 @@ internal void print_help_message(void)
     fmt_printfln("   "MDA_CMD_NAME" [OPTIONS] [PATHS...]");
     fmt_println("OPTIONS:");
     flags_print_help();
-    fmt_println("VERSION:");
-    fmt_println("    "MDA_VERSION);
 }
 
 internal Str8 src_path_from_file_path(Str8 file_path, Str8_Array src_paths)

@@ -13,7 +13,8 @@
 //=============================================================================
 
 typedef struct Arena Arena;
-struct Arena {
+struct Arena
+{
     size_t reserve_size;
     size_t commit_size;
     size_t commit_pos;
