@@ -13,15 +13,6 @@
 
 // ak: Font Provider ==========================================================
 
-typedef struct _Font_Provider_Font _Font_Provider_Font;
-struct _Font_Provider_Font
-{
-    Arena          *arena;
-    U8Array        file_data;
-    stbtt_fontinfo info;
-    kbts_font      kb_font;
-};
-
 typedef struct Font_Handle Font_Handle;
 struct Font_Handle
 {
@@ -271,11 +262,8 @@ struct _Font_State
 
 // ak: Font Provider ==========================================================
 
-internal void _font_stb_kbts_allocator(void *data, kbts_allocator_op *op);
-internal _Font_Provider_Font *_font_provider_font_from_handle(Font_Handle handle);
 internal Font_Handle font_handle_zero(void);
 internal bool font_handle_match(Font_Handle a, Font_Handle b);
-internal Font_Handle font_handle_from_font(_Font_Provider_Font *font);
 internal Font_Handle font_open(Str8 path);
 internal Font_Metrics font_provider_metrics_from_font(Font_Handle handle);
 internal Font_Metrics font_provider_metrics_from_tag(Font_Tag tag);

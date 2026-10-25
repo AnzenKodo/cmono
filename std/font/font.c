@@ -43,6 +43,22 @@ typedef int32_t  stbtt_int32;
 #include "./vendor/kb_text_shape.h"
 #pragma GCC diagnostic pop
 
+// ak: Private Functions and Types
+//=============================================================================
+
+typedef struct _Font_Provider_Font _Font_Provider_Font;
+struct _Font_Provider_Font
+{
+    Arena          *arena;
+    U8Array        file_data;
+    stbtt_fontinfo info;
+    kbts_font      kb_font;
+};
+
+internal void _font_stb_kbts_allocator(void *data, kbts_allocator_op *op);
+internal _Font_Provider_Font *_font_provider_font_from_handle(Font_Handle handle);
+internal Font_Handle _font_handle_from_font(_Font_Provider_Font *font);
+
 // ak: Font Provider
 //=============================================================================
 
@@ -72,7 +88,7 @@ internal bool font_handle_match(Font_Handle a, Font_Handle b)
     return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
 }
 
-internal Font_Handle font_handle_from_font(_Font_Provider_Font *font)
+internal Font_Handle _font_handle_from_font(_Font_Provider_Font *font)
 {
     Font_Handle result = {(uint64_t)font};
     return result;
@@ -107,7 +123,7 @@ internal Font_Handle font_open(Str8 path)
         return font_handle_zero();
     }
     
-    return font_handle_from_font(font);
+    return _font_handle_from_font(font);
 }
 
 internal Font_Metrics font_provider_metrics_from_font(Font_Handle handle)
@@ -333,7 +349,7 @@ internal Font_Handle font_font_open_from_static_data(U8Array *data_ptr)
         return font_handle_zero();
     }
     
-    return font_handle_from_font(font);
+    return _font_handle_from_font(font);
 }
 
 // ak: Font Cache

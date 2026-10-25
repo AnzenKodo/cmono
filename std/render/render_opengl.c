@@ -391,7 +391,7 @@ internal void render_init(void)
                 stages[idx].errors.cstr = arena_push(_render_opengl_state->arena, uint8_t, info_log_length+1);
                 stages[idx].errors.size = info_log_length;
                 glGetShaderInfoLog(stages[idx].out, info_log_length, 0, (char *)stages[idx].errors.cstr);
-                LogErrorLine(&_os_core_state.log_context, "%.*s", info_log_length, stages[idx].errors.cstr);
+                LogTraceF(Error, "%.*s", info_log_length, stages[idx].errors.cstr);
             }
         }
         
@@ -426,7 +426,7 @@ internal void render_init(void)
             {
                 char log[512];
                 glGetProgramInfoLog(program, 512, NULL, log);
-                LogErrorLine(&_os_core_state.log_context, "%s", log);
+                LogTraceF(Error, "%s", log);
             }
             _render_opengl_state->shaders[k] = program;
         }

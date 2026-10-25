@@ -30,8 +30,7 @@ internal void _render_opengl_init(void)
         _render_egl_state->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (_render_egl_state->display == EGL_NO_DISPLAY)
         {
-            LogErrorLine(&_os_core_state.log_context, "Failed to get EGL display.");
-            os_exit(1);
+            LogTraceF(Error, "Failed to get EGL display.");
         }
     }
     
@@ -40,20 +39,17 @@ internal void _render_opengl_init(void)
     EGLint egl_version_minor = 0;
     if (!eglInitialize(_render_egl_state->display, &egl_version_major, &egl_version_minor))
     {
-        LogErrorLine(&_os_core_state.log_context, "Couldn't initialize EGL display.");
-        os_exit(1);
+        LogTraceF(Error, "Couldn't initialize EGL display.");
     }
     if (egl_version_major < 1 || (egl_version_major == 1 && egl_version_minor < 5))
     {
-        LogErrorLine(&_os_core_state.log_context, "Unsupported EGL version (%i.%i, need at least 1.5)", egl_version_major, egl_version_minor);
-        os_exit(1);
+        LogTraceF(Error, "Unsupported EGL version (%i.%i, need at least 1.5)", egl_version_major, egl_version_minor);
     }
     
     // ak: pick GL API
     if (!eglBindAPI(EGL_OPENGL_API))
     {
-        LogErrorLine(&_os_core_state.log_context, "Couldn't initialize EGL API to OpenGL.");
-        os_exit(1);
+        LogTraceF(Error, "Couldn't initialize EGL API to OpenGL.");
     }
     
     // ak: construct context
@@ -73,8 +69,7 @@ internal void _render_opengl_init(void)
         _render_egl_state->context = eglCreateContext(_render_egl_state->display, 0, EGL_NO_CONTEXT, options);
         if (_render_egl_state->context == EGL_NO_CONTEXT)
         {
-            LogErrorLine(&_os_core_state.log_context, "Couldn't create OpenGL context with EGL.");
-            exit(1);
+            LogTraceF(Error, "Couldn't create OpenGL context with EGL.");
         }
     }
     
@@ -157,8 +152,7 @@ internal Render_Handle _render_opengl_window_equip(Wl_Window window)
                 };
                 if(!eglChooseConfig(_render_egl_state->display, options, configs, ArrayLength(configs), &configs_count) || configs_count == 0)
                 {
-                    LogErrorLine(&_os_core_state.log_context, "Couldn't choose EGL configuration.");
-                    exit(1);
+                    LogTraceF(Error, "Couldn't choose EGL configuration.");
                 }
             }
             
@@ -180,8 +174,7 @@ internal Render_Handle _render_opengl_window_equip(Wl_Window window)
                 }
                 if(_render_egl_state->config == 0)
                 {
-                    LogErrorLine(&_os_core_state.log_context, "Couldn't find a suitable EGL configuration.");
-                    exit(1);
+                    LogTraceF(Error, "Couldn't find a suitable EGL configuration.");
                 }
             }
         }
@@ -191,8 +184,7 @@ internal Render_Handle _render_opengl_window_equip(Wl_Window window)
         }
         if(window_egl->surface == EGL_NO_SURFACE)
         {
-            LogErrorLine(&_os_core_state.log_context, "Couldn't create EGL surface.");
-            exit(1);
+            LogTraceF(Error, "Couldn't create EGL surface.");
         }
     }
     Render_Handle result = {(uint64_t)window_egl};

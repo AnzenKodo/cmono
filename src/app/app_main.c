@@ -20,14 +20,13 @@
 #include "./app.c"
 #include "./generated/app.meta.c"
 
-internal void base_main(void)
+internal uint64_t base_main(void)
 {
     // ak: Application Init ===================================================
     wl_init();
     Wl_Window window = wl_window_open(APP_NAME);
     render_init();
     font_init();
-    audio_init(48000, 2);
     Render_Handle window_equip = render_window_equip(window);
     
     // ak: Application Loop ===================================================
@@ -65,6 +64,7 @@ internal void base_main(void)
     // ak: Free Everything ====================================================
     render_window_unequip(window, window_equip);
     render_cleanup();
-    audio_cleanup();
     wl_window_cleanup();
+    
+    return 0;
 }
