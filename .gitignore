@@ -3,4 +3,3 @@
 build/
 tags*
 *.pdb
-std/.git/*

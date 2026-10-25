@@ -2,6 +2,12 @@
 
 A C monorepo for my personal projects
 
+## Todo
+
+- [ ] add github action setup
+- [ ] fix windows layer
+- [ ] try to add d3d11 support
+
 ## Dependences
 
 - Required
