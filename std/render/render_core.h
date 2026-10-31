@@ -17,7 +17,7 @@
 typedef struct Render_Handle Render_Handle;
 struct Render_Handle
 {
-    uint64_t u64[1];
+    uint64_t id[1];
 };
 
 // ak: Instance Types =========================================================
