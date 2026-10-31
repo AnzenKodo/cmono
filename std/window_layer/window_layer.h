@@ -14,7 +14,7 @@
 typedef struct Wl_Window Wl_Window;
 struct Wl_Window
 {
-    uint64_t u64[1];
+    uint64_t id[1];
 };
 
 typedef enum Wl_Event_Kind
@@ -244,59 +244,43 @@ typedef enum Wl_Cursor
     Wl_Cursor_COUNT,
 } Wl_Cursor;
 
-typedef struct _Wl_Core_State _Wl_Core_State;
-struct _Wl_Core_State {
-    bool   exit;
-    Rng2_F32 display_rect;
-};
 
 // ak: Functions
 //=============================================================================
 
-// ak: Helper Functions =======================================================
+//- ak: Helper ================================================================
 
-internal Wl_Window wl_window_zero(void);
-internal bool wl_window_match(Wl_Window a, Wl_Window b);
+internal inline bool wl_window_match(Wl_Window a, Wl_Window b);
+internal inline bool wl_window_is_zero(Wl_Window window);
 
-// ak: Basic window functions =================================================
+//- ak: Basic Window Functions ================================================
 
 internal void wl_init(void);
-internal void wl_cleanup(void);
+internal void wl_uninit(void);
 internal Wl_Window wl_window_open(Str8 title);
 internal void wl_window_close(Wl_Window window);
+internal void wl_window_make_current(Wl_Window window);
+internal void wl_window_swap_buffers(Wl_Window window);
 
-// ak: Window close functions =================================================
+//- ak: Window Exit ===========================================================
 
 internal void wl_exit(void);
 internal bool wl_should_exit(void);
 
-// ak: Event functions ========================================================
+//- ak: Window Event ==========================================================
 
 internal void wl_update_events(void);
 internal Wl_Event_List wl_get_events(Arena *arena, bool wait);
-internal void wl_set_fps(uint32_t fps);
+internal void wl_set_fps(uint64_t fps);
 
-// ak: Window property ========================================================
+//- ak: Window Property =======================================================
 
 internal Rng2_F32 wl_rect_from_window(Wl_Window window);
 internal Rng2_F32 wl_canvas_rect_from_window(Wl_Window window);
 internal Rng2_F32 wl_display_rect(void);
 internal void wl_window_pos_set(Wl_Window window, size_t x, size_t y);
-internal void wl_window_icon_set_raw(Wl_Window window, void *icon_data, size_t width, size_t height);
 internal void wl_window_border_set(Wl_Window window, bool enable);
-internal bool wm_window_is_fullscreen(Wl_Window window);
-internal void wm_window_set_fullscreen(Wl_Window window, bool fullscreen);
-
-// ak: Software render ========================================================
-
-internal void wl_render_init(Wl_Window window, uint8_t *render_buffer);
-internal void wl_render_deinit(void);
-internal void wl_render_begin(Wl_Window window);
-internal void wl_render_end(void);
-
-// ak: Global variables
-//=============================================================================
-
-global _Wl_Core_State _wl_core_state = STRUCT_ZERO;
+internal bool wl_window_is_fullscreen(Wl_Window window);
+internal void wl_window_set_fullscreen(Wl_Window window, bool fullscreen);
 
 #endif // WINDOW_LAYER_CORE_H
