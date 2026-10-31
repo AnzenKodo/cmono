@@ -1,7 +1,7 @@
 // ak: headers
 #include "std/base/base_include.h"
 #include "std/os/os_include.h"
-#include "std/window_layer/window_layer_include.h"
+#include "std/window_layer/window_layer.h"
 #include "std/render/render_include.h"
 #include "std/font/font.h"
 #include "std/draw/draw_include.h"
@@ -12,7 +12,7 @@
 // ak: implementation
 #include "std/base/base_include.c"
 #include "std/os/os_include.c"
-#include "std/window_layer/window_layer_include.c"
+#include "std/window_layer/window_layer.c"
 #include "std/render/render_include.c"
 #include "std/font/font.c"
 #include "std/draw/draw_include.c"
@@ -54,6 +54,15 @@ internal uint64_t base_main(void)
         Draw_Bucket *bucket = draw_bucket_make();
         DrawBucketScope(bucket)
         {
+            draw_rect(canvas_rect, linear_from_srgba(rgba_from_u32(APP_BACKGROUND_COLOR)), 0.f, 0.f, 1.f);
+
+            Vec2_F32 center = center_rng2(canvas_rect);
+            float square_size = 200.f;
+            Rng2_F32 square = rng2p(center.x - square_size * 0.5f,
+                                    center.y - square_size * 0.5f,
+                                    center.x + square_size * 0.5f,
+                                    center.y + square_size * 0.5f);
+            draw_rect(square, linear_from_srgba(rgba_from_u32(APP_FOREGROUND_COLOR)), 0.f, 0.f, 1.f);
         }
         draw_submit_bucket(window, window_equip, bucket);
         render_window_end_frame(window, window_equip);
@@ -64,7 +73,8 @@ internal uint64_t base_main(void)
     // ak: Free Everything ====================================================
     render_window_unequip(window, window_equip);
     render_cleanup();
-    wl_window_cleanup();
+    wl_window_close(window);
+    wl_uninit();
     
     return 0;
 }
