@@ -474,7 +474,7 @@ internal void render_window_submit(Wl_Window window, Render_Handle window_equip,
             .colors[0] = {
                 .load_action  = SG_LOADACTION_CLEAR,
                 .store_action = SG_STOREACTION_STORE,
-                .clear_value  = { 1.f, 0.f, 1.f, 1.f },
+                .clear_value  = { 0.f, 0.f, 0.f, 1.f },
             },
         },
         .swapchain = sc,
