@@ -24,7 +24,7 @@ internal uint64_t base_main(void)
 {
     // ak: Application Init ===================================================
     wl_init();
-    Wl_Window window = wl_window_open(APP_NAME);
+    Wl_Window window = wl_window_open(str8(APP_NAME));
     render_init();
     font_init();
     Render_Handle window_equip = render_window_equip(window);
@@ -55,7 +55,6 @@ internal uint64_t base_main(void)
         DrawBucketScope(bucket)
         {
             draw_rect(canvas_rect, linear_from_srgba(rgba_from_u32(APP_BACKGROUND_COLOR)), 0.f, 0.f, 0.f);
-
             Vec2_F32 center = center_rng2(canvas_rect);
             float square_size = 200.f;
             Rng2_F32 square = rng2p(center.x - square_size * 0.5f,
