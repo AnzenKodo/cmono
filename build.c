@@ -319,8 +319,7 @@ internal uint64_t build_compile_program(Build_Info *info, Build_Info *ma_info)
         {
             str8_list_pushf(scratch.arena, &info->cmd, " -lm -lpthread");
             str8_list_pushf(scratch.arena, &info->cmd, " -lX11 -lXrandr");
-            str8_list_pushf(scratch.arena, &info->cmd, " -lxcb -lxcb-image -lxcb-sync -lxcb-keysyms -lxcb-cursor");
-            str8_list_pushf(scratch.arena, &info->cmd, " -lEGL -lGL");
+            str8_list_pushf(scratch.arena, &info->cmd, " -lGL");
             if (info->type == Build_Type_Release)
             {
                 str8_list_pushf(scratch.arena, &info->cmd, " build/libminiaudio.a");
@@ -369,12 +368,13 @@ internal uint64_t base_main(void)
     Arena *arena = arena_alloc();
     
     Build_Info info = STRUCT_ZERO;
-    info.name = APP_CMD_NAME;
+    info.name = str8(APP_CMD_NAME);
     info.entry_point = str8("src/app/app_main.c");
     info.arena = arena;
     
     bool should_print_help = false;
     bool should_print_version = false;
+    bool should_print_program_name = false;
     bool run_program = false;
     bool only_run_program = false;
     bool gen_meta_program = false;
@@ -512,6 +512,10 @@ internal uint64_t base_main(void)
             {
                 gen_meta_program = true;
             }
+            else if (str8_match(cmd_arg, str8("program-name"), 0))
+            {
+                should_print_program_name = true;
+            }
             else
             {
                 fmt_print(help_message);
@@ -537,6 +541,11 @@ internal uint64_t base_main(void)
     else if (should_print_version)
     {
         fmt_print(str8(BUILD_VERSION));
+    }
+    else if (should_print_program_name)
+    {
+        fmt_println(str8("Name: "APP_NAME));
+        fmt_println(str8("CMD Name: "APP_CMD_NAME));
     }
     else if (exit_code != 0)
     {
