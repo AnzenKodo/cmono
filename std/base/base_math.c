@@ -122,23 +122,7 @@ internal float rsqrt_f32(float a)
 }
 internal float pow_f32(float a, float b)
 {
-    int32_t flipped = 0, e;
-    float f, r = 1.0f;
-    if (b < 0)
-    {
-        flipped = 1;
-        b = -b;
-    }
-    e = (int32_t)b;
-    f = exp_f32(b - e);
-    while (e)
-    {
-        if (e & 1) r *= a;
-        a *= a;
-        e >>= 1;
-    }
-    r *= f;
-    return flipped ? 1.0f/r : r;
+    return powf(a, b);
 }
 
 internal double sqrt_f64(double number)
@@ -188,24 +172,7 @@ internal double rsqrt_f64(double a)
 }
 internal double pow_f64(double a, double b)
 {
-    int32_t flipped = 0;
-    int64_t e;
-    double f, r = 1.0;
-    if (b < 0)
-    {
-        flipped = 1;
-        b = -b;
-    }
-    e = (int64_t)b;
-    f = exp_f64(b - e);
-    while (e)
-    {
-        if (e & 1) r *= a;
-        a *= a;
-        e >>= 1;
-    }
-    r *= f;
-    return flipped ? 1.0 / r : r;
+    return pow(a, b);
 }
 
 // ak: Trigonometric functions ================================================
@@ -394,7 +361,7 @@ internal double atan2_f64(double y, double x)
 
 // ak: Nearest integer floating-point operations ==============================
 
-internal float round_f32(float x)
+internal inline float round_f32(float x)
 {
     return (float)((x >= 0.0f) ? floor_f32(x + 0.5f) : ceil_f32(x - 0.5f));
 }
@@ -739,7 +706,7 @@ internal Vec3_F32 srgb_from_linear(Vec3_F32 linear)
     Vec3_F32 result;
     for EachElement(idx, linear.v)
     {
-        result.v[idx] = (0 <= linear.v[idx] && linear.v[idx] < 0.00313066844250063) ? linear.v[idx]*12.92f : 1.05f * pow_f32(linear.v[idx], 1.f/2.4f) - 0.055f;
+        result.v[idx] = (0 <= linear.v[idx] && linear.v[idx] < 0.00313066844250063) ? linear.v[idx]*12.92f : 1.055f * pow_f32(linear.v[idx], 1.f/2.4f) - 0.055f;
     }
     return result;
 }

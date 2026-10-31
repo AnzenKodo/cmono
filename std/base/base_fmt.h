@@ -6,13 +6,6 @@
 #ifndef BASE_FMT_H
 #define BASE_FMT_H
 
-// ak: Vendor Includes
-//=============================================================================
-
-#define STB_SPRINTF_DECORATE(name) fmt_##name
-#define STB_SPRINTF_STATIC
-#include "./vendor/stb_sprintf.h"
-
 // ak: Functions
 //=============================================================================
 

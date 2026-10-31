@@ -1,6 +1,8 @@
 // ak: ak: Vendor Includes
 //=============================================================================
 
+#define STB_SPRINTF_DECORATE(name) fmt_##name
+#define STB_SPRINTF_STATIC
 #define STB_SPRINTF_IMPLEMENTATION
 #include "./vendor/stb_sprintf.h"
 

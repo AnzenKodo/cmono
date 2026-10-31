@@ -10,6 +10,8 @@
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 
+#include <math.h>
+
 // ak: Base
 //=============================================================================
 
@@ -516,7 +518,7 @@ internal double atan2_f64(double y, double x);
 
 // ak: Nearest integer floating-point operations ==============================
 
-internal float round_f32(float x);
+internal inline float round_f32(float x);
 internal float floor_f32(float x);
 internal float ceil_f32(float x);
 

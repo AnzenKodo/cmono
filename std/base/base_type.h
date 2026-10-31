@@ -237,7 +237,7 @@ CheckNil(nil,p) ? \
     
 #ifdef __cplusplus
     #define HandlePack(type, ptr)       (type{ reinterpret_cast<uint64_t>(ptr) })
-    #define HandleUnpack(type, handle)  (reinterpret_cast<type *>((handle).u64[0]))
+    #define HandleUnpack(type, handle)  (reinterpret_cast<type *>((handle).id[0]))
 #else
     #define HandlePack(type, ptr)       ((type){ (uint64_t)(ptr) })
     #define HandleUnpack(type, handle)  ((type *)(uint64_t)((handle).id[0]))
