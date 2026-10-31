@@ -1,3 +1,8 @@
+#if 0
+mkdir -p build && clang build.c -o build/build && ./build/build "$@"
+exit
+#endif
+
 //-----------------------------------------------------------------------------
 // Reference:
 // - By Alexey Kutepov: https://github.com/tsoding/nob.h
@@ -313,6 +318,7 @@ internal uint64_t build_compile_program(Build_Info *info, Build_Info *ma_info)
         else
         {
             str8_list_pushf(scratch.arena, &info->cmd, " -lm -lpthread");
+            str8_list_pushf(scratch.arena, &info->cmd, " -lX11 -lXrandr");
             str8_list_pushf(scratch.arena, &info->cmd, " -lxcb -lxcb-image -lxcb-sync -lxcb-keysyms -lxcb-cursor");
             str8_list_pushf(scratch.arena, &info->cmd, " -lEGL -lGL");
             if (info->type == Build_Type_Release)
