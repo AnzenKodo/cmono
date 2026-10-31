@@ -54,7 +54,7 @@ internal uint64_t base_main(void)
         Draw_Bucket *bucket = draw_bucket_make();
         DrawBucketScope(bucket)
         {
-            draw_rect(canvas_rect, linear_from_srgba(rgba_from_u32(APP_BACKGROUND_COLOR)), 0.f, 0.f, 1.f);
+            draw_rect(canvas_rect, linear_from_srgba(rgba_from_u32(APP_BACKGROUND_COLOR)), 0.f, 0.f, 0.f);
 
             Vec2_F32 center = center_rng2(canvas_rect);
             float square_size = 200.f;
