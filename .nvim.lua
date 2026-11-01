@@ -12,6 +12,12 @@ else
     cc_command = "./build/build "
 end
 
+local function make(cmd)
+    vim.opt.makeprg = cmd
+    vim.cmd.make()
+    vim.opt.makeprg = default_makeprg
+end
+
 -- ak: Build user commands
 -- ============================================================================
 

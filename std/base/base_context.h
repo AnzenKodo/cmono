@@ -168,7 +168,10 @@
 //=============================================================================
 
 #ifdef __MINGW32__
-#   define TOOLCHAIN_MINGW 1
+#   define CONTEXT_TOOLCHAIN_MINGW 1
+#endif
+#ifndef CONTEXT_TOOLCHAIN_ZIG
+#   define CONTEXT_TOOLCHAIN_ZIG 0
 #endif
 
 // ak: Address Sanitizer Checking

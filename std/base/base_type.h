@@ -141,7 +141,7 @@ struct F64Array
 #define global          static
 #define local_persist   static
 
-#if (COMPILER_MSVC || (COMPILER_CLANG && OS_WINDOWS)) && !(TOOLCHAIN_MINGW)
+#if (COMPILER_MSVC || (COMPILER_CLANG && OS_WINDOWS)) && !(CONTEXT_TOOLCHAIN_MINGW)
 #   pragma section(".rdata$", read)
 #   define read_only __declspec(allocate(".rdata$"))
 #elif COMPILER_CLANG && OS_LINUX

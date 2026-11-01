@@ -8,7 +8,7 @@
 #define RGFW_USERPTR NULL
 #define RGFW_UNUSED(x) Unused(x)
 #define RGFW_ABS(x) Abs(x)
-#define RGFW_ROUND(x) round_f32(x)
+#define RGFW_ROUND(x) round_f64(x)
 #define RGFW_ROUNDF(x) round_f32(x)
 #define RGFW_MIN(x, y) Min(x, y)
 // #define RGFW_ALLOC malloc

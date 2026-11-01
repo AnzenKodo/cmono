@@ -1,3 +1,8 @@
+// ak: External Include
+//=============================================================================
+
+#include <math.h>
+
 // ak: Scalar Math Ops
 //=============================================================================
 
@@ -115,12 +120,12 @@ internal float rsqrt_f32(float a)
 	float const three_halves = 1.5f;
 	x2 = a * 0.5f;
 	t.f = a;
-	t.i = 0x5f375a86 - (t.i >> 1);                /* What the fuck? */
+	t.i = 0x5f375a86 - (t.i >> 1);                 /* What the fuck? */
 	t.f = t.f * (three_halves - (x2 * t.f * t.f)); /* 1st iteration */
 	t.f = t.f * (three_halves - (x2 * t.f * t.f)); /* 2nd iteration, this can be removed */
 	return t.f;
 }
-internal float pow_f32(float a, float b)
+internal inline float pow_f32(float a, float b)
 {
     return powf(a, b);
 }
@@ -170,7 +175,7 @@ internal double rsqrt_f64(double a)
     t.f = t.f * (three_halves - (x2 * t.f * t.f)); /* 2nd iteration */
     return t.f;
 }
-internal double pow_f64(double a, double b)
+internal inline double pow_f64(double a, double b)
 {
     return pow(a, b);
 }

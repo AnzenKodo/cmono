@@ -22,14 +22,14 @@
 
 internal uint64_t base_main(void)
 {
-    // ak: Application Init ===================================================
+    // ak: application init
     wl_init();
     Wl_Window window = wl_window_open(str8(APP_NAME));
     render_init();
     font_init();
     Render_Handle window_equip = render_window_equip(window);
     
-    // ak: Application Loop ===================================================
+    // ak: application loop
     while (!wl_should_exit())
     {
         font_frame();
@@ -57,10 +57,12 @@ internal uint64_t base_main(void)
             draw_rect(canvas_rect, linear_from_srgba(rgba_from_u32(APP_BACKGROUND_COLOR)), 0.f, 0.f, 0.f);
             Vec2_F32 center = center_rng2(canvas_rect);
             float square_size = 200.f;
-            Rng2_F32 square = rng2p(center.x - square_size * 0.5f,
-                                    center.y - square_size * 0.5f,
-                                    center.x + square_size * 0.5f,
-                                    center.y + square_size * 0.5f);
+            Rng2_F32 square = rng2p(
+                center.x - square_size * 0.5f,
+                center.y - square_size * 0.5f,
+                center.x + square_size * 0.5f,
+                center.y + square_size * 0.5f
+            );
             draw_rect(square, linear_from_srgba(rgba_from_u32(APP_FOREGROUND_COLOR)), 0.f, 0.f, 1.f);
         }
         draw_submit_bucket(window, window_equip, bucket);
@@ -69,7 +71,7 @@ internal uint64_t base_main(void)
         arena_scratch_end(scratch);
     }
     
-    // ak: Free Everything ====================================================
+    // ak: free everything
     render_window_unequip(window, window_equip);
     render_cleanup();
     wl_window_close(window);

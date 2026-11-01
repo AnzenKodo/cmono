@@ -10,8 +10,6 @@
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 
-#include <math.h>
-
 // ak: Base
 //=============================================================================
 
@@ -472,11 +470,11 @@ internal double log2_f64(double x);
 
 internal float sqrt_f32(float number);
 internal float rsqrt_f32(float a);
-internal float pow_f32(float a, float b);
+internal inline float pow_f32(float a, float b);
 
 internal double sqrt_f64(double number);
 internal double rsqrt_f64(double a);
-internal double pow_f64(double a, double b);
+internal inline double pow_f64(double a, double b);
 
 // TODO(ak): more power functions
 // - cbrt

@@ -34,7 +34,7 @@
 #include <winuser.h>
 #include <mswsock.h>
 #include <shellapi.h>
-#include <Winuser.h>
+#include <winuser.h>
 #include <shellscalingapi.h>
 
 // ak: Types

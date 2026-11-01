@@ -201,8 +201,7 @@ internal void _render_slog_func(const char* tag, uint32_t log_level, uint32_t lo
     log_tracef(log_trace_g, level, filename, line_nr, "%s: %s", tag, message);
 }
 
-// ak: Pipeline Creation
-//=============================================================================
+//- ak: Pipeline Creation =====================================================
 
 internal sg_pipeline _render_sokol_make_rect_pipeline(void)
 {
@@ -296,8 +295,7 @@ internal sg_pipeline _render_sokol_make_rect_pipeline(void)
     return pip;
 }
 
-// ak: Backend Hooks Implementation
-//=============================================================================
+//- ak: Backend Hooks Implementation ==========================================
 
 //- ak: Layer Init & Cleanup ==================================================
 
@@ -784,3 +782,4 @@ internal void render_fill_tex2d_region(Render_Handle texture, Rng2_I32 subrect, 
         },
     });
 }
+

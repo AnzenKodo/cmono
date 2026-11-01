@@ -1,6 +1,24 @@
 #if 0
-mkdir -p build && clang build.c -o build/build && ./build/build "$@"
-exit
+echo "# Running Script ============================================================ #"
+mkdir -p build || exit 1
+
+if command -v zig >/dev/null 2>&1; then
+    CC="zig cc -DCONTEXT_TOOLCHAIN_ZIG=1"
+elif command -v clang >/dev/null 2>&1; then
+    CC="clang"
+elif command -v gcc >/dev/null 2>&1; then
+    CC="gcc"
+else
+    echo "[ERROR] no C compiler found (tried zig, clang, gcc)" >&2
+    exit 1
+fi
+
+echo "COMMAND: $CC build.c -o build/build"
+$CC build.c -o build/build || exit $?
+
+echo "COMMAND: ./build/build $*"
+./build/build "$@"
+exit $?
 #endif
 
 //-----------------------------------------------------------------------------
@@ -44,7 +62,6 @@ enum
     Build_Flag_Cpp          = (1<<2),
     Build_Flag_Static_Lib   = (1<<3),
     Build_Flag_Dynamic_Lib  = (1<<4),
-    Build_Flag_Zig          = (1<<5),
 };
 
 typedef struct Build_Info Build_Info;
@@ -55,9 +72,9 @@ struct Build_Info
     Str8 name;
     Str8 entry_point;
     Str8 args;
-    Str8 zig_args;
     Build_Type type;
     Build_Flags flags;
+    Context_Arch arch;
 };
 
 // ak: Functions
@@ -68,6 +85,8 @@ internal uint64_t build_run_string(Str8 cmd);
 internal Str8 build_path(Build_Info *info);
 internal Str8 build_version_from_type(Build_Type type, Arena *arena);
 internal void build_log_tracef(Log_Level level, const char *format, ...);
+internal Context_Arch build_arch_from_string(Str8 str);
+internal Str8 build_arch_string_from_arch(Context_Arch arch);
 
 #define BuildLog(level, format, ...) build_log_tracef(Log_Level_##level, (format), ##__VA_ARGS__)
 
@@ -85,7 +104,7 @@ internal void build_compile_gcc_style_flags(Build_Info *info)
     // ak: dry run
     if (info->flags & Build_Flag_DryRun)
     {
-        str8_list_pushf(info->arena, &info->cmd, " -fsyntax-only");
+        str8_list_pushf(info->arena, &info->cmd, " -fsyntax-only -ferror-limit=100");
     }
     // ak: output
     str8_list_pushf(info->arena, &info->cmd, " -o ");
@@ -133,13 +152,24 @@ internal void build_compile_gcc_style_flags(Build_Info *info)
         " -Wno-unused-function"
         " -Wno-unused-variable"
     );
+    
     // ak: security
-    str8_list_pushf(info->arena, &info->cmd, " -mshstk -fcf-protection=full -fstack-protector");
-    if ((info->type != Build_Type_Debug && info->type != Build_Type_Release) && !(info->flags & Build_Flag_MingW))
+    if (info->type != Build_Type_Dev)
+    {
+        if (info->arch == Context_Arch_X64 || info->arch == Context_Arch_X86 ||
+            (info->arch == Context_Arch_Null && (Context_Arch_CURRENT == Context_Arch_X64 || Context_Arch_CURRENT == Context_Arch_X86)))
+        {
+            str8_list_pushf(info->arena, &info->cmd, " -mshstk -fcf-protection=full");
+        }
+        str8_list_pushf(info->arena, &info->cmd, " -fstack-protector");
+    }
+    if ((info->type == Build_Type_Dev) && !(info->flags & Build_Flag_MingW))
     {
         str8_list_pushf(info->arena, &info->cmd, " -fsanitize=address -fno-omit-frame-pointer");
         // str8_list_pushf(info->arena, &info->cmd, " -fanalyzer");
     }
+    str8_list_pushf(info->arena, &info->cmd, " -fno-math-errno");
+    
     // ak: compile as shared lib
     if (info->flags & Build_Flag_Dynamic_Lib)
     {
@@ -157,7 +187,14 @@ internal void build_compile_gcc(Build_Info *info)
 {
     if (info->flags & Build_Flag_MingW)
     {
-        str8_list_pushf(info->arena, &info->cmd, "x86_64-w64-mingw32-gcc");
+        if (info->arch == Context_Arch_X86)
+        {
+            str8_list_pushf(info->arena, &info->cmd, "i686-w64-mingw32-gcc");
+        }
+        else
+        {
+            str8_list_pushf(info->arena, &info->cmd, "x86_64-w64-mingw32-gcc");
+        }
     }
     else if (info->flags & Build_Flag_Cpp)
     {
@@ -167,6 +204,19 @@ internal void build_compile_gcc(Build_Info *info)
     {
         str8_list_pushf(info->arena, &info->cmd, "gcc");
     }
+    
+    if (!(info->flags & Build_Flag_MingW) && info->arch != Context_Arch_Null)
+    {
+        if (info->arch == Context_Arch_X64)
+        {
+            str8_list_pushf(info->arena, &info->cmd, " -m64");
+        }
+        else if (info->arch == Context_Arch_X86)
+        {
+            str8_list_pushf(info->arena, &info->cmd, " -m32");
+        }
+    }
+    
     build_compile_gcc_style_flags(info);
 }
 
@@ -179,6 +229,20 @@ internal void build_compile_clang(Build_Info *info)
     else
     {
         str8_list_pushf(info->arena, &info->cmd, "clang");
+    }
+    if (info->flags & Build_Flag_MingW)
+    {
+        Str8 arch_str = build_arch_string_from_arch(info->arch);
+        if (arch_str.length == 0)
+        {
+            arch_str = str8("x86_64");
+        }
+        str8_list_pushf(info->arena, &info->cmd, " --target=%s8-w64-mingw32 --sysroot=/usr/%s8-w64-mingw32", arch_str, arch_str);
+    }
+    else if (info->arch != Context_Arch_Null)
+    {
+        Str8 arch_str = build_arch_string_from_arch(info->arch);
+        str8_list_pushf(info->arena, &info->cmd, " --target=%s8", arch_str);
     }
     build_compile_gcc_style_flags(info);
 }
@@ -193,16 +257,48 @@ internal void build_compile_zig(Build_Info *info)
     {
         str8_list_pushf(info->arena, &info->cmd, "zig cc");
     }
-    if (info->zig_args.length > 0)
+    
+    if (info->flags & Build_Flag_MingW)
     {
-        str8_list_pushf(info->arena, &info->cmd, " %s8", info->zig_args);
+        Str8 arch_str = build_arch_string_from_arch(info->arch);
+        if (arch_str.length == 0)
+        {
+            arch_str = str8("x86_64");
+        }
+        str8_list_pushf(info->arena, &info->cmd, " -target %s8-windows-gnu", arch_str);
+    }
+    else if (info->arch != Context_Arch_Null)
+    {
+        if (info->arch == Context_Arch_CURRENT)
+        {
+            str8_list_pushf(info->arena, &info->cmd, " -target native");
+        }
+        else
+        {
+            Str8 arch_str = build_arch_string_from_arch(info->arch);
+#if OS_LINUX
+            str8_list_pushf(info->arena, &info->cmd, " -target %s8-linux-gnu.2.17", arch_str);
+#elif OS_WINDOWS
+            str8_list_pushf(info->arena, &info->cmd, " -target %s8-windows-msvc", arch_str);
+#elif OS_MAC
+            str8_list_pushf(info->arena, &info->cmd, " -target %s8-macos", arch_str);
+#else
+            str8_list_pushf(info->arena, &info->cmd, " -target %s8", arch_str);
+#endif
+        }
+    }
+    
+    str8_list_pushf(info->arena, &info->cmd, " -DCONTEXT_TOOLCHAIN_ZIG -pipe");
+    if (info->type == Build_Type_Dev && !(info->flags & Build_Flag_MingW))
+    {
+        str8_list_pushf(info->arena, &info->cmd, " -lasan");
     }
     build_compile_gcc_style_flags(info);
 }
 
 internal void build_compile(Build_Info *info)
 {
-    if (info->flags & Build_Flag_Zig)
+    if (CONTEXT_TOOLCHAIN_ZIG)
     {
         build_compile_zig(info);
     }
@@ -360,6 +456,10 @@ global Str8 help_message = str8(
     "   dev                   Development build (default)\n"
     "   release               Release build\n"
     "\n"
+    "OPTIONS:\n"
+    "   --arch=<arch>         Target architecture (x86_64, x86, arm64, arm)\n"
+    "   --mingw               Build with MinGW / Windows target\n"
+    "\n"
     "ARGUMENTS:\n"
     "   [-- <args>]           Pass remaining arguments to program\n"
 );
@@ -383,7 +483,6 @@ internal uint64_t base_main(void)
     Str8 cmd_arg = STRUCT_ZERO;
     Str8 config_arg = STRUCT_ZERO;
     Str8 custom_args = STRUCT_ZERO;
-    Str8 zig_args = STRUCT_ZERO;
     
     Str8_Array *args = term_args_get();
     for (uint64_t i = 1; i < args->length; i++)
@@ -407,27 +506,22 @@ internal uint64_t base_main(void)
             break;
         }
         
-        // ak: check for zig flag
-        if (str8_match(arg, str8("--zig"), 0))
-        {
-            info.flags |= Build_Flag_Zig;
-            for (uint64_t j = i + 1; j < args->length; j++)
-            {
-                if (zig_args.length == 0)
-                {
-                    zig_args = args->v[j];
-                }
-                else
-                {
-                    zig_args = str8f(arena, "%s8 %s8", zig_args, args->v[j]);
-                }
-            }
-            break;
-        }
-
         if (str8_match(arg, str8("--mingw"), 0))
         {
             info.flags |= Build_Flag_MingW;
+            continue;
+        }
+        
+        if (str8_match(str8_prefix(arg, 7), str8("--arch="), 0))
+        {
+            Str8 arch_val = str8_skip(arg, 7);
+            info.arch = build_arch_from_string(arch_val);
+            if (info.arch == Context_Arch_Null)
+            {
+                BuildLog(Error, "unknown architecture `%s8`.", arch_val);
+                exit_code = 1;
+                break;
+            }
             continue;
         }
         
@@ -526,7 +620,6 @@ internal uint64_t base_main(void)
     }
     
     info.args = custom_args;
-    info.zig_args = zig_args;
     
     if (only_run_program && !fs_file_path_exists(build_path(&info)))
     {
@@ -570,6 +663,7 @@ internal uint64_t base_main(void)
         ma_info.name = str8("libminiaudio");
         ma_info.entry_point = str8("std/audio/vendor/miniaudio.h");
         ma_info.type = info.type;
+        ma_info.arch = info.arch;
         ma_info.flags = info.type == Build_Type_Release ? Build_Flag_Static_Lib : Build_Flag_Dynamic_Lib;
         ma_info.arena = arena;
         exit_code = build_compile_miniaudio(&ma_info);
@@ -658,6 +752,48 @@ internal Str8 build_type_string_from_type(Build_Type type)
     return result;
 }
 
+internal Context_Arch build_arch_from_string(Str8 str)
+{
+    Context_Arch result = Context_Arch_Null;
+    if (str8_match(str, str8("x86_64"), Str_Match_Flag_CaseInsensitive) ||
+        str8_match(str, str8("x64"), Str_Match_Flag_CaseInsensitive) ||
+        str8_match(str, str8("amd64"), Str_Match_Flag_CaseInsensitive))
+    {
+        result = Context_Arch_X64;
+    }
+    else if (str8_match(str, str8("x86"), Str_Match_Flag_CaseInsensitive) ||
+             str8_match(str, str8("i386"), Str_Match_Flag_CaseInsensitive) ||
+             str8_match(str, str8("i686"), Str_Match_Flag_CaseInsensitive))
+    {
+        result = Context_Arch_X86;
+    }
+    else if (str8_match(str, str8("arm64"), Str_Match_Flag_CaseInsensitive) ||
+             str8_match(str, str8("aarch64"), Str_Match_Flag_CaseInsensitive))
+    {
+        result = Context_Arch_Arm64;
+    }
+    else if (str8_match(str, str8("arm"), Str_Match_Flag_CaseInsensitive) ||
+             str8_match(str, str8("arm32"), Str_Match_Flag_CaseInsensitive))
+    {
+        result = Context_Arch_Arm32;
+    }
+    return result;
+}
+
+internal Str8 build_arch_string_from_arch(Context_Arch arch)
+{
+    Str8 result = STRUCT_ZERO;
+    switch (arch)
+    {
+        case Context_Arch_X64:   result = str8("x86_64"); break;
+        case Context_Arch_X86:   result = str8("x86"); break;
+        case Context_Arch_Arm64: result = str8("aarch64"); break;
+        case Context_Arch_Arm32: result = str8("arm"); break;
+        default: break;
+    }
+    return result;
+}
+
 internal Str8 build_path(Build_Info *info)
 {
     Str8_List list = STRUCT_ZERO;
@@ -727,3 +863,4 @@ internal void build_log_tracef(Log_Level level, const char *format, ...)
     va_end(args);
     arena_scratch_end(scratch);
 }
+
