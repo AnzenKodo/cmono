@@ -2,7 +2,7 @@
 //=============================================================================
 
 #define RGFW_ASSERT Assert
-// #define RGFW_STATIC_ASSERT(check_name, x) AssertAlways((check_name), (x))
+// #define RGFW_STATIC_ASSERT(check_name, x) StaticAssert(check_name, x)
 // #define RGFW_SNPRINTF fmt_snprintf
 #define RGFW_PRINTF fmt_printf
 #define RGFW_USERPTR NULL
@@ -547,7 +547,7 @@ internal Wl_Event_List wl_get_events(Arena *arena, bool wait)
 
 internal void wl_set_fps(uint64_t fps)
 {
-    os_sleep_us(Million(1)/fps);
+    process_sleep_us(Million(1)/fps);
 }
 
 //- ak: Window Property =======================================================
