@@ -406,7 +406,7 @@ internal Fs_File_Properties fs_file_properties_from_file_path(Str8 path)
 
 /// ak: Directory Operations
 
-internal bool fs_is_dir_exist(Str8 path)
+internal bool fs_dir_exists(Str8 path)
 {
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
     bool exists = 0;

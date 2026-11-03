@@ -653,8 +653,9 @@ internal uint64_t base_main(void)
         fmt_println(str8("# Build Output ============================================================== #"));
         
         // ak: create build directory if not exists
-        if (fs_dir_make(str8(BUILD_DIR)))
+        if (!fs_dir_exists(str8(BUILD_DIR)))
         {
+            fs_dir_make(str8(BUILD_DIR));
             BuildLog(Info, "created '"BUILD_DIR"' directory.\n");
         }
         
