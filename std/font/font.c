@@ -97,7 +97,7 @@ internal Font_Handle _font_handle_from_font(_Font_Provider_Font *font)
 internal Font_Handle font_open(Str8 path)
 {
     Arena *arena = arena_alloc();
-    U8Array file_data = fs_file_path_read_full(path, arena);
+    U8Array file_data = fs_read_data_from_file_path(path, arena);
     if(file_data.length == 0)
     {
         arena_free(arena);
