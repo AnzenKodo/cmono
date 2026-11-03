@@ -5,7 +5,7 @@ A C monorepo for my personal projects
 ## Dependences
 
 - Required
-    - C Compiler: clang & gcc
+    - C Compiler: zig, clang & gcc
     - In Linux:
         - Libraries:
             - C Math Library (`libm` / `-lm`)
