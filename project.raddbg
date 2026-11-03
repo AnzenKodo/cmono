@@ -1,0 +1,11 @@
+// raddbg 0.9.30 project file
+
+name: CMono
+theme: "VS (Dark)"
+target:
+{
+  executable: "a.out"
+  working_directory: ""
+  enabled: 1
+  arguments: "build-run"
+}
