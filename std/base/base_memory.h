@@ -14,7 +14,6 @@
 
 // ak: Memory Allocation =====================================================
 
-internal void *mem_alloc(size_t size);
 internal void *mem_reserve(size_t size);
 internal bool mem_release(void *ptr, size_t size);
 internal bool mem_commit(void *ptr, size_t size);

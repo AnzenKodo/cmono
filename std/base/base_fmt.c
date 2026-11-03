@@ -12,8 +12,13 @@
 
 internal size_t fmt_fprint(Fs_File file, Str8 string)
 {
-    fs_file_write_append_raw(file, string.cstr, string.length);
-    return string.length;
+    if (fs_file_is_zero(file) || string.length == 0)
+    {
+        return 0;
+    }
+    size_t pos = fs_file_properties_from_file(file).size;
+    size_t bytes_written = fs_file_write(file, string.cstr, rng1_u64(pos, pos+string.length));
+    return bytes_written;
 }
 internal size_t fmt_fprintln(Fs_File file, Str8 string)
 {
@@ -69,15 +74,15 @@ internal size_t fmt_fprintfln(Fs_File file, const char *format, ...)
 
 internal void fmt_print(Str8 string)
 {
-    fmt_fprint(OS_STDOUT, string);
+    fmt_fprint(FS_STDOUT, string);
 }
 internal void fmt_println(Str8 string)
 {
-    fmt_fprintln(OS_STDOUT, string);
+    fmt_fprintln(FS_STDOUT, string);
 }
 internal void fmt_vprintf(const char *format, va_list args)
 {
-    fmt_vfprintf(OS_STDOUT, format, args);
+    fmt_vfprintf(FS_STDOUT, format, args);
 }
 internal void fmt_printf(const char *format, ...)
 {
@@ -88,7 +93,7 @@ internal void fmt_printf(const char *format, ...)
 }
 internal void fmt_vprintfln(const char *format, va_list args)
 {
-    fmt_vfprintfln(OS_STDOUT, format, args);
+    fmt_vfprintfln(FS_STDOUT, format, args);
 }
 internal void fmt_printfln(const char *format, ...)
 {
@@ -103,15 +108,15 @@ internal void fmt_printfln(const char *format, ...)
 
 internal void fmt_eprint(Str8 string)
 {
-    fmt_fprint(OS_STDERR, string);
+    fmt_fprint(FS_STDERR, string);
 }
 internal void fmt_eprintln(Str8 string)
 {
-    fmt_fprintln(OS_STDOUT, string);
+    fmt_fprintln(FS_STDERR, string);
 }
 internal void fmt_veprintf(const char *format, va_list args)
 {
-    fmt_vfprintf(OS_STDERR, format, args);
+    fmt_vfprintf(FS_STDERR, format, args);
 }
 internal void fmt_eprintf(const char *format, ...)
 {
@@ -122,7 +127,7 @@ internal void fmt_eprintf(const char *format, ...)
 }
 internal void fmt_veprintfln(const char *format, va_list args)
 {
-    fmt_vfprintfln(OS_STDERR, format, args);
+    fmt_vfprintfln(FS_STDERR, format, args);
 }
 internal void fmt_eprintfln(const char *format, ...)
 {

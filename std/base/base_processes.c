@@ -105,9 +105,9 @@ internal Process process_launch_from_cmd(Str8 string)
         Fs_File stdout_handle = STRUCT_ZERO;
         if(stdout_path.length != 0)
         {
-            Fs_File file = fs_file_open(stdout_path, Fs_File_Access_Flag_Write|Fs_File_Access_Flag_Read);
+            Fs_File file = fs_file_open(stdout_path, Fs_Access_Flag_Write|Fs_Access_Flag_Read);
             fs_file_close(file);
-            stdout_handle = fs_file_open(stdout_path, Fs_File_Access_Flag_Write|Fs_File_Access_Flag_Append|Fs_File_Access_Flag_ShareRead|Fs_File_Access_Flag_ShareWrite|Fs_File_Access_Flag_Inherited);
+            stdout_handle = fs_file_open(stdout_path, Fs_Access_Flag_Write|Fs_Access_Flag_Append|Fs_Access_Flag_ShareRead|Fs_Access_Flag_ShareWrite|Fs_Access_Flag_Inherited);
         }
 
         // ak: form command line

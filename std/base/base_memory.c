@@ -1,42 +1,18 @@
-// ak: Memory Allocation
+// External Include
 //=============================================================================
 
-internal void * os_mem_alloc(size_t size)
-{
-    void *result = mem_reserve(size);
-    mem_commit(result, size);
-    return result;
-}
+#include <string.h>
 
 // ak: Memory Operations
 //=============================================================================
 
 internal inline void *mem_copy(void *dest, void const *source, size_t n)
 {
-    if (dest == NULL)
+	if (dest == NULL || n == 0)
     {
-        return NULL;
+		return NULL;
     }
-#if COMPILER_MSVC
-    __movsb((uint8_t *)dest, (uint8_t *)source, n);
-#elif defined(OS_MAC) || defined(OS_LINUX)
-    #if defined(__x86_64__) || defined(__i386__)
-        uint8_t *d = (uint8_t *)dest;
-        uint8_t const *s = (uint8_t const *)source;
-        size_t c = n;
-
-        __asm__ __volatile__(
-            "rep movsb"
-            : "+D" (d), "+S" (s), "+c" (c)
-            :
-            : "memory"
-        );
-    #endif
-#elif ARCH_X86
-    void *dest_copy = dest;
-    __asm__ __volatile__("rep movsb" : "+D"(dest_copy), "+S"(source), "+c"(n) : : "memory");
-#endif
-    return dest;
+    return memcpy(dest, source, n);
 }
 
 internal inline void *mem_move(void *dest, void const *source, size_t n)

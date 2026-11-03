@@ -33,8 +33,8 @@ internal Str8 log_level_string_get(Log_Level level)
 
 internal Fs_File std_type_from_log_level(Log_Level level)
 {
-    Fs_File file = OS_STDOUT;
-    if (level >= Log_Level_Warn) { file = OS_STDERR; }
+    Fs_File file = FS_STDOUT;
+    if (level >= Log_Level_Warn) { file = FS_STDERR; }
     return file;
 }
 

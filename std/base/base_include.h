@@ -8,7 +8,6 @@
 #include "base_string.h"
 #include "base_file_system.h"
 #include "base_fmt.h"
-#include "base_terminal.h"
 #include "base_log.h"
 #include "base_flags.h"
 #include "base_processes.h"

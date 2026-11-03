@@ -26,28 +26,28 @@ struct Process_Info
 typedef struct Process Process;
 struct Process
 {
-  uint64_t id[1];
+    uint64_t id[1];
 };
 
 typedef struct Process_Group Process_Group;
 struct Process_Group
 {
-  uint64_t id[1];
+    uint64_t id[1];
 };
 
 typedef struct Process_Node Process_Node;
 struct Process_Node
 {
-  Process_Node *next;
-  Process v;
+    Process_Node *next;
+    Process v;
 };
 
 typedef struct Process_List Process_List;
 struct Process_List
 {
-  Process_Node *first;
-  Process_Node *last;
-  size_t count;
+    Process_Node *first;
+    Process_Node *last;
+    size_t count;
 };
 
 typedef struct Process_Launch_Params Process_Launch_Params;
@@ -66,24 +66,26 @@ struct Process_Launch_Params
   Fs_File stdin_file;
 };
 
-//~ ak: Handle Type Functions =================================================
+//- ak: Handle Type Functions =================================================
 
 internal bool process_match(Process a, Process b);
 internal bool process_is_zero(Process p);
 internal void process_list_push(Arena *arena, Process_List *list, Process p);
 
-//~ ak: Process Launcher Helpers ==============================================
+//- ak: Process Management ====================================================
 
-internal Str8_List cmd_line_from_string(Arena *arena, Str8 cmd);
+internal void process_sleep_us(uint64_t microsec);
+internal void process_sleep_ms(uint32_t millisec);
+internal void process_exit(int32_t exit_code);
 
-
-//~ ak: Process Info ==========================================================
+//- ak: Process Info ==========================================================
 
 internal Process_Info *process_info_get(void);
-internal Str8 current_path_get(Arena *arena);
+internal Str8 process_path_get(Arena *arena);
 internal uint32_t process_start_time_unix_get(void);
+internal Str8_Array *process_args_get(void);
 
-//~ ak: Child Processes =======================================================
+//- ak: Child Processes =======================================================
 
 internal Process process_init(Process_Launch_Params *params);
 internal Process process_launch_from_cmd(Str8 cmd);
@@ -96,6 +98,8 @@ internal bool process_join(Process process, uint64_t endt_us, uint64_t *exit_cod
 internal void process_detach(Process process);
 internal bool process_kill(Process process);
 internal bool process_send_ctrl_c(Process process);
+
+//- ak: Processes Group =======================================================
 
 internal Process_Group process_group_make(bool kill_on_close);
 internal bool process_group_add(Process_Group group, Process process);

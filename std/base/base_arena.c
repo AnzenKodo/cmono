@@ -4,7 +4,7 @@
 internal Arena *_arena_alloc(ArenaParams *params)
 {
     Arena *result = NULL;
-    size_t pagesize = os_pagesize_get();
+    size_t pagesize = os_system_info_get()->page_size;
     size_t reserve_size = AlignPow2(params->reserve_size, pagesize);
     size_t commit_size = AlignPow2(params->commit_size, pagesize);
     Arena* arena = (Arena *)mem_reserve(reserve_size);

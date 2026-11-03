@@ -684,7 +684,7 @@ internal void flags_print_help(Str8 description, Str8 usage)
 {
     fmt_println(description);
     fmt_println(str8("USAGE:"));
-    fmt_printfln("    %s8 %s8", os_program_path_get(), usage);
+    fmt_printfln("    %s8 %s8", process_info_get()->initial_path, usage);
     fmt_println(str8("OPTIONS:"));
     flags_print_options();
     fmt_println(str8("VERSION:"));

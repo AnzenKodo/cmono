@@ -225,6 +225,10 @@ global const uint64_t bit64 = (1ull<<63);
 #define IsPow2(x)       ((x != 0) && ((x & (x - 1)) == 0))
 #define AlignPow2(x,b)  (((x) + (b) - 1)&(~((b) - 1)))
 #define OffsetOf(T,m)   offsetof(T, m)
+#define Glue_(A,B) A##B
+#define Glue(A,B) Glue_(A,B)
+#define Compose64Bit(a,b)  ((((uint64_t)a) << 32) | ((uint64_t)b))
+#define Compose32Bit(a,b)  ((((uint32_t)a) << 16) | ((uint32_t)b))
 
 // ak: Branch Predictor Hints =================================================
 
@@ -280,6 +284,7 @@ global const uint64_t bit64 = (1ull<<63);
 #else
 #   define Assert(x, ...) (void)(x)
 #endif
+#define StaticAssert(C, ID) global uint8_t Glue(ID, LINE_NUMBER)[(C)?1:-1]
 #define UNREACHABLE(msg) Assert(!"" msg)
 #define TODO(msg)        Assert(!msg)
 
