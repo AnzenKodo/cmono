@@ -1,20 +1,96 @@
-// ak: State
+//-----------------------------------------------------------------------------
+// Reference:
+// - By Epic Games Tools & Ryan Fleury: https://github.com/EpicGames/raddebugger/tree/e28a543573277315ffd32a3e983c8171570bb946/src/linux/base
+// - By Allen Webster: https://github.com/4coder-archive/4coder/tree/master/platform_linux
+//-----------------------------------------------------------------------------
+
+// ak: External Includes
 //=============================================================================
 
-typedef struct _Os_Linux_State _Os_Linux_State;
-struct _Os_Linux_State
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <stdlib.h>
+#include <time.h>
+#include <spawn.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <stdio.h>
+#include <sys/sendfile.h>
+#include <sys/sysinfo.h>
+
+extern char **environ;
+
+// ak: Private Types
+//=============================================================================
+
+//- ak: File System ===========================================================
+
+//- ak: directory walking
+typedef struct _Linux_Walk _Linux_Walk;
+struct _Linux_Walk
+{
+    DIR *dir;
+    struct dirent *dp;
+    Str8 path;
+};
+
+//- ak: Processes =============================================================
+
+typedef struct _Linux_Process_Group _Linux_Process_Group;
+struct _Linux_Process_Group
+{
+    pid_t pid;
+    bool kill_on_close;
+};
+
+//- ak: Linux State ===========================================================
+
+typedef struct _Linux_State _Linux_State;
+struct _Linux_State
 {
     Arena *arena;
     char **default_env;
     size_t default_env_count;
 };
 
-global _Os_Linux_State _os_linux_state = STRUCT_ZERO;
-
-// ak: Helpers functions
+// ak: Globals
 //=============================================================================
 
-internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec)
+global _Linux_State _linux_state = STRUCT_ZERO;
+
+//~ ak: Macros
+//=============================================================================
+
+// ak: Linux Call Interruption Retry Helper
+#define _LinuxRetryOnEintr(expr)             \
+(__extension__({                           \
+__typeof__(expr) __ret;                    \
+do {                                       \
+__ret = (expr);                          \
+} while ((__ret == -1) && errno == EINTR); \
+__ret;                                     \
+}))
+
+// ak: Private Function Definition
+//=============================================================================
+
+//- ak: Helper ================================================================
+
+internal DateTime _linux_date_time_from_tm(struct tm in, uint32_t msec);
+internal DenseTime _linux_dense_time_from_timespec(struct timespec in);
+internal Fs_File_Properties _linux_properties_from_stat(struct stat *s);
+
+// ak: Function Implementation
+//=============================================================================
+
+//- ak: Helper ================================================================
+
+internal DateTime _linux_date_time_from_tm(struct tm in, uint32_t msec)
 {
     DateTime dt = STRUCT_ZERO;
     dt.sec  = in.tm_sec;
@@ -27,13 +103,13 @@ internal DateTime _os_linux_date_time_from_tm(struct tm in, uint32_t msec)
     return dt;
 }
 
-internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in)
+internal DenseTime _linux_dense_time_from_timespec(struct timespec in)
 {
     DenseTime result = 0;
     {
         struct tm tm_time = STRUCT_ZERO;
         gmtime_r(&in.tv_sec, &tm_time);
-        DateTime date_time = _os_linux_date_time_from_tm(
+        DateTime date_time = _linux_date_time_from_tm(
             tm_time, in.tv_nsec/Million(1)
         );
         result = dense_time_from_date_time(date_time);
@@ -41,166 +117,23 @@ internal DenseTime _os_linux_dense_time_from_timespec(struct timespec in)
     return result;
 }
 
-internal Fs_Properties _os_linux_properties_from_stat(struct stat *s)
+internal Fs_File_Properties _linux_properties_from_stat(struct stat *s)
 {
-    Fs_Properties props = STRUCT_ZERO;
+    Fs_File_Properties props = STRUCT_ZERO;
     props.size     = s->st_size;
-    props.created  = _os_linux_dense_time_from_timespec(s->st_ctim);
-    props.modified = _os_linux_dense_time_from_timespec(s->st_mtim);
+    props.created  = _linux_dense_time_from_timespec(s->st_ctim);
+    props.modified = _linux_dense_time_from_timespec(s->st_mtim);
     if (s->st_mode & S_IFDIR)
     {
-        props.flags |= Fs_Property_Flag_IsFolder;
+        props.flags |= Fs_File_Property_Flag_IsFolder;
     }
     return props;
-}
-
-//~ ak: Os Core Functions
-//=============================================================================
-
-// ak: Memory =================================================================
-
-internal size_t os_pagesize_get(void)
-{
-    size_t result = sysconf(_SC_PAGESIZE);
-    return result;
-}
-
-// ak: Exit ===================================================================
-
-internal void os_exit(int32_t exit_code)
-{
-    exit(exit_code);
-}
-
-// ak: Sleep ==================================================================
-
-internal void os_sleep_us(uint64_t micosec)
-{
-    struct timespec ts;
-    ts.tv_sec = (time_t)(micosec / Million(1));
-    ts.tv_nsec = (long)((micosec % Million(1)) * Thousand(1));
-    nanosleep(&ts, NULL);
-}
-
-internal void os_sleep_ms(uint32_t millisec)
-{
-    usleep(millisec*Thousand(1));
-}
-
-// ak: Environment Variable ===================================================
-
-internal bool os_is_env_exists(Str8 name)
-{
-    bool result = false;
-    char **env_list = environ ? environ : __environ;
-    if (env_list == NULL) return false;
-    for (char **e = env_list; *e != NULL; e++)
-    {
-        Str8 env = str8_from_cstr(*e);
-        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), Str_Match_Flag_None);
-        Str8 env_name = str8_prefix(env, equal_pos);
-        if (str8_match(env_name, name, Str_Match_Flag_None))
-        {
-            result = true;
-            break;
-        }
-    }
-    return result;
-}
-
-internal Str8 os_env_get(Str8 name)
-{
-    Str8 result = STRUCT_ZERO;
-    char **env_list = environ ? environ : __environ;
-    if (env_list == NULL) return result;
-    for (char **e = env_list; *e != NULL; e++)
-    {
-        Str8 env = str8_from_cstr(*e);
-        uint64_t equal_pos = str8_find_substr(env, 0, str8("="), Str_Match_Flag_None);
-        Str8 env_name = str8_prefix(env, equal_pos);
-        if (str8_match(env_name, name, Str_Match_Flag_None))
-        {
-            result = str8_skip(env, equal_pos+1);
-            break;
-        }
-    }
-    return result;
-}
-
-//~ ak: OS Entry Points =======================================================
-
-int main(int argc, char *argv[], char **envp)
-{
-    if (environ == NULL && envp != NULL)
-    {
-        environ = envp;
-    }
-    // ak: set up dynamically allocated state
-    _os_linux_state.arena = arena_alloc();
-    
-    // ak: make array of args
-    {
-        _os_core_state.args = array_alloc(_os_linux_state.arena, Str8_Array, (size_t)argc, 0);
-        for (int i = 0; i < argc; i++)
-        {
-            Str8 str = str8_from_cstr(argv[i]);
-            array_append(&_os_core_state.args, str);
-        }
-    }
-    
-    // ak: get system/process info
-    Process_Info *info = &_os_core_state.process_info;
-    info->pid = (uint32_t)getpid();
-    
-    // ak: cache default environment
-    {
-        char **cur_env = environ ? environ : __environ;
-        uint64_t env_count = 0;
-        if (cur_env != NULL)
-        {
-            for(; cur_env[env_count] != 0; env_count += 1) {}
-        }
-
-        char **default_env = arena_push(_os_linux_state.arena, char *, env_count+1);
-        for EachIndex(idx, env_count)
-        {
-            Str8 entry = str8_copy(_os_linux_state.arena, str8_from_cstr(cur_env[idx]));
-            default_env[idx] = (char *)entry.cstr;
-            str8_list_push(_os_linux_state.arena, &_os_core_state.process_info.environment, entry);
-        }
-        default_env[env_count] = 0;
-
-        _os_linux_state.default_env_count = env_count;
-        _os_linux_state.default_env       = default_env;
-    }
-     
-    // ak: get os data home path
-    {
-        if (os_is_env_exists(str8("XDG_DATA_HOME")))
-        {
-            _os_core_state.data_home = os_env_get(str8("XDG_DATA_HOME"));
-        }
-        if (_os_core_state.data_home.length == 0)
-        {
-            if (os_is_env_exists(str8("HOME")))
-            {
-                Str8 home = os_env_get(str8("HOME"));
-                if (home.length != 0)
-                {
-                    _os_core_state.data_home = str8f(_os_linux_state.arena, "%s8/.local/share", home);
-                }
-            }
-        }
-    }
-     
-    // ak: os entry point
-    return os_main();
 }
 
 // ak: Os Functions for Base Layer
 //=============================================================================
 
-// ak: Memory =================================================================
+//- ak: Memory ================================================================
 
 internal void *mem_reserve(size_t size)
 {
@@ -229,77 +162,78 @@ internal bool mem_release(void *ptr, size_t size)
 
 // ak: File System ============================================================
 
-// ak: Open and Close file
+/// ak: File Operations
 
-internal Fs_File fs_file_open(Str8 path, Fs_File_Access_Flags flags)
+internal Fs_File fs_file_open(Str8 path, Fs_Access_Flags flags)
 {
-    int32_t access_flags = 0;
-    if (flags & Fs_File_Access_Flag_Read && flags & Fs_File_Access_Flag_Write)
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    int lnx_flags = 0;
+    lnx_flags |= O_CLOEXEC;
+    
+    if(flags & Fs_Access_Flag_Read && flags & Fs_Access_Flag_Write)
     {
-        access_flags = O_RDWR;
+        lnx_flags = O_RDWR;
     }
-    else if (flags & Fs_File_Access_Flag_Write)
+    else if(flags & Fs_Access_Flag_Write)
     {
-        access_flags = O_WRONLY|O_TRUNC;
+        lnx_flags = O_WRONLY;
     }
-    else if (flags & Fs_File_Access_Flag_Read)
+    else if(flags & Fs_Access_Flag_Read)
     {
-        access_flags = O_RDONLY;
+        lnx_flags = O_RDONLY;
     }
-    if (flags & Fs_File_Access_Flag_Append)
+    
+    if(flags & Fs_Access_Flag_Append)
     {
-        access_flags |= O_APPEND;
+        lnx_flags |= O_APPEND;
     }
-    if (flags & (Fs_File_Access_Flag_Write|Fs_File_Access_Flag_Append))
+    else if(flags & Fs_Access_Flag_Write)
     {
-        access_flags |= O_CREAT;
+        lnx_flags |= O_TRUNC;
     }
-    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    
+    if(flags & (Fs_Access_Flag_Write|Fs_Access_Flag_Append))
+    {
+        lnx_flags |= O_CREAT;
+    }
+    
+    if(flags & Fs_Access_Flag_CreateNew) { lnx_flags |= O_CREAT|O_EXCL; }
+    
     Str8 path_copy = str8_copy(scratch.arena, path);
-    Fs_File file = open((char *)path_copy.cstr, access_flags, 0666);
+    int fd = open((char *)path_copy.cstr, lnx_flags, 0755);
+    Fs_File handle = STRUCT_ZERO;
+    if(fd != -1)
+    {
+        handle = HandlePack(Fs_File, fd);;
+    }
+    
     arena_scratch_end(scratch);
-    if (!(flags & Fs_File_Access_Flag_Inherited))
-    {
-        fcntl(file, F_SETFD, FD_CLOEXEC);
-    }
-    // ak: Lock file based on given flags
-    short share_mode = 0;
-    if (!(flags & Fs_File_Access_Flag_ShareRead))
-    {
-        share_mode |= F_RDLCK;
-    }
-    if (!(flags & Fs_File_Access_Flag_ShareWrite))
-    {
-        share_mode |= F_WRLCK;
-    }
-    if (share_mode)
-    {
-        struct flock lock = STRUCT_ZERO;
-        lock.l_type = share_mode;
-        lock.l_start = 0;
-        lock.l_whence = SEEK_SET;
-        lock.l_len = 0;  // ak: Lock entire file
-        fcntl(file, F_SETLK, &lock);
-    }
-    return file;
+    return handle;
+}
+
+internal bool file_flush(Fs_File file)
+{
+  return fsync((int)file.id[0]) == 0;
 }
 
 internal void fs_file_close(Fs_File file)
 {
-    close(file);
+  if(fs_file_is_zero(file)) { return; }
+  int fd = (int)file.id[0];
+  close(fd);
 }
 
-// ak: File Read
-
-internal size_t fs_file_read_raw(Fs_File file, Rng1_U64 rng, void *out_data)
+internal uint64_t fs_file_read(Fs_File file, Rng1_U64 rng, void *out_data)
 {
+    if(fs_file_is_zero(file)) { return 0; }
+    int fd = (int)file.id[0];
     size_t total_num_bytes_to_read = dim_rng1(rng);
     size_t total_num_bytes_read = 0;
     size_t total_num_bytes_left_to_read = total_num_bytes_to_read;
     while (total_num_bytes_left_to_read > 0)
     {
         int read_result = pread(
-            file, (uint8_t *)out_data + total_num_bytes_read,
+            fd, (uint8_t *)out_data + total_num_bytes_read,
             total_num_bytes_left_to_read, rng.min + total_num_bytes_read
         );
         if (read_result >= 0)
@@ -315,19 +249,24 @@ internal size_t fs_file_read_raw(Fs_File file, Rng1_U64 rng, void *out_data)
     return total_num_bytes_read;
 }
 
-// ak: File Write
-
-internal size_t fs_file_write_rng_raw(Fs_File file, void *data, Rng1_U64 rng)
+internal size_t fs_file_write(Fs_File file, void *data, Rng1_U64 rng)
 {
+    if(fs_file_is_zero(file)) { return 0; }
+    int fd = (int)file.id[0];
     size_t total_num_bytes_to_write = dim_rng1(rng);
     size_t total_num_bytes_written = 0;
     size_t total_num_bytes_left_to_write = total_num_bytes_to_write;
     while (total_num_bytes_left_to_write > 0)
     {
         int write_result = pwrite(
-                file, (uint8_t *)data + total_num_bytes_written,
-                total_num_bytes_left_to_write, rng.min + total_num_bytes_written
-                );
+            fd, (uint8_t *)data + total_num_bytes_written,
+            total_num_bytes_left_to_write, rng.min + total_num_bytes_written
+        );
+        if (write_result < 0 && errno == ESPIPE)
+        {
+            write_result = write(fd, (uint8_t *)data + total_num_bytes_written,
+                total_num_bytes_left_to_write);
+        }
         if (write_result >= 0)
         {
             total_num_bytes_written += write_result;
@@ -341,48 +280,172 @@ internal size_t fs_file_write_rng_raw(Fs_File file, void *data, Rng1_U64 rng)
     return total_num_bytes_written;
 }
 
-internal size_t fs_file_write_append_raw(Fs_File file, void *data, size_t size)
+internal Fs_File_Properties fs_file_properties_from_file(Fs_File file)
 {
-    size_t total_num_bytes_written = write(file, data, size);
-    return total_num_bytes_written;
-}
-
-// ak: Properties
-
-internal Fs_Properties fs_properties_from_file(Fs_File file)
-{
+    if(fs_file_is_zero(file)) { return StructZeroType(Fs_File_Properties); }
+    int fd = file.id[0];
     struct stat fd_stat = STRUCT_ZERO;
-    int fstat_result = fstat(file, &fd_stat);
-    Fs_Properties props = STRUCT_ZERO;
+    int fstat_result = fstat(fd, &fd_stat);
+    Fs_File_Properties props = STRUCT_ZERO;
     if (fstat_result != -1)
     {
-        props = _os_linux_properties_from_stat(&fd_stat);
+        props = _linux_properties_from_stat(&fd_stat);
     }
     return props;
 }
 
-internal Fs_Properties fs_properties_from_file_path(Str8 path)
+/// ak: Path Operations
+
+internal bool fs_file_path_exists(Str8 path)
+{
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    Str8 path_copy = str8_copy(scratch.arena, path);
+    int access_result = access((char *)path_copy.cstr, F_OK);
+    bool result = 0;
+    if(access_result == 0)
+    {
+        result = 1;
+    }
+    arena_scratch_end(scratch);
+    return result;
+}
+
+internal bool fs_file_path_move(Str8 dst, Str8 src)
+{
+    bool good = 0;
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    {
+        char *src_cstr = (char *)str8_copy(scratch.arena, src).cstr;
+        char *dst_cstr = (char *)str8_copy(scratch.arena, dst).cstr;
+        int rename_result = renameat(AT_FDCWD, src_cstr, AT_FDCWD, dst_cstr);
+        good = (rename_result != -1);
+    }
+    arena_scratch_end(scratch);
+    return good;
+}
+
+internal bool fs_file_path_copy(Str8 dst, Str8 src)
+{
+    bool result = 0;
+    Fs_File src_h = fs_file_open(src, Fs_Access_Flag_Read);
+    Fs_File dst_h = fs_file_open(dst, Fs_Access_Flag_Write);
+    if(!fs_file_is_zero(src_h) && !fs_file_is_zero(dst_h))
+    {
+        int src_fd = (int)src_h.id[0];
+        int dst_fd = (int)dst_h.id[0];
+        Fs_File_Properties src_props = fs_file_properties_from_file(src_h);
+        size_t size = src_props.size;
+        size_t total_bytes_copied = 0;
+        size_t bytes_left_to_copy = size;
+        for(;bytes_left_to_copy > 0;)
+        {
+            off_t sendfile_off = total_bytes_copied;
+            int send_result = sendfile(dst_fd, src_fd, &sendfile_off, bytes_left_to_copy);
+            if(send_result <= 0)
+            {
+                break;
+            }
+            size_t bytes_copied = (size_t)send_result;
+            bytes_left_to_copy -= bytes_copied;
+            total_bytes_copied += bytes_copied;
+        }
+    }
+    fs_file_close(src_h);
+    fs_file_close(dst_h);
+    return result;
+}
+
+internal bool fs_file_path_replace(Str8 dst, Str8 src)
+{
+    Arena_Temp scratch = arena_scratch_begin(0,0);
+    char *dst_cstr = (char *)str8_copy(scratch.arena, dst).cstr;
+    char *src_cstr = (char *)str8_copy(scratch.arena, src).cstr;
+    bool   result   = rename(src_cstr, dst_cstr) == 0;
+    arena_scratch_end(scratch);
+    return result;
+}
+
+internal bool fs_file_path_delete(Str8 path)
+{
+    Arena_Temp scratch = arena_scratch_begin(0, 0);
+    bool result = 0;
+    Str8 path_copy = str8_copy(scratch.arena, path);
+    if(remove((char *)path_copy.cstr) != -1)
+    {
+        result = 1;
+    }
+    arena_scratch_end(scratch);
+    return result;
+}
+
+internal Str8 fs_full_path_from_path(Arena *arena, Str8 path)
+{
+    Arena_Temp scratch = arena_scratch_begin(&arena, 1);
+    Str8 path_copy = str8_copy(scratch.arena, path);
+    char buffer[PATH_MAX] = {0};
+    realpath((char *)path_copy.cstr, buffer);
+    Str8 result = str8_copy(arena, str8_from_cstr(buffer));
+    arena_scratch_end(scratch);
+    return result;
+}
+
+internal Fs_File_Properties fs_file_properties_from_file_path(Str8 path)
 {
     Arena_Temp scratch = arena_scratch_begin(0, 0);
     Str8 path_copy = str8_copy(scratch.arena, path);
     struct stat f_stat = STRUCT_ZERO;
     int stat_result = stat((char *)path_copy.cstr, &f_stat);
-    Fs_Properties props = STRUCT_ZERO;
+    Fs_File_Properties props = STRUCT_ZERO;
     if(stat_result != -1)
     {
-        props = _os_linux_properties_from_stat(&f_stat);
+        props = _linux_properties_from_stat(&f_stat);
     }
     arena_scratch_end(scratch);
     return props;
 }
 
-// ak: Walk
+/// ak: Directory Operations
+
+internal bool fs_is_dir_exist(Str8 path)
+{
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    bool exists = 0;
+    Str8  path_copy = str8_copy(scratch.arena, path);
+    DIR *handle = opendir((char *)path_copy.cstr);
+    if(handle)
+    {
+        closedir(handle);
+        exists = 1;
+    }
+    arena_scratch_end(scratch);
+    return exists;
+}
+
+internal bool fs_dir_make(Str8 path)
+{
+    Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+    bool result = 0;
+    Str8 path_copy = str8_copy(scratch.arena, path);
+    if(mkdir((char *)path_copy.cstr, 0755) != -1)
+    {
+        result = 1;
+    }
+    else
+    {
+        // match windows behavior
+        result = fs_file_path_exists(path);
+    }
+    arena_scratch_end(scratch);
+    return result;
+}
+
+/// ak: File System Walk
 
 internal Fs_Walk *fs_walk_begin(Arena *arena, Str8 path, Fs_Walk_Flags flags)
 {
     Fs_Walk *base_walk = arena_push(arena, Fs_Walk, 1);
     base_walk->flags = flags;
-    _Os_Linux_Walk *walk = (_Os_Linux_Walk *)base_walk->memory;
+    _Linux_Walk *walk = (_Linux_Walk *)base_walk->memory;
     {
         Str8 path_copy = str8_copy(arena, path);
         walk->dir = opendir((char *)path_copy.cstr);
@@ -394,7 +457,7 @@ internal Fs_Walk *fs_walk_begin(Arena *arena, Str8 path, Fs_Walk_Flags flags)
 internal bool fs_walk_next(Arena *arena, Fs_Walk *walk, Fs_Info *info_out)
 {
     bool good = 0;
-    _Os_Linux_Walk *linux_walk = (_Os_Linux_Walk *)walk->memory;
+    _Linux_Walk *linux_walk = (_Linux_Walk *)walk->memory;
     while (true)
     {
         // ak: get next entry
@@ -425,7 +488,7 @@ internal bool fs_walk_next(Arena *arena, Fs_Walk *walk, Fs_Info *info_out)
             info_out->name = str8_copy(arena, str8_from_cstr(linux_walk->dp->d_name));
             if (stat_result != -1)
             {
-                info_out->props = _os_linux_properties_from_stat(&st);
+                info_out->props = _linux_properties_from_stat(&st);
             }
             break;
         }
@@ -440,57 +503,11 @@ internal bool fs_walk_next(Arena *arena, Fs_Walk *walk, Fs_Info *info_out)
 
 internal void fs_walk_end(Fs_Walk *walk)
 {
-    _Os_Linux_Walk *linux_walk = (_Os_Linux_Walk *)walk->memory;
+    _Linux_Walk *linux_walk = (_Linux_Walk *)walk->memory;
     closedir(linux_walk->dir);
 }
 
-// ak: Directory Operations
-
-internal bool fs_is_dir_exist(Str8 path)
-{
-    struct stat st;
-    int result = stat((const char*)path.cstr, &st);
-    return (result == 0) && S_ISDIR(st.st_mode);
-}
-
-internal bool fs_dir_make(Str8 path)
-{
-    int result = mkdir((const char *)path.cstr, 0700);
-    return result == 0;
-}
-
-// ak: Exists
-
-internal bool fs_file_path_exists(Str8 path)
-{
-    Arena_Temp scratch = arena_scratch_begin(0, 0);
-    Str8 path_copy = str8_copy(scratch.arena, path);
-    int access_result = access((char *)path_copy.cstr, F_OK);
-    bool result = 0;
-    if(access_result == 0)
-    {
-        result = 1;
-    }
-    arena_scratch_end(scratch);
-    return result;
-}
-
-internal bool fs_dir_path_exists(Str8 path)
-{
-    Arena_Temp scratch = arena_scratch_begin(0, 0);
-    bool exists = 0;
-    Str8  path_copy = str8_copy(scratch.arena, path);
-    DIR *handle = opendir((char *)path_copy.cstr);
-    if(handle)
-    {
-        closedir(handle);
-        exists = 1;
-    }
-    arena_scratch_end(scratch);
-    return exists;
-}
-
-// ak: Time ===================================================================
+//- ak: Time ===================================================================
 
 internal uint32_t time_now_unix(void)
 {
@@ -506,26 +523,37 @@ internal uint64_t time_now_us(void)
     return result;
 }
 
-// ak: Terminal ===============================================================
-
-internal bool term_is_terminal(Fs_File file)
-{
-    int result = isatty(file);
-    return result;
-}
-
 //~ ak: Processes =============================================================
 
-//- ak: Process Info
+/// ak: Process Management
 
-internal Str8 current_path_get(Arena *arena)
+internal void process_sleep_us(uint64_t microsec)
+{
+    struct timespec ts;
+    ts.tv_sec = (time_t)(microsec / Million(1));
+    ts.tv_nsec = (long)((microsec % Million(1)) * Thousand(1));
+    nanosleep(&ts, NULL);
+}
+
+internal void process_sleep_ms(uint32_t millisec)
+{
+    usleep(millisec*Thousand(1));
+}
+
+internal void process_exit(int32_t exit_code)
+{
+    exit(exit_code);
+}
+
+/// ak: Process Info
+
+internal Str8 process_path_get(Arena *arena)
 {
     char *cwdir = getcwd(0, 0);
     Str8 string = str8_copy(arena, str8_from_cstr(cwdir));
     free(cwdir);
     return string;
 }
-
 
 internal uint32_t process_start_time_unix_get(void)
 {
@@ -543,7 +571,7 @@ internal uint32_t process_start_time_unix_get(void)
     return (uint32_t)start_time;
 }
 
-//- ak: Child Processes
+/// ak: Child Processes
 
 internal Process process_init(Process_Launch_Params *params)
 {
@@ -552,40 +580,40 @@ internal Process process_init(Process_Launch_Params *params)
     int file_actions_init_code = posix_spawn_file_actions_init(&file_actions);
     if(file_actions_init_code == 0)
     {
-        Arena_Temp scratch = arena_scratch_begin(NULL, 0);
+        Arena_Temp scratch = arena_scratch_begin(0, 0);
         if(params->path.size != 0)
         {
             int chdir_code = posix_spawn_file_actions_addchdir_np(&file_actions, (char *)cstr_push(params->path, scratch.arena).cstr);
             Assert(chdir_code == 0);
         }
-        if(params->stdout_file != 0)
+        if(!fs_file_is_zero(params->stdout_file))
         {
-            int stdout_code = posix_spawn_file_actions_adddup2(&file_actions, (int)params->stdout_file, STDOUT_FILENO);
+            int stdout_code = posix_spawn_file_actions_adddup2(&file_actions, (int)params->stdout_file.id[0], STDOUT_FILENO);
             Assert(stdout_code == 0);
         }
-        if(params->stderr_file != 0)
+        if(!fs_file_is_zero(params->stderr_file))
         {
-            int stderr_code = posix_spawn_file_actions_adddup2(&file_actions, (int)params->stderr_file, STDERR_FILENO);
+            int stderr_code = posix_spawn_file_actions_adddup2(&file_actions, (int)params->stderr_file.id[0], STDERR_FILENO);
             Assert(stderr_code == 0);
         }
-        if(params->stdin_file != 0)
+        if(!fs_file_is_zero(params->stdin_file))
         {
-            int stdin_code = posix_spawn_file_actions_adddup2(&file_actions, (int)params->stdin_file, STDIN_FILENO);
+            int stdin_code = posix_spawn_file_actions_adddup2(&file_actions, (int)params->stdin_file.id[0], STDIN_FILENO);
             Assert(stdin_code == 0);
         }
         Fs_File std_files[] = { params->stdout_file, params->stderr_file, params->stdin_file };
         for EachIndex(i, ArrayLength(std_files))
         {
-            int fd = std_files[i];
-            bool is_unique = (std_files[i] != 0);
-            for EachIndex(j, i) { is_unique &= (std_files[i] != 0); }
+            int fd = (int)std_files[i].id[0];
+            bool is_unique = !fs_file_is_zero(std_files[i]);
+            for EachIndex(j, i) { is_unique &= !fs_file_match(std_files[i], std_files[j]); }
             if(is_unique && fd > STDERR_FILENO)
             {
                 int close_code = posix_spawn_file_actions_addclose(&file_actions, fd);
                 Assert(close_code == 0);
             }
         }
-        posix_spawnattr_t attr = STRUCT_ZERO;
+        posix_spawnattr_t attr = {0};
         int attr_init_code = posix_spawnattr_init(&attr);
         if(attr_init_code == 0)
         {
@@ -611,7 +639,7 @@ internal Process process_init(Process_Launch_Params *params)
             char **envp = 0;
             if(params->inherit_env)
             {
-                envp = _os_linux_state.default_env;
+                envp = _linux_state.default_env;
             }
             else
             {
@@ -649,15 +677,13 @@ internal Process process_init(Process_Launch_Params *params)
     return process;
 }
 
-    internal uint64_t
-pid_from_process(Process process)
+internal uint64_t pid_from_process(Process process)
 {
     uint32_t result = process.id[0];
     return result;
 }
 
-    internal bool
-process_poll(Process process, uint64_t *exit_code_out)
+internal bool process_poll(Process process, uint64_t *exit_code_out)
 {
     if(process_match(process, StructZeroType(Process))) { return 0; }
     siginfo_t info = STRUCT_ZERO;
@@ -669,16 +695,14 @@ process_poll(Process process, uint64_t *exit_code_out)
     return result;
 }
 
-    internal bool
-process_is_active(Process process)
+internal bool process_is_active(Process process)
 {
     bool result = !process_match(process, StructZeroType(Process)) &&
         !process_poll(process, 0) && kill((pid_t)process.id[0], 0) == 0;
     return result;
 }
 
-    internal bool
-process_join(Process process, uint64_t endt_us, uint64_t *exit_code_out)
+internal bool process_join(Process process, uint64_t endt_us, uint64_t *exit_code_out)
 {
     bool result = 0;
 
@@ -686,7 +710,7 @@ process_join(Process process, uint64_t endt_us, uint64_t *exit_code_out)
     for(;;)
     {
         int status = 0;
-        pid_t wait_result = LNX_RETRY_ON_EINTR(waitpid(pid, &status, (endt_us == max_u64) ? 0 : WNOHANG));
+        pid_t wait_result = _LinuxRetryOnEintr(waitpid(pid, &status, (endt_us == max_u64) ? 0 : WNOHANG));
 
         if((wait_result == pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
         {
@@ -718,38 +742,31 @@ internal void process_detach(Process process)
     // no need to close pid
 }
 
-    internal bool
-process_kill(Process process)
+internal bool process_kill(Process process)
 {
     int error_code = kill((pid_t)process.id[0], SIGKILL);
     bool is_killed = error_code == 0;
     return is_killed;
 }
 
-    internal bool
-process_send_ctrl_c(Process process)
+internal bool process_send_ctrl_c(Process process)
 {
     bool result = !process_match(process, StructZeroType(Process)) && kill((pid_t)process.id[0], SIGINT) == 0;
     return result;
 }
 
-typedef struct LNX_Process_Group LNX_Process_Group;
-struct LNX_Process_Group
-{
-    pid_t pid;
-    bool kill_on_close;
-};
+/// ak: Processes Group
 
 internal Process_Group process_group_make(bool kill_on_close)
 {
-    LNX_Process_Group *group = malloc(sizeof(*group));
-    if(group != 0) { *group = (LNX_Process_Group){ .kill_on_close = kill_on_close }; }
+    _Linux_Process_Group *group = malloc(sizeof(*group));
+    if(group != 0) { *group = (_Linux_Process_Group){ .kill_on_close = kill_on_close }; }
     return (Process_Group){ .id[0] = (uint64_t)group };
 }
 
 internal bool process_group_add(Process_Group group, Process process)
 {
-    LNX_Process_Group *lnx_group = (LNX_Process_Group *)group.id[0];
+    _Linux_Process_Group *lnx_group = (_Linux_Process_Group *)group.id[0];
     if(lnx_group == 0 || lnx_group->pid != 0 || process_match(process, StructZeroType(Process))) { return 0; }
     lnx_group->pid = (pid_t)process.id[0];
     return 1;
@@ -757,7 +774,7 @@ internal bool process_group_add(Process_Group group, Process process)
 
 internal void process_group_close(Process_Group group)
 {
-    LNX_Process_Group *lnx_group = (LNX_Process_Group *)group.id[0];
+    _Linux_Process_Group *lnx_group = (_Linux_Process_Group *)group.id[0];
     if(lnx_group != 0)
     {
         if(lnx_group->kill_on_close && lnx_group->pid != 0)
@@ -766,4 +783,71 @@ internal void process_group_close(Process_Group group)
         }
         free(lnx_group);
     }
+}
+
+//~ ak: OS Entry Points
+//=============================================================================
+
+int main(int argc, char *argv[])
+{
+    // ak: get statically-allocated system/process info
+    {
+        uint64_t pages     = (uint64_t)sysconf(_SC_PHYS_PAGES);
+        size_t page_size   = (size_t)sysconf(_SC_PAGESIZE);
+        size_t commit_size = (size_t)sysconf(_SC_AVPHYS_PAGES);
+
+        System_Info *info = &_os_state.system_info;
+        info->logical_processor_count = (size_t)get_nprocs();
+        info->page_size               = (size_t)getpagesize();
+        info->large_page_size         = MB(2);
+        info->allocation_granularity  = info->page_size;
+        info->physical_memory_size    = pages * page_size;
+    }
+    {
+        Process_Info *info = &_os_state.process_info;
+        info->pid = (uint32_t)getpid();
+    }
+    
+    // ak: set up dynamically allocated state
+    _linux_state.arena = arena_alloc();
+    
+    // ak: make array of args
+    {
+        _os_state.args = array_alloc(_linux_state.arena, Str8_Array, (size_t)argc, 0);
+        for (int i = 0; i < argc; i++)
+        {
+            Str8 str = str8_from_cstr(argv[i]);
+            array_append(&_os_state.args, str);
+        }
+    }
+    
+    // ak: get system/process info
+    Process_Info *info = &_os_state.process_info;
+    info->pid = (uint32_t)getpid();
+    
+    // ak: cache default environment
+    {
+        size_t env_count = 0;
+        for(; __environ[env_count] != 0; env_count += 1) {}
+
+        char **default_env = arena_push(_linux_state.arena, char *, env_count+1);
+        for EachIndex(idx, env_count)
+        {
+            Str8 entry = str8_copy(_linux_state.arena, str8_from_cstr(__environ[idx]));
+            default_env[idx] = (char *)entry.cstr;
+            str8_list_push(_linux_state.arena, &_os_state.process_info.environment, entry);
+        }
+        default_env[env_count] = 0;
+
+        _linux_state.default_env_count = env_count;
+        _linux_state.default_env       = default_env;
+    }
+    
+    // ak: initialize stdout/stdin/stderr
+    FS_STDIN = HandlePack(Fs_File, 0);
+    FS_STDOUT = HandlePack(Fs_File, 1);
+    FS_STDERR = HandlePack(Fs_File, 2);
+     
+    // ak: os entry point
+    return os_main();
 }

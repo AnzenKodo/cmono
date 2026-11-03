@@ -6,38 +6,28 @@
 #ifndef OS_CORE_H
 #define OS_CORE_H
 
-// ak: External Includes
+//~ ak: Types
 //=============================================================================
 
-#include <fcntl.h>
-#include <errno.h>
+typedef struct System_Info System_Info;
+struct System_Info
+{
+    uint32_t logical_processor_count;
+    size_t page_size;
+    size_t large_page_size;
+    uint64_t allocation_granularity;
+    size_t physical_memory_size;
+    Str8 machine_name;
+};
 
-// ak: Functions
+//~ ak: Functions
 //=============================================================================
 
-// ak: Memory =================================================================
+//~ ak: Os Core Functions =====================================================
 
-internal size_t os_pagesize_get(void);
+internal System_Info *os_system_info_get(void);
 
-// ak: Exit ===================================================================
-
-internal void os_exit(int32_t exit_code);
-
-// ak: Sleep ==================================================================
-
-internal void os_sleep_us(uint64_t microsec);
-internal void os_sleep_ms(uint32_t millisec);
-
-// ak: Command-Line Operations ================================================
-
-internal Str8 os_program_path_get(void);
-
-// ak: Environment Variable ===================================================
-
-internal bool os_is_env_exists(Str8 name);
-internal Str8 os_env_get(Str8 name);
-
-// ak: OS Entry Points ========================================================
+//- ak: OS Entry Points =======================================================
 
 internal int32_t os_main(void);
 

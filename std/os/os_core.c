@@ -1,30 +1,40 @@
-//~ ak: State
+//~ ak: Private Types
 //=============================================================================
 
-typedef struct _Os_Core_State _Os_Core_State;
-struct _Os_Core_State
+typedef struct _Os_State _Os_State;
+struct _Os_State
 {
     Str8_Array args;
-    Str8 data_home;
     Process_Info process_info;
+    System_Info system_info;
 };
 
-global _Os_Core_State _os_core_state = STRUCT_ZERO;
-
-// ak: File
+//~ ak: Private Globals
 //=============================================================================
 
-internal Str8 os_get_data_home_path(void)
+global _Os_State _os_state = STRUCT_ZERO;
+
+//~ ak: Os Core Functions
+//=============================================================================
+
+internal System_Info *os_system_info_get(void)
 {
-    return _os_core_state.data_home;
+    return &_os_state.system_info;
 }
 
-// ak: Command-Line Operations
+//~ ak: Os Functions for Base Layer
 //=============================================================================
 
-internal Str8 os_program_path_get(void)
+//- ak: Processes =============================================================
+
+internal Process_Info *process_info_get(void)
 {
-    return _os_core_state.args.v[0];
+    return &_os_state.process_info;
+}
+
+internal Str8_Array *process_args_get(void)
+{
+    return &_os_state.args;
 }
 
 // ak: OS Entry Points
@@ -36,21 +46,4 @@ internal int32_t os_main(void)
     int exit_code = base_main();
     log_free(log_trace_g);
     return exit_code;
-}
-
-//~ ak: Os Functions for Base Layer
-//=============================================================================
-
-//- ak: Terminal ==============================================================
-
-internal Str8_Array *term_args_get(void)
-{
-    return &_os_core_state.args;
-}
-
-//- ak: Processes =============================================================
-
-internal Process_Info *process_info_get(void)
-{
-    return &_os_core_state.process_info;
 }
