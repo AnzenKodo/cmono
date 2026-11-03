@@ -605,7 +605,7 @@ internal Audio_Wave audio_wave_load(Str8 file_name)
     Audio_Wave wave = STRUCT_ZERO;
     
     Arena_Temp scratch = arena_scratch_begin(NULL, 0);
-    U8Array file_data = fs_file_path_read_full(file_name, scratch.arena);
+    U8Array file_data = fs_read_data_from_file_path(file_name, scratch.arena);
     if (file_data.v != NULL)
     {
         wave = audio_wave_load_from_memory(str8_skip_last_dot(file_name), file_data);
@@ -846,7 +846,7 @@ internal bool audio_wave_export_to_file(Audio_Wave wave, Str8 file_name)
         
         if (result == DRWAV_SUCCESS)
         {
-            result = fs_file_path_write(file_name, file_data);
+            result = fs_write_data_to_file_path(file_name, file_data);
         }
         
         drwav_free(file_data.v, NULL);
@@ -872,7 +872,7 @@ internal bool audio_wave_export_to_file(Audio_Wave wave, Str8 file_name)
     {
         // ak: Export raw sample data (without header)
         // NOTE(ak): It's up to the user to track wave parameters
-        result = fs_file_path_write(file_name, Array((uint8_t *)wave.data, wave.frame_count*wave.channels*wave.sample_size/8));
+        result = fs_write_data_to_file_path(file_name, Array((uint8_t *)wave.data, wave.frame_count*wave.channels*wave.sample_size/8));
     }
     
     if (result)
