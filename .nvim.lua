@@ -11,6 +11,8 @@ else
     build_command = "./build.c"
     cc_command = "./build/build "
 end
+extra_build_arg=""
+default_makeprg = cc_command .. "build-dry"..extra_build_arg
 
 local function make(cmd)
     vim.opt.makeprg = cmd
@@ -22,21 +24,15 @@ end
 -- ============================================================================
 
 -- NOTE(ak): run with `:make` below command
-vim.opt.makeprg = cc_command .. "build-dry"
+vim.opt.makeprg = default_makeprg
 vim.api.nvim_create_user_command("BuildRun",  function()
-    vim.opt.makeprg = cc_command .. "build-run"
-    vim.cmd('make')
-    vim.opt.makeprg = cc_command .. "build-dry"
+    make(cc_command.."build-run"..extra_build_arg)
 end, { desc = "Bootstrap build system"})
 vim.api.nvim_create_user_command("BuildBuild",  function()
-    vim.opt.makeprg = build_command
-    vim.cmd('make')
-    vim.opt.makeprg = cc_command .. "build-dry"
+    make(build_command)
 end, { desc = "Bootstrap build system"})
 vim.api.nvim_create_user_command("BuildMeta",  function()
-    vim.opt.makeprg = cc_command .. "gen-meta"
-    vim.cmd('make')
-    vim.opt.makeprg = cc_command .. "build-dry"
+    make(cc_command .. "gen-meta")
     local success = vim.v.shell_error == 0
     if (success) then
         vim.cmd('make')
