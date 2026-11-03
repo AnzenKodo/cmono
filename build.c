@@ -288,7 +288,7 @@ internal void build_compile_zig(Build_Info *info)
         }
     }
     
-    str8_list_pushf(info->arena, &info->cmd, " -DCONTEXT_TOOLCHAIN_ZIG -pipe");
+    str8_list_pushf(info->arena, &info->cmd, " -DCONTEXT_TOOLCHAIN_ZIG");
     if (info->type == Build_Type_Dev && !(info->flags & Build_Flag_MingW))
     {
         str8_list_pushf(info->arena, &info->cmd, " -lasan");
@@ -324,7 +324,7 @@ internal uint64_t build_run_program(Build_Info *info)
     Str8_List list = STRUCT_ZERO;
     if (info->flags & Build_Flag_MingW)
     {
-        str8_list_pushf(info->arena, &list, "WINEARCH=win64 wine ");
+        str8_list_pushf(info->arena, &list, "WINEDEBUG=fixme-all WINEARCH=win64 wine ");
     }
     str8_list_push(info->arena, &list, build_path(info));
     if (info->args.length > 0)
@@ -484,7 +484,7 @@ internal uint64_t base_main(void)
     Str8 config_arg = STRUCT_ZERO;
     Str8 custom_args = STRUCT_ZERO;
     
-    Str8_Array *args = term_args_get();
+    Str8_Array *args = process_args_get();
     for (uint64_t i = 1; i < args->length; i++)
     {
         Str8 arg = args->v[i];
@@ -797,14 +797,8 @@ internal Str8 build_arch_string_from_arch(Context_Arch arch)
 internal Str8 build_path(Build_Info *info)
 {
     Str8_List list = STRUCT_ZERO;
-    if (Context_Os_CURRENT == Context_Os_Windows)
-    {
-        str8_list_pushf(info->arena, &list, BUILD_DIR"\\%s8", info->name);
-    }
-    else
-    {
-        str8_list_pushf(info->arena, &list, BUILD_DIR"/%s8", info->name);
-    }
+    
+    str8_list_pushf(info->arena, &list, BUILD_DIR"/%s8", info->name);
     
     if (info->type != Build_Type_Release)
     {
